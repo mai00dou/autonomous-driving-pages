@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#05070d"/><stop offset="1" stop-color="#111a2d"/></linearGradient>
+    <radialGradient id="g1" cx="22%" cy="22%" r="36%"><stop offset="0" stop-color="#5b9dff" stop-opacity=".42"/><stop offset="1" stop-color="#5b9dff" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g2" cx="82%" cy="20%" r="38%"><stop offset="0" stop-color="#c084fc" stop-opacity=".34"/><stop offset="1" stop-color="#c084fc" stop-opacity="0"/></radialGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#5b9dff" stroke-opacity=".12"/></pattern>
+    <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1200" height="680" fill="url(#bg)"/><rect width="1200" height="680" fill="url(#g1)"/><rect width="1200" height="680" fill="url(#g2)"/><rect width="1200" height="680" fill="url(#grid)" opacity=".8"/>
+  <text x="72" y="126" fill="#e8eef9" font-size="58" font-weight="800" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Arial">DETR → PETR 系演进主线</text>
+  <text x="76" y="178" fill="#9fb0cc" font-size="30" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Arial">多视角 3D 感知范式全景 · 自动驾驶技术图谱</text>
+  <path d="M190 444 L370 334 L570 254 L780 334 L980 444" fill="none" stroke="#5b9dff" stroke-opacity=".72" stroke-width="5" filter="url(#glow)"/>
+  <g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Arial" font-size="24" font-weight="700" fill="#e8eef9">
+    <g><rect x="120" y="410" width="150" height="68" rx="18" fill="#141d33" stroke="#60a5fa" stroke-width="3"/><text x="145" y="452">DETR</text></g>
+    <g><rect x="300" y="300" width="150" height="68" rx="18" fill="#141d33" stroke="#34d399" stroke-width="3"/><text x="322" y="342">DETR3D</text></g>
+    <g><rect x="500" y="220" width="150" height="68" rx="18" fill="#141d33" stroke="#fbbf24" stroke-width="3"/><text x="548" y="262">PETR</text></g>
+    <g><rect x="710" y="300" width="170" height="68" rx="18" fill="#141d33" stroke="#fb923c" stroke-width="3"/><text x="735" y="342">BEVFormer</text></g>
+    <g><rect x="920" y="410" width="170" height="68" rx="18" fill="#141d33" stroke="#c084fc" stroke-width="3"/><text x="950" y="452">Sparse4D</text></g>
+  </g>
+  <rect x="76" y="560" width="324" height="52" rx="26" fill="#5b9dff" fill-opacity=".13" stroke="#5b9dff" stroke-opacity=".65"/><text x="104" y="594" fill="#c6dcff" font-size="22" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Arial">3D Perception / BEV / Sparse</text>
+</svg>
