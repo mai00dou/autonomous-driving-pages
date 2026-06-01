@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#05070d"/><stop offset="1" stop-color="#121b2f"/></linearGradient>
+    <radialGradient id="g1" cx="24%" cy="28%" r="38%"><stop offset="0" stop-color="#34d399" stop-opacity=".36"/><stop offset="1" stop-color="#34d399" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g2" cx="78%" cy="30%" r="42%"><stop offset="0" stop-color="#fbbf24" stop-opacity=".28"/><stop offset="1" stop-color="#fbbf24" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g3" cx="64%" cy="82%" r="38%"><stop offset="0" stop-color="#5b9dff" stop-opacity=".26"/><stop offset="1" stop-color="#5b9dff" stop-opacity="0"/></radialGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#5b9dff" stroke-opacity=".11"/></pattern>
+    <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1200" height="680" fill="url(#bg)"/><rect width="1200" height="680" fill="url(#g1)"/><rect width="1200" height="680" fill="url(#g2)"/><rect width="1200" height="680" fill="url(#g3)"/><rect width="1200" height="680" fill="url(#grid)" opacity=".8"/>
+  <text x="72" y="126" fill="#e8eef9" font-size="58" font-weight="800" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Arial">AI 论文解读方法论</text>
+  <text x="76" y="178" fill="#9fb0cc" font-size="30" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Arial">从 PDF、图表、公式到源码级技术文档的标准流程</text>
+  <path d="M190 384 L400 334 L610 384 L820 334 L1030 384" fill="none" stroke="#34d399" stroke-opacity=".7" stroke-width="5" filter="url(#glow)"/>
+  <g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Arial" font-size="23" font-weight="700" fill="#e8eef9">
+    <g><rect x="110" y="350" width="160" height="68" rx="18" fill="#141d33" stroke="#34d399" stroke-width="3"/><text x="134" y="393">PDF 完好性</text></g>
+    <g><rect x="320" y="300" width="160" height="68" rx="18" fill="#141d33" stroke="#fbbf24" stroke-width="3"/><text x="352" y="343">图表抽取</text></g>
+    <g><rect x="530" y="350" width="160" height="68" rx="18" fill="#141d33" stroke="#60a5fa" stroke-width="3"/><text x="562" y="393">源码核对</text></g>
+    <g><rect x="740" y="300" width="160" height="68" rx="18" fill="#141d33" stroke="#c084fc" stroke-width="3"/><text x="772" y="343">飞书归档</text></g>
+    <g><rect x="950" y="350" width="160" height="68" rx="18" fill="#141d33" stroke="#fb923c" stroke-width="3"/><text x="982" y="393">复盘沉淀</text></g>
+  </g>
+  <rect x="76" y="560" width="404" height="52" rx="26" fill="#34d399" fill-opacity=".12" stroke="#34d399" stroke-opacity=".6"/><text x="104" y="594" fill="#c8ffe6" font-size="22" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Arial">Paper Reading / Code Review / Archive</text>
+</svg>
