@@ -8,3 +8,4 @@ GitHub Pages 静态网页统一目录。
 - `/autonomous-driving/`：自动驾驶索引页
   - `/autonomous-driving/detr-petr-lineage/`：DETR 到 PETR 系演进主线 PPT
   - `/autonomous-driving/ai-paper-reading-methodology/`：AI 论文解读方法论
+  - `/autonomous-driving/3d-object-detection/`：飞书 3D 目标检测知识库静态镜像（17 篇）

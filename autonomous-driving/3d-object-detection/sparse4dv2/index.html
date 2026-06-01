@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Sparse4D v2：Recurrent Temporal Fusion 递归时序融合稀疏检测 | 3D 目标检测</title><style>:root{--bg:#0b1020;--panel:#121a2f;--panel2:#17223d;--text:#e8edf7;--muted:#9fb0cc;--line:#263653;--brand:#8bd3ff;--accent:#ffd166;--green:#74d99f;--code:#0a0f1d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,#19274a 0,#0b1020 38%,#070b14 100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;line-height:1.72}.wrap{max-width:1120px;margin:0 auto;padding:36px 20px 64px}.topbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:24px}.crumb,.pill{font-size:13px;color:var(--muted)}.crumb a,.meta a,.card a,.nav a{color:var(--brand);text-decoration:none}.hero{padding:34px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,rgba(18,26,47,.96),rgba(16,31,59,.86));box-shadow:0 24px 80px rgba(0,0,0,.28)}h1{font-size:clamp(28px,4vw,46px);line-height:1.18;margin:0 0 16px}h2{font-size:26px;margin:42px 0 14px;padding-top:8px;border-top:1px solid var(--line)}h3{font-size:20px;margin:28px 0 10px;color:#d9e8ff}p{margin:12px 0}.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.pill{border:1px solid var(--line);background:rgba(255,255,255,.04);padding:6px 10px;border-radius:999px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;margin-top:24px}.content{background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:22px;padding:28px}.toc{position:sticky;top:18px;align-self:start;background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:18px;padding:18px;max-height:calc(100vh - 36px);overflow:auto}.toc strong{display:block;margin-bottom:10px}.toc a{display:block;color:var(--muted);text-decoration:none;font-size:13px;padding:4px 0}.toc a:hover{color:var(--brand)}pre{background:var(--code);border:1px solid var(--line);border-radius:14px;padding:16px;overflow:auto;white-space:pre-wrap;word-break:break-word}code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;color:#d6e8ff}.figure{border:1px dashed #3a4d73;background:rgba(139,211,255,.06);border-radius:14px;padding:14px;margin:16px 0;color:#b9c9e6}.tableish{border-left:3px solid var(--accent);padding:8px 14px;background:rgba(255,209,102,.06);border-radius:10px}.nav{display:flex;justify-content:space-between;gap:14px;margin-top:24px}.nav a{flex:1;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.04)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:22px}.card{border:1px solid var(--line);border-radius:18px;background:rgba(18,26,47,.76);padding:18px;min-height:150px}.card h3{margin-top:0}.card p{color:var(--muted);font-size:14px}.badge{display:inline-block;color:#06101d;background:var(--green);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700}.warn{border:1px solid rgba(255,209,102,.35);background:rgba(255,209,102,.08);border-radius:14px;padding:12px 14px;color:#ffe8a3}@media(max-width:900px){.layout{grid-template-columns:1fr}.toc{position:relative;top:auto}.hero{padding:24px}.content{padding:20px}}</style></head>
+<body><div class="wrap"><div class="topbar"><span class="crumb"><a href="../../../index.html">首页</a> / <a href="../../index.html">自动驾驶</a> / <a href="../index.html">3D 目标检测</a></span></div>
+<section class="hero"><h1>Sparse4D v2：Recurrent Temporal Fusion 递归时序融合稀疏检测</h1><p>从飞书知识库导出的静态 HTML 首版。正文保留原文结构、代码片段与图表文件名；复杂飞书表格/图片以占位形式展示，并提供原文回跳。</p><div class="meta"><span class="pill">来源：飞书知识库纯文本导出</span><span class="pill">更新：2026-06-02</span><span class="pill"><a href="https://tzscglpsd7.feishu.cn/wiki/CqMRw1nsqistPnkdu0DcppPAn2d" target="_blank" rel="noopener">飞书原文</a></span></div></section>
+<nav class="nav"><a href="../sparse4d/">← 上一篇：Sparse4D (v1)：稀疏时空融合的多视角 3D 目标检测 </a><a href="../far3d/">下一篇：Far3D：用2D先验扩展环视3D检测的远距离感知（PETR谱系·第10篇） →</a></nav>
+<div class="layout"><main class="content"><p>Sparse4D v2：Recurrent Temporal Fusion 递归时序融合稀疏检测<br>Sparse4D v2：Recurrent Temporal Fusion 递归时序融合稀疏检测<br>论文：Sparse4D v2: Recurrent Temporal Fusion with Sparse Model<br>作者：Xuewu Lin, Tianwei Lin, Zixiang Pei, Lichao Huang, Zhizhong Su（林晓林 等）<br>机构：Horizon Robotics（地平线）, Beijing, China<br>arXiv：2305.14018v2（v2: 2023-05-24）<br>Code &amp; Weights：https://github.com/HorizonRobotics/Sparse4D（main 分支为 v2/v3 集成版）<br>解读对象：PDF 主体 10 页 + 仓库 projects/mmdet3d_plugin（instance_bank.py / sparse4d_head.py / blocks.py / detection3d_blocks.py / deformable_aggregation.py）<br>谱系定位：PETR 谱系战役第 9 篇。DETR → DETR3D → PETR → BEVFormer → BEVDet4D → PETRv2 → BEVFusion → StreamPETR → Sparse4D(v1) → Sparse4D v2（本篇）。<br>一句话定位：把 Sparse4D v1 的「多帧采样融合（O(T)，显存随帧数线性涨）」升级为 instance bank 递归时序融合（O(1)，恒定开销、可建模任意长历史），并配套三项工程改进（EDA 高效可变形聚合算子、相机参数编码、稠密深度监督），在 nuScenes 上达到 SOTA 且推理更快。</p>
+<h2 id="1-研究背景与动机">1. 研究背景与动机</h2>
+<h3 id="11-为什么坚持稀疏路线">1.1 为什么坚持稀疏路线</h3>
+<p>自动驾驶感知模块的核心是高效融合多视图与时序特征。当下主流是 BEV-based 算法（BEVFormer、BEVDet、BEVDepth、SOLOFusion 等），它们把图像特征变换到 BEV 稠密向量空间再做检测。作者认为 BEV 路线并非最优解，原因有三：<br>稠密变换无额外收益：把图像特征重排到 BEV 空间只是「换了个坐标系」，没有引入新信息，却增加了模型复杂度。<br>感知范围/精度/算力难平衡：不同场景（高速、城区、乡村）需要不同的 BEV 网格参数，难以统一权衡。<br>端到端不友好：稀疏算法产出的 instance 特征（object-centric）更容易与 transformer 等图模型衔接，天然适配端到端自动驾驶。<br>PETR 系列虽抛弃了 BEV、用 query + 3D 位置编码，但它用的是全局注意力，计算量受图像分辨率显著影响，本质上不算「纯稀疏」算法。因此作者选择 Sparse4D v1（DETR3D 谱系，稀疏 query + 稀疏特征采样，head 计算量与图像分辨率无关）作为 baseline 继续改进。</p>
+<h3 id="12-v1-的痛点多帧采样融合ot-显存爆炸">1.2 v1 的痛点：多帧采样融合，O(T) 显存爆炸</h3>
+<p>Sparse4D v1 的时序模块有一个显著缺陷：它需要先采样多帧历史数据，再做特征融合（见 Figure 1(a)）。每来一帧，都要把当前帧的 anchor 关键点重新投影到每一个历史帧上、逐帧采样、再用全连接网络融合。<br>这带来三个问题：<br>计算复杂度随历史帧数 线性增长 O(T)，推理/训练速度都下降；<br>GPU 显存随帧数线性上涨（见 Table 1，V100/3090 上实测帧数越多显存越大）；<br>难以有效引入长时序特征（帧数受显存上限约束，实际只能用约 10 帧）。<br>v2 的解法：把多帧采样换成 recurrent 递归方式，借鉴 query-based tracker 和 StreamPETR——只传播稀疏的 instance 特征。复杂度从 O(T) 降到 O(1)，既提速降显存，又能融合长时信息。下图（Figure 1）直观对比了两种时序融合范式。<br>paper-Figure1-1.png</p>
+<p>Figure 1：两种时序融合范式对比。(a) Sparse4D v1 把当前帧 anchor 投影到每个历史帧、多帧采样后融合；(b) Sparse4D v2 通过 instance 特征的逐帧传播完成融合。<br>下面用自绘图进一步对比 v1 多帧采样（O(T)）与 v2 递归传播（O(1)）的数据流差异：<br>temporal_compare.png</p>
+<p>自绘图：v1 多帧采样融合（O(T)，显存随帧数线性增长）vs v2 递归时序融合（O(1)，恒定开销，可建模任意长历史）。</p>
+<h2 id="2-核心问题分析">2. 核心问题分析</h2>
+<h3 id="21-相机-3d-检测的三条路线">2.1 相机 3D 检测的三条路线</h3>
+<p>相机-only 3D 检测的核心是从 2D 图像估计目标的深度/3D 坐标，分三条路线：<br>单目 3D：病态问题，靠神经网络拟合能力从单图回归相机坐标系深度（FCOS3D、SMOKE 等）。<br>双目 3D：两个有大重叠角的相机，用特征点匹配 + 方程联合优化或构建 cost volume 求深度（MVSNet）。<br>多视图 3D：重叠比例介于单目与双目之间，是自动驾驶/机器人最关注的方向，靠多视图 + 时序融合提升深度估计精度。Sparse4D 属于这条路线。</p>
+<h3 id="22-多视图特征融合的两大流派">2.2 多视图特征融合的两大流派</h3>
+<p>流派</p>
+<p>代表</p>
+<p>做法</p>
+<p>痛点</p>
+<p>稠密 BEV</p>
+<p>LSS / BEVDet / BEVDepth</p>
+<p>深度估计把图像特征投到 3D，在 BEV 平面稠密融合</p>
+<p>计算量取决于特征图分辨率与 BEV 尺寸</p>
+<p>稠密 BEV（注意力）</p>
+<p>BEVFormer</p>
+<p>3D→2D 反投影 + deformable attention 在 BEV 融合</p>
+<p>需输出稠密 BEV，query 数大（如 200×200），训推效率受限</p>
+<p>全局注意力 query</p>
+<p>PETR 系列</p>
+<p>抛弃 BEV，稀疏 query + 3D 位置编码，全局 attention</p>
+<p>效率受图像分辨率显著影响，难处理超高分辨率（&gt;4K）</p>
+<p>纯稀疏采样</p>
+<p>DETR3D / Sparse4D</p>
+<p>稀疏 query + 稀疏特征采样，head 计算量与分辨率无关</p>
+<p>相比稠密算法有一定性能差距<br>Sparse4D 走的是「纯稀疏采样」，理论计算效率高，v2 的目标就是把它的性能追平甚至超过稠密 BEV 算法。</p>
+<h3 id="23-时序融合的演进脉络">2.3 时序融合的演进脉络</h3>
+<p>两帧融合起步：BEVDepth、BEVDet4D 缓存上一帧 BEV 特征、warp 到当前帧再 concat；PETRv2 把前后帧特征都作为 cross-attention 的 key。<br>长时序融合：Sparse4D v1 用 4D 关键点跨多帧采样、FC 融合；SOLOFusion 用最长 16 帧的滑动窗口缓存多帧特征，性能大涨。<br>递归化（关键转折）：VideoBEV 把 SOLOFusion 的并行融合改成 recurrent 形式降复杂度；StreamPETR 用稀疏 query 在时间维递归传播特征，达到 SOTA。<br>Sparse4D v2 正是把 StreamPETR 式的 object-centric 递归传播思想，引入到 Sparse4D 的稀疏 deformable 采样框架里——这是它和 StreamPETR 的本质区别：两者都做递归传播，但 Sparse4D 用 deformable 多点采样融合特征，而非 PETR 的全局/局部注意力。</p>
+<h2 id="3-技术架构详解">3. 技术架构详解</h2>
+<h3 id="31-整体框架overall-framework">3.1 整体框架（Overall Framework）</h3>
+<p>Sparse4D v2 是一个 encoder-decoder 结构（见 Figure 2）。输入三部分：多视图图像、相机参数、上一帧传来的 instance 信息；输出是当前帧精修后的 instances（anchor + 对应 feature），其中一部分高分 instance 被选出来作为下一帧的输入。<br>整体数据流：<br>Encoder（图像编码器）：多视图图像经 backbone（ResNet50/101 或 VoVNet-99）+ FPN，提取多视图多尺度特征图  ，其中   是视图数（6），  是尺度数。<br>Decoder（稀疏解码器）：由 1 个单帧层（single-frame layer）+ 5 个多帧层（multi-frame layer） 组成。<br>单帧层含三个子模块：deformable aggregation、FFN、refine/分类输出层；<br>多帧层在此基础上多两个 multi-head attention：temporal cross-attention（时序交叉注意力，融合历史 instance） 和 self-attention（instance 间交互）。<br>流转逻辑：先初始化一组 instance（anchor box + feature 向量），用单帧层 refine + 打分，选出前景置信度最高的 instance 作为多帧层输入；多帧层的输入 instance 既来自单帧层，也来自历史帧的输出；多帧层输出即当前帧检测结果，再选高分 instance 喂给下一帧。每层 anchor 数量恒定（不随时序增加），所以推理速度与非时序模型相当。<br>下图 Figure 2 是论文给出的整体框架图：<br>paper-Figure2-1.png</p>
+<p>Figure 2：Sparse4D v2 整体框架，encoder-decoder 结构。输入 = 多视图图像 + 相机参数 + 上一帧 instance；输出 = 当前帧精修 instances，其中一部分被选出作为下一帧输入。<br>下面是自绘的整体架构数据流图（含 DenseDepthNet 训练辅助分支与 instance bank 递归回路）：<br>arch_overall.png</p>
+<p>自绘整体架构图：多视图图像 → backbone/FPN → 多尺度特征；DenseDepthNet 训练辅助；instance bank 把上一帧 Top-K instance（detach 后）递归喂入；解码器 temp_gnn/gnn/EDA/FFN/refine 输出当前帧结果，再选 Top-K 回流到下一帧（O(1) 递归回路，红色）。</p>
+<h3 id="32-instance-时序传播核心创新v1v2-范式转变">3.2 Instance 时序传播（核心创新，v1→v2 范式转变）</h3>
+<p>这是 v2 区别于 v1 的根本所在。在 Sparse4D 里，一个 instance 由三部分表示：<br>Anchor：结构化信息，描述 instance 的物理状态（3D 检测里就是 3D 框 [x,y,z,w,l,h,sin yaw,cos yaw,vx,vy,vz]），有明确物理含义。<br>Instance feature：从图像编码器抽取的高阶语义特征。<br>Anchor embedding：anchor 经一个小的 anchor encoder   编码到高维空间的特征。<br>这个设计把「图像特征」和「结构化状态」完全解耦，所以加先验知识很方便。时序传播时只需投影 anchor、重新编码 anchor embedding，而 instance feature 保持不变：</p>
+<p>其中   是 anchor，  是 anchor embedding，  是 instance feature，  是 anchor encoder。对 3D 检测，anchor 投影函数（ego-motion 对齐）为：</p>
+<p>其中   是帧间时间间隔， 、  是自车从   到   的旋转矩阵与平移。这种「anchor 投影 + feature 不变」的设计可推广到任意感知任务（如 3D 车道线只需把 anchor 定义为 polyline、改投影函数即可）。<br>工作流概述（细节见下图）：第一帧用单帧 Sparse4D 检测，输出 3D 框 + instance 特征；后续帧把上一帧输出变换到当前帧——feature 不变，anchor 借 ego motion 投影成当前帧 anchor，position embedding 经 anchor encoder 重新编码。每个 decoder 层引入 temporal cross-attention 充分利用时序 instance 特征。时序投影得到的 instance 主要负责 tracklet（已被检测跟踪多帧的目标）；新出现的目标则由单帧单层 decoder 初始化，选高分子集传到后续 decoder。 这样时序模型不增加 anchor 总数，推理速度与非时序模型相当。<br>instance_bank_flow.png</p>
+<p>自绘 Instance Bank 递归数据流：get（取历史 Top-K + ego-motion 投影）→ 单帧层选新生目标 → update（Top-K 当前 + 拼历史）→ 5× 多帧层 → cache（detach + confidence_decay + Top-K 写回）→ 下一帧。红色为 O(1) 恒定开销递归回路。</p>
+<h3 id="321-代码级拆解instancebank-的-get--update--cache">3.2.1 代码级拆解：InstanceBank 的 get / update / cache</h3>
+<pre><code>文件：projects/mmdet3d_plugin/models/instance_bank.py，类 InstanceBank。这是 v2 递归时序传播的代码落点。下面贴关键源码 + 逐段注释。
+关键超参（来自 config，v2 论文 §4.2 取值）：
+num_anchor=900：每帧 anchor 总数（论文为 900）。
+num_temp_instances=600：从历史缓存传播过来的时序 instance 数（论文：600 时序 + 300 单帧 = 900）。
+confidence_decay=0.6：历史置信度衰减系数，跨帧衰减历史 instance 的可信度。
+default_time_interval=0.5、max_time_interval=2：帧间隔默认值/上限（超出则判定时序失效）。
+feat_grad=False：缓存的 instance feature 不回传梯度（配合 detach，保证递归稳定）。
+(1) get()：取实例 + ego-motion 投影历史 anchor
+def get(self, batch_size, metas=None, dn_metas=None):
+    # 初始化一组可学习的 anchor / instance_feature（当前帧新生目标用）
+    instance_feature = torch.tile(self.instance_feature[None], (batch_size, 1, 1))
+    anchor = torch.tile(self.anchor[None], (batch_size, 1, 1))</code></pre>
+<pre><code>    if self.cached_anchor is not None and batch_size == self.cached_anchor.shape[0]:
+        # 有历史缓存：算帧间隔，超过 max_time_interval 则 mask 掉（时序失效）
+        history_time = self.metas[&quot;timestamp&quot;]
+        time_interval = metas[&quot;timestamp&quot;] - history_time
+        self.mask = torch.abs(time_interval) &lt;= self.max_time_interval</code></pre>
+<pre><code>        if self.anchor_handler is not None:
+            # 构造 temp→cur 的变换矩阵：T_global_inv(当前) @ T_global(历史)
+            T_temp2cur = self.cached_anchor.new_tensor(np.stack([
+                x[&quot;T_global_inv&quot;] @ self.metas[&quot;img_metas&quot;][i][&quot;T_global&quot;]
+                for i, x in enumerate(metas[&quot;img_metas&quot;])
+            ]))
+            # 把缓存 anchor 用 ego-motion 投影到当前帧（Equation 2 的代码实现）
+            self.cached_anchor = self.anchor_handler.anchor_projection(
+                self.cached_anchor, [T_temp2cur], time_intervals=[-time_interval],
+            )[0]
+        ...
+    else:
+        self.reset()  # 首帧或 batch 变化：清空缓存
+        time_interval = instance_feature.new_tensor([self.default_time_interval]*batch_size)</code></pre>
+<pre><code>    # 返回：当前帧新 instance + 历史缓存(temp_feature/temp_anchor) + 帧间隔
+    return (instance_feature, anchor, self.cached_feature, self.cached_anchor, time_interval)
+要点：anchor_projection 就是论文 Equation 2 的实现（在 detection3d_blocks.py 的 SparseBox3DKeyPointsGenerator.anchor_projection，对 center 做 vel × Δt 平移补偿 + R/T 刚体变换，对 yaw/vel 做旋转）。历史 anchor 投影到当前帧后，作为 temp_anchor 喂给 decoder 的 temporal cross-attention。
+(2) update()：单帧层后融合历史 instance 与当前新生 instance
+def update(self, instance_feature, anchor, confidence):
+    if self.cached_feature is None:   # 首帧无历史，直接返回
+        return instance_feature, anchor
+    ...
+    # N = 900 - 600 = 300，从当前帧 instance 里 Top-K 选 300 个新生高分目标
+    N = self.num_anchor - self.num_temp_instances
+    confidence = confidence.max(dim=-1).values
+    _, (selected_feature, selected_anchor) = topk(confidence, N, instance_feature, anchor)
+    # 拼接：[600 个历史缓存 instance] + [300 个当前新生 instance] = 900
+    selected_feature = torch.cat([self.cached_feature, selected_feature], dim=1)
+    selected_anchor  = torch.cat([self.cached_anchor,  selected_anchor],  dim=1)
+    # mask 控制：时序有效就用「历史+新生」，否则保留纯当前帧 instance
+    instance_feature = torch.where(self.mask[:, None, None], selected_feature, instance_feature)
+    anchor = torch.where(self.mask[:, None, None], selected_anchor, anchor)
+    return instance_feature, anchor
+要点：这是「单帧层负责新生目标、历史缓存负责 tracklet」设计的代码落点——单帧层先打分，update 时只保留 300 个高分新生目标，前面拼上 600 个历史 instance，进入 5 个多帧层。这保证了 anchor 总数恒定为 900，不随时序帧数膨胀。
+(3) cache()：detach 截断梯度 + confidence_decay 衰减 + Top-K 写回
+def cache(self, instance_feature, anchor, confidence, metas=None, feature_maps=None):
+    if self.num_temp_instances &lt;= 0:
+        return
+    # 关键：detach 截断梯度，递归传播不反传到历史帧（恒定显存、训练稳定）
+    instance_feature = instance_feature.detach()
+    anchor = anchor.detach()
+    confidence = confidence.detach()</code></pre>
+<pre><code>    self.metas = metas   # 存当前帧 T_global，供下一帧 get() 投影用
+    confidence = confidence.max(dim=-1).values.sigmoid()
+    if self.confidence is not None:
+        # confidence_decay：历史置信度 × 0.6 与当前取 max，让长期稳定目标维持高分
+        confidence[:, :self.num_temp_instances] = torch.maximum(
+            self.confidence * self.confidence_decay,
+            confidence[:, :self.num_temp_instances],
+        )
+    self.temp_confidence = confidence
+    # Top-K 选 num_temp_instances(600) 个 instance 缓存到 bank，等下一帧
+    (self.confidence, (self.cached_feature, self.cached_anchor)) = topk(
+        confidence, self.num_temp_instances, instance_feature, anchor)
+要点（v2 递归传播三大代码细节）：
+detach()：缓存前对 feature/anchor/confidence 全部 detach，梯度不跨帧回传——这是 recurrent 时序「恒定开销 O(1)」的关键，否则会像 v1 一样累积计算图。
+confidence_decay=0.6：历史置信度乘以衰减系数再与当前帧 max，既让长期稳定的 tracklet 保持高分被持续传播，又让消失的目标置信度逐帧衰减、最终被 Top-K 淘汰。
+Top-K 缓存 600 个：只缓存高分 instance（object-centric memory），恒定开销，与 StreamPETR 的 memory queue 思想一致。</code></pre>
+<h3 id="322-decoder-forward-如何调用-bankrecurrent-vs-v1-多帧采样的代码差异">3.2.2 decoder forward 如何调用 bank（recurrent vs v1 多帧采样的代码差异）</h3>
+<pre><code>文件：sparse4d_head.py，Sparse4DHead.forward。这里把 bank 的 get/update/cache 串进 decoder 的逐层循环里。
+decoder 的层序由 operation_order 决定。v2 的配置是：第 1 层（单帧层）= gnn→norm→deformable→ffn→norm→refine（无 temp_gnn）；后 5 层（多帧层）= temp_gnn→gnn→norm→deformable→ffn→norm→refine。关键代码：
+# forward 开头：从 bank 取当前帧新 instance + 历史缓存 instance + 帧间隔
+(instance_feature, anchor, temp_instance_feature, temp_anchor, time_interval
+) = self.instance_bank.get(batch_size, metas, dn_metas=self.sampler.dn_metas)</code></pre>
+<pre><code>anchor_embed = self.anchor_encoder(anchor)                  # 当前 anchor → embedding
+temp_anchor_embed = self.anchor_encoder(temp_anchor) if temp_anchor is not None else None</code></pre>
+<pre><code>for i, op in enumerate(self.operation_order):
+    if op == &quot;temp_gnn&quot;:           # 时序交叉注意力：当前 instance(query) ← 历史 instance(key/value)
+        instance_feature = self.graph_model(
+            i, instance_feature, temp_instance_feature, temp_instance_feature,
+            query_pos=anchor_embed, key_pos=temp_anchor_embed, ...)
+    elif op == &quot;gnn&quot;:              # 自注意力：instance 间交互
+        instance_feature = self.graph_model(i, instance_feature,
+            value=instance_feature, query_pos=anchor_embed, ...)
+    elif op == &quot;deformable&quot;:       # EDA：4D 关键点稀疏采样多视图多尺度特征
+        instance_feature = self.layers[i](instance_feature, anchor, anchor_embed, feature_maps, metas)
+    elif op == &quot;refine&quot;:           # 输出层：回归 box + 分类
+        anchor, cls, qt = self.layers[i](instance_feature, anchor, anchor_embed,
+                                         time_interval=time_interval, ...)
+        prediction.append(anchor); classification.append(cls)
+        # 单帧层结束后立刻 update：把历史 600 + 当前新生 300 融合
+        if len(prediction) == self.num_single_frame_decoder:   # =1
+            instance_feature, anchor = self.instance_bank.update(instance_feature, anchor, cls)
+        ...
+# 全部层跑完：把当前帧结果 detach 缓存进 bank，供下一帧递归
+self.instance_bank.cache(instance_feature, anchor, cls, metas, feature_maps)
+v1（多帧采样）vs v2（递归传播）的代码差异本质：</code></pre>
+<p>维度</p>
+<p>v1 多帧采样融合</p>
+<p>v2 递归传播</p>
+<p>历史来源</p>
+<p>当前帧 anchor 关键点重新投影到每个历史帧，逐帧 grid_sample</p>
+<p>bank 缓存上一帧 Top-K instance（feature+anchor），detach 后传入</p>
+<p>融合方式</p>
+<p>多帧采样特征用 FC 网络融合</p>
+<p>temp_gnn 时序交叉注意力（当前 query ← 历史 key/value）</p>
+<p>复杂度</p>
+<p>O(T)，存所有历史帧特征图，显存随 T 线性涨</p>
+<p>O(1)，只存 600 个 instance，恒定开销</p>
+<p>历史长度</p>
+<p>受显存约束，实际 ~10 帧</p>
+<p>理论任意长（信息以 instance 形式累积传递）</p>
+<p>代码落点</p>
+<p>KeyPointsGenerator 的 temp_key_points_list（多帧关键点）</p>
+<p>InstanceBank.cache/get/update + head 的 temp_gnn<br>注：仓库 main 分支是 v2/v3 集成版。SparseBox3DKeyPointsGenerator.forward 里仍保留 temp_timestamps/T_cur2temp_list/temp_key_points_list 的多帧关键点逻辑（v1 残留接口），但 v2 默认走的是 instance bank 递归路径（num_temp_instances=600、temp_gnn 时序注意力）。代码里的 dn_metas（denoising）、decouple_attn、with_quality_estimation、get_instance_id（跟踪）属于 Sparse4D v3 新增，不在 v2 论文范围内，本文在 §3.4 注明区分。</p>
+<h3 id="33-高效可变形聚合-edaefficient-deformable-aggregation">3.3 高效可变形聚合 EDA（Efficient Deformable Aggregation）</h3>
+<p>Deformable Aggregation（可变形聚合）负责跨多尺度、多视图的特征融合：从多个特征图采样 + 加权求和。论文 Algorithm 1 给出了最基础实现（Basic DA）：<br>输入：特征图 I={I_s}, 投影 2D 点 P∈R^{K×N×2}, 权重 W∈R^{K×N×S×G}</p>
+<h2 id="1-所有输入存于-hbm高带宽显存">1. 所有输入存于 HBM（高带宽显存）</h2>
+<h2 id="2-for-每个尺度-s-把-bilinearis-prnck-写回-hbm">2. for 每个尺度 s: 把 Bilinear(I_s, P)∈R^{N×C×K} 写回 HBM</h2>
+<h2 id="3-stackreshape-后写-hbm">3. stack/reshape 后写 HBM</h2>
+<h2 id="4-f--f--w--rknsc写-hbm">4. f = f × W ∈ R^{K×N×S×C}，写 HBM</h2>
+<h2 id="5-沿-viewscalepoint-维-sum--输出-f">5. 沿 view/scale/point 维 sum → 输出 F</h2>
+<p>Basic DA 的问题：多次 HBM 读写，且训练时要存大量中间变量做反向传播（  很大时尤甚），既吃显存又因频繁访存拖慢推理。<br>v2 的解法：把「特征采样 + scale/view 维加权」封装成 单个 CUDA 算子，一步直接输出多点特征（见 Figure 3）。EDA 的优势：<br>在 K（关键点）和 C（通道）维完全并行；<br>单线程计算复杂度仅  ；多视图场景下一个点最多投影到 2 个视图，所以实际单线程复杂度仅 2S；<br>充分利用 GPU/AI 芯片的并行能力，大幅降显存、提速度。<br>EDA 是个通用算子，适用于各种多图多尺度融合场景。下图 Figure 3 是论文示意，随后是自绘的 Basic DA vs EDA 对比图。<br>paper-Figure3-1.png</p>
+<p>Figure 3：Efficient Deformable Aggregation。把特征采样 + scale/view 加权封装为单一 CUDA 算子，一步输出多点特征。<br>eda.png</p>
+<p>自绘对比图：Basic DA（v1，多次 HBM 读写，显存爆炸）vs EDA（v2，单 CUDA 算子，K/C 维并行，单线程复杂度 2S）。EDA 训练显存 -51%，推理 FPS +42%。</p>
+<h3 id="331-eda-代码落点">3.3.1 EDA 代码落点</h3>
+<pre><code>文件：blocks.py 的 DeformableFeatureAggregation + ops/deformable_aggregation.py 的 CUDA autograd Function（DeformableAggregationFunction）。
+DeformableFeatureAggregation.forward 里有两条路径，由 use_deformable_func 切换：
+if self.use_deformable_func:          # v2 EDA 路径：调用 CUDA 算子 DAF
+    points_2d = self.project_points(key_points, metas[&quot;projection_mat&quot;], metas.get(&quot;image_wh&quot;))...
+    weights = weights.permute(...).reshape(bs, num_anchor, num_pts, num_cams, num_levels, num_groups)
+    features = DAF(*feature_maps, points_2d, weights).reshape(bs, num_anchor, self.embed_dims)
+else:                                  # Basic DA 路径（纯 PyTorch，多次访存）
+    features = self.feature_sampling(feature_maps, key_points, ...)   # grid_sample
+    features = self.multi_view_level_fusion(features, weights)        # 加权
+    features = features.sum(dim=2)                                    # 多点求和
+DAF（deformable_aggregation_function）是自定义 CUDA autograd Function，forward 调 deformable_aggregation_ext.deformable_aggregation_forward，backward 调对应的 _backward，把采样 + 加权 + 求和融成一个 kernel，避免了 Basic DA 把每步中间张量反复写回 HBM。这就是 Table 2 里训练显存 6328MB→3100MB、推理 FPS 13.7→20.3 的来源。</code></pre>
+<h3 id="34-相机参数编码camera-parameter-encoding-cpe">3.4 相机参数编码（Camera Parameter Encoding, CPE）</h3>
+<pre><code>v1 里 Deformable Aggregation 的权重由一个全连接层算出，相机参数信息是在训练中隐式地被吸进 FC 层参数里（相当于隐式神经表示 / 对训练集过拟合）。这导致两个问题：
+泛化差：交换两张图像的输入顺序时，权重顺序不变，影响感知性能；
+对相机参数做大尺度数据增强时，这种隐式表示收敛慢。
+v2 的解法：显式把相机参数输入网络——把「输出空间 → 图像坐标空间」的变换矩阵映射成高维特征向量，加到 instance feature 上，再算对应视图的权重。代码落点（blocks.py 的 _get_weights）：
+def _get_weights(self, instance_feature, anchor_embed, metas=None):
+    feature = instance_feature + anchor_embed
+    if self.camera_encoder is not None:    # use_camera_embed=True 时启用 CPE
+        # 取 projection_mat 前 3 行(3×4=12 维) → camera_encoder 编码成高维向量
+        camera_embed = self.camera_encoder(
+            metas[&quot;projection_mat&quot;][:, :, :3].reshape(bs, self.num_cams, -1))
+        feature = feature[:, :, None] + camera_embed[:, None]   # 加到 instance feature
+    weights = self.weights_fc(feature).reshape(...).softmax(dim=-2)...
+    return weights
+camera_encoder = Sequential(*linear_relu_ln(embed_dims, 1, 2, 12))，即把 12 维（3×4 变换矩阵）映射到 embed_dims。开启 CPE 后 weights_fc 不再需要为每个视图单独输出权重（num_groups*num_levels*num_pts 而非乘以 num_cams）。消融显示：去掉 CPE 会掉 2.0 mAP、4.8 mAOE（朝向估计依赖相机内外参，显式编码能提精度）。</code></pre>
+<h3 id="35-稠密深度监督dense-depth-supervision-dds">3.5 稠密深度监督（Dense Depth Supervision, DDS）</h3>
+<pre><code>作者发现稀疏方法在训练早期收敛能力和速度不足。解法：引入多尺度稠密深度估计，用 LiDAR 点云作监督。推理时这个子网络不激活（纯训练辅助）。
+代码落点（blocks.py 的 DenseDepthNet）：
+对每个尺度特征图用一个 1×1 卷积输出深度，在预定义的「等效焦距」下预测，再乘以「相机实际焦距 / 等效焦距」的比例做尺度对齐；
+loss 用 vanilla L1 loss（前景 mask：gt&gt;0 且 pred 非 nan，pred clip 到 [0, max_depth=60]）；
+config 里 num_depth_layers=3（监督前 3 个尺度）、loss_weight=0.2、equal_focal=100。
+def forward(self, feature_maps, focal=None, gt_depths=None):
+    depths = []
+    for i, feat in enumerate(feature_maps[:self.num_depth_layers]):
+        depth = self.depth_layers[i](feat.flatten(end_dim=1).float()).exp()   # 1×1 Conv + exp
+        depth = depth.transpose(0,-1) * focal / self.equal_focal              # 焦距归一化
+        depth = depth.transpose(0,-1)
+        depths.append(depth)
+    if gt_depths is not None and self.training:
+        return self.loss(depths, gt_depths)   # 仅训练算 loss
+    return depths
+在顶层 Sparse4D.forward_train 里：feature_maps, depths = self.extract_feat(img, True, data)，再 output[&quot;loss_dense_depth&quot;] = self.depth_branch.loss(depths, data[&quot;gt_depth&quot;])。引入 DDS 后，v2 移除了 v1 的 depth-reweight 模块。消融显示：去掉 DDS 会让 mAP/NDS 暴跌 8.5/10.4（训练过程出现梯度崩溃 gradient collapse）——可见 DDS 对稳定训练至关重要。</code></pre>
+<h3 id="36--v2-论文范围-vs-仓库-v3-新增重要区分">3.6 ⚠️ v2 论文范围 vs 仓库 v3 新增（重要区分）</h3>
+<p>仓库 main 分支配置文件名是 sparse4dv3_temporal_r50_...，是 v2/v3 集成版。为避免混淆，明确区分：</p>
+<p>模块</p>
+<p>归属</p>
+<p>说明</p>
+<p>Instance Bank 递归时序传播</p>
+<p>v2 核心</p>
+<p>cache/get/update + temp_gnn</p>
+<p>Efficient Deformable Aggregation</p>
+<p>v2</p>
+<p>CUDA 算子</p>
+<p>Camera Parameter Encoding</p>
+<p>v2</p>
+<p>use_camera_embed</p>
+<p>Dense Depth Supervision</p>
+<p>v2</p>
+<p>DenseDepthNet</p>
+<p>dn_metas / denoising 训练（get_dn_anchors、SparseBox3DTarget 的 num_dn_groups）</p>
+<p>v3 新增</p>
+<p>v2 论文未提</p>
+<p>decouple_attn（解耦注意力 fc_before/fc_after）</p>
+<p>v3 新增</p>
+<p>v2 论文未提</p>
+<p>with_quality_estimation（quality 分支）</p>
+<p>v3 新增</p>
+<p>v2 论文未提</p>
+<p>get_instance_id / 跟踪输出</p>
+<p>v3 新增</p>
+<p>v2 是检测，v3 做检测+跟踪<br>本文 §3.1–§3.5 严格对应 v2 论文；代码片段中出现的 dn/decouple/quality 字段为 v3 集成残留，已在注释中标注，不计入 v2 贡献。</p>
+<h2 id="4-数学公式与理论基础">4. 数学公式与理论基础</h2>
+<h3 id="41-instance-三元组表示">4.1 Instance 三元组表示</h3>
+<p>一个 instance 由 anchor  、instance feature  、anchor embedding   三部分表示，时序传播只动 anchor：</p>
+<p>含义：anchor 经 ego-motion 投影到当前帧；anchor embedding 用 encoder   重新编码；instance feature 直接复用（这是「图像特征与结构状态解耦」的体现，也是递归传播代价低的根本）。</p>
+<h3 id="42-3d-检测的-anchor-定义与投影equation-2">4.2 3D 检测的 anchor 定义与投影（Equation 2）</h3>
+<p>3D 框 anchor（11 维）：</p>
+<p>ego-motion 投影（中心点先用速度补偿位移再做刚体变换，尺寸不变，朝向/速度只旋转）：</p>
+<p>  为帧间隔， 、  为自车位姿旋转/平移。这正是代码 anchor_projection 的逐项实现。</p>
+<h3 id="43-置信度衰减confidence-decay">4.3 置信度衰减（confidence decay）</h3>
+<p>缓存历史 instance 时，置信度跨帧衰减后与当前帧取较大值（ ）：</p>
+<p>让长期稳定的 tracklet 保持高分被持续传播，消失目标逐帧衰减后被 Top-K 淘汰。</p>
+<h3 id="44-复杂度分析">4.4 复杂度分析</h3>
+<p>时序融合复杂度：v1 为  （  为历史帧数），v2 为  （恒定缓存 instance 数）。<br>EDA 单线程复杂度：基础实现需多次 HBM 访存；EDA 单线程仅  ，多视图下一点最多投到 2 个视图，故实际仅  。</p>
+<h3 id="45-符号速查表">4.5 符号速查表</h3>
+<p>符号</p>
+<p>含义</p>
+<p>视图数（nuScenes = 6）</p>
+<p>特征尺度数（config = 4，strides 4/8/16/32）</p>
+<p>特征通道 / embed_dims（= 256）</p>
+<p>关键点数（fix 7 + learnable 6 = 13）</p>
+<p>group 数（num_groups = 8）</p>
+<p>anchor / instance feature / anchor embedding</p>
+<p>anchor encoder（SparseBox3DEncoder）</p>
+<p>自车 ego-motion 旋转矩阵 / 平移</p>
+<p>帧间时间间隔</p>
+<p>confidence_decay（= 0.6）</p>
+<h2 id="5-详细流程图">5. 详细流程图</h2>
+<h3 id="51-单帧推理流程首帧--无历史">5.1 单帧推理流程（首帧 / 无历史）</h3>
+<p>多视图图像 → backbone + FPN → 多尺度特征图；<br>初始化 900 个可学习 anchor + instance feature（来自 nuscenes_kmeans900.npy 聚类）；<br>单帧层：gnn（自注意力）→ deformable（EDA 采样）→ ffn → refine（输出 box+cls）；<br>update() 首帧无历史，直接返回；<br>5 个多帧层（此时 temp_instance 为 None，temp_gnn 退化）继续 refine；<br>cache()：detach + Top-K 选 600 个 instance 存入 bank，记录 T_global。</p>
+<h3 id="52-时序推理流程后续帧递归核心">5.2 时序推理流程（后续帧，递归核心）</h3>
+<p>get()：取新 instance + 历史缓存；用 T_global_inv(当前) @ T_global(历史) 把历史 anchor 投影到当前帧；算帧间隔 + mask；<br>anchor_encoder 分别编码当前 anchor_embed 与 temp_anchor_embed；<br>单帧层 refine + 打分（处理新生目标）；<br>update()：Top-K 选 300 个当前新生 instance，拼上 600 个历史 instance = 900；<br>5 个多帧层：每层先 temp_gnn（当前 query ← 历史 key/value 时序交叉注意力），再 gnn/deformable/ffn/refine；<br>cache()：confidence_decay 衰减 + detach + Top-K 写回，供下一帧。<br>该流程的可视化见 §3.2 的「Instance Bank 递归数据流」自绘图——它完整刻画了 get→单帧层→update→多帧层→cache 的递归回路。EDA 子流程见 §3.3 的对比图。这两张图已分别嵌在对应子节，本节不再重复堆图。</p>
+<h2 id="6-核心创新点">6. 核心创新点</h2>
+<p>Sparse4D v2 相对 v1 的改进可归为三类（结构 / 训练优化 / 效率）：<br>创新 1：递归时序融合（结构，最核心）<br>把 v1 的多帧采样融合换成 instance bank 递归传播。时序信息以 instance（anchor + feature）形式逐帧传递，detach 截断梯度，复杂度 O(T)→O(1)。两大收益：① 大幅提速降显存（Table 1）；② 能融合长时信息，时序带来的性能提升更显著。这是 v2 区别于 v1 的范式转变，思想源自 StreamPETR 的 object-centric 递归，但落在 Sparse4D 的 deformable 稀疏采样框架里。<br>创新 2：相机参数编码 CPE（结构）<br>显式把相机内外参（变换矩阵）编码进网络，替代 v1 的隐式 FC 表示，提升对相机参数的泛化与朝向估计精度（消融：+2.0 mAP、改善 4.8 mAOE）。<br>创新 3：稠密深度监督 DDS（训练优化）<br>用 LiDAR 点云作多尺度稠密深度监督，1×1 Conv 预测 + L1 loss，仅训练激活。解决稀疏方法早期收敛难、梯度崩溃问题（消融：去掉 DDS 掉 8.5 mAP / 10.4 NDS）。<br>创新 4：高效可变形聚合 EDA（效率）<br>把 deformable aggregation 的采样 + 加权融成单 CUDA 算子，训练显存 -51%、最大 batch 3→8、训练时间 23.5h→14.5h、推理 FPS +42%、推理显存 -53%。<br>单帧层 + 多帧层的分工设计：单帧层专门处理新生目标（选 300 个高分），多帧层处理 tracklet（600 个历史 instance），保证 anchor 总数恒定、推理速度与非时序模型相当。消融（Table 3 Exp.2 vs Exp.3）证明：去掉单帧层、全用多帧层会掉 3.5 mAP / 2.0 NDS。</p>
+<h2 id="7-实验结果与分析">7. 实验结果与分析</h2>
+<h3 id="71-数据集与设置">7.1 数据集与设置</h3>
+<p>nuScenes：1000 个场景（700 训练 / 150 验证 / 150 测试），每场景 20 秒 @ 2fps，6 视图。指标：mAP、mATE/mASE/mAOE/mAVE/mAAE、NDS（加权综合分）。Backbone：ResNet50/101、VoVNet-99 + FPN。100 epoch、AdamW、无 CBGS。900 个 anchor（600 时序 + 300 单帧），采用 SOLOFusion 式 sequential iteration 训练加速。</p>
+<h3 id="72-v1-vs-v2-速度显存对比table-1">7.2 v1 vs v2 速度/显存对比（Table 1）</h3>
+<p>下表是 RTX 3090、704×256、ResNet50 上 v1（不同帧数）与 v2 的对比——v1 的 FPS 随帧数从 21.5（1 帧）降到 6.1（9 帧）、显存从 424M 涨到 1149M；v2 恒定 19.4 FPS / 432M 显存，彻底摆脱了帧数依赖。<br>paper-Table1-1.png</p>
+<p>Table 1：v1（1~9 帧）vs v2 的 FPS 与显存对比。v1 帧数越多越慢越吃显存；v2 恒定 19.4 FPS / 432M。</p>
+<h3 id="73-消融实验">7.3 消融实验</h3>
+<p>EDA 消融（Table 2）：RTX 3090、batch=1。EDA 使训练显存 6328→3100 MB（-51%）、最大 batch 3→8、训练时间 23.5→14.5 h；推理 FPS 13.7→20.3（+42%）、推理显存 925→432 MB（-53%）。<br>paper-Table2-1.png</p>
+<p>Table 2：EDA 消融。训练显存 -51%、推理 FPS +42%、推理显存 -53%。<br>模块消融（Table 3）：MF（多帧层）、SFL（单帧层）、CPE（相机参数编码）、DDS（稠密深度监督）的逐项贡献：<br>时序融合的威力：非时序（Exp.1）vs 完整时序模型（Exp.5），mAP +9.8、NDS +12.5——时序是性能提升的最大功臣。<br>单帧层 SFL：Exp.2（无 SFL）vs Exp.3，掉 3.5 mAP / 2.0 NDS——单帧层对新生目标处理很关键。<br>相机参数编码 CPE：Exp.3 vs Exp.5，去掉掉 2.0 mAP、4.8 mAOE。<br>稠密深度监督 DDS：Exp.4（无 DDS，训练失败 *）vs Exp.5，掉 8.5 mAP / 10.4 NDS（梯度崩溃）。<br>paper-Table3-1.png</p>
+<p>Table 3：模块消融。MF/SFL/CPE/DDS 逐项贡献。时序融合 +9.8 mAP / +12.5 NDS 最为关键；DDS 缺失会导致训练崩溃。</p>
+<h3 id="74-主榜结果table-4nuscenes-val">7.4 主榜结果（Table 4：nuScenes val）</h3>
+<p>ResNet50 + 256×704 低分辨率下，Sparse4Dv2 取得最佳 mAP/NDS（0.439/0.539），超过 SOTA BEV 算法 VideoBEV（+1.7 mAP / +0.4 NDS）、超过 query-based SOTA StreamPETR（+0.7 mAP / +0.2 NDS）。ResNet101 + 512×1408 高分辨率下也最高：相比 baseline v1，NDS +3.0、推理速度 2.9 倍；相比 StreamPETR，NDS +0.2、FPS +2（8.4 vs 6.4）。加未来帧的 Sparse4Dv2†* 达 0.521 mAP / 0.608 NDS。<br>paper-Table4-1.png</p>
+<p>Table 4：nuScenes val 结果。† 用 nuImage 预训练权重， 用未来帧。Sparse4Dv2 在低/高分辨率下均取最高 mAP/NDS，高分辨率下速度反超 StreamPETR（8.4 vs 6.4 FPS）。*</p>
+<h3 id="75-主榜结果table-5nuscenes-test">7.5 主榜结果（Table 5：nuScenes test）</h3>
+<p>VoVNet-99 backbone 下，Sparse4Dv2 取得 0.557 mAP / 0.638 NDS，相比 v1（0.595 NDS）大涨 4.3 NDS，NDS 指标上达到 SOTA，超过 SOLOFusion、BEVFormerv2、VideoBEV、StreamPETR。<br>paper-Table5-1.png</p>
+<p>Table 5：nuScenes test 结果。VoVNet-99 下 Sparse4Dv2 达 0.638 NDS，相比 v1（0.595）+4.3 NDS，NDS 指标 SOTA。<br>关键趋势：低分辨率（256×704）下 Sparse4Dv2 FPS（20.3）不如 StreamPETR（26.7），但分辨率升到 512×1408 时反超（8.4 vs 6.4）。原因是 Sparse4Dv2 的 head 计算量与输入分辨率无关（稀疏采样），更适合高分辨率/长距离检测——这是稀疏解码器的本质优势。</p>
+<h2 id="8-技术发展时间线">8. 技术发展时间线</h2>
+<p>2020 DETR / DETR3D：set prediction，稀疏 query + 3D-to-2D 投影采样，开启 query-based 3D 检测。</p>
+<h3 id="202203-petr--bevformer--bevdet4dpetr-用-3d-位置编码--全局注意力bevformer-用-deformable-atte">2022.03 PETR / BEVFormer / BEVDet4D：PETR 用 3D 位置编码 + 全局注意力；BEVFormer 用 deformable attention 在 BEV 融合；BEVDet4D 两帧 BEV warp+concat 引入时序。</h3>
+<h3 id="202206-petrv2前后帧特征都作为-cross-attention-的-key时序扩展">2022.06 PETRv2：前后帧特征都作为 cross-attention 的 key，时序扩展。</h3>
+<h3 id="202210-solofusion16-帧滑窗长时序融合性能大涨但显存高">2022.10 SOLOFusion：16 帧滑窗长时序融合，性能大涨，但显存高。</h3>
+<h3 id="202211-sparse4d-v14d-关键点多帧采样--fc-融合纯稀疏路线但时序-ot-费显存">2022.11 Sparse4D v1：4D 关键点多帧采样 + FC 融合，纯稀疏路线，但时序 O(T) 费显存。</h3>
+<h3 id="202303-videobev--streampetrvideobev-把并行融合改-recurrentstreampetr-object-centric-稀疏">2023.03 VideoBEV / StreamPETR：VideoBEV 把并行融合改 recurrent；StreamPETR object-centric 稀疏 query 递归传播，SOTA。</h3>
+<h3 id="202305-sparse4d-v2本篇instance-bank-递归时序o1-eda--cpe--dds速度精度双-sota">2023.05 Sparse4D v2（本篇）：instance bank 递归时序（O(1)）+ EDA + CPE + DDS，速度精度双 SOTA。</h3>
+<p>后续 Sparse4D v3：在 v2 基础上加 denoising 训练、decouple attention、quality estimation、目标跟踪输出（仓库 main 分支即 v3 集成版）。</p>
+<h2 id="9-代码实现技巧">9. 代码实现技巧</h2>
+<h3 id="91-代码结构仓库关键文件树">9.1 代码结构（仓库关键文件树）</h3>
+<pre><code>projects/
+├── configs/
+│   └── sparse4dv3_temporal_r50_1x8_bs6_256x704.py   # v2/v3 集成配置
+└── mmdet3d_plugin/
+    ├── models/
+    │   ├── sparse4d.py              # 顶层 Detector：backbone+neck+head+depth_branch
+    │   ├── sparse4d_head.py         # Sparse4DHead：decoder forward 主循环
+    │   ├── instance_bank.py         # ★ InstanceBank：递归时序传播核心
+    │   ├── blocks.py                # DeformableFeatureAggregation/DenseDepthNet/AsymmetricFFN
+    │   ├── grid_mask.py             # GridMask 数据增强
+    │   └── detection3d/
+    │       ├── detection3d_blocks.py  # Encoder/Refine/KeyPointsGen/anchor_projection
+    │       ├── target.py            # SparseBox3DTarget（含 v3 denoising）
+    │       ├── losses.py            # SparseBox3DLoss
+    │       └── decoder.py           # SparseBox3DDecoder
+    └── ops/
+        ├── deformable_aggregation.py  # ★ EDA CUDA autograd Function
+        └── setup.py                   # 编译 CUDA 扩展</code></pre>
+<h3 id="92-模块--文件--类-对应表">9.2 模块 → 文件 → 类 对应表</h3>
+<p>模块</p>
+<p>文件</p>
+<p>类 / 函数</p>
+<p>v2/v3</p>
+<p>顶层 Detector</p>
+<p>sparse4d.py</p>
+<p>Sparse4D</p>
+<p>v2</p>
+<p>Decoder 主循环</p>
+<p>sparse4d_head.py</p>
+<p>Sparse4DHead.forward</p>
+<p>v2</p>
+<p>Instance Bank 递归传播</p>
+<p>instance_bank.py</p>
+<p>InstanceBank.get/update/cache</p>
+<p>v2 核心</p>
+<p>anchor ego-motion 投影</p>
+<p>detection3d_blocks.py</p>
+<p>SparseBox3DKeyPointsGenerator.anchor_projection</p>
+<p>v2</p>
+<p>Deformable 聚合</p>
+<p>blocks.py</p>
+<p>DeformableFeatureAggregation</p>
+<p>v1→v2(EDA)</p>
+<p>EDA CUDA 算子</p>
+<p>ops/deformable_aggregation.py</p>
+<p>DeformableAggregationFunction</p>
+<p>v2</p>
+<p>相机参数编码</p>
+<p>blocks.py</p>
+<p>DeformableFeatureAggregation._get_weights（camera_encoder）</p>
+<p>v2</p>
+<p>稠密深度监督</p>
+<p>blocks.py</p>
+<p>DenseDepthNet</p>
+<p>v2</p>
+<p>anchor 编码</p>
+<p>detection3d_blocks.py</p>
+<p>SparseBox3DEncoder（Ψ）</p>
+<p>v2</p>
+<p>Refine 输出头</p>
+<p>detection3d_blocks.py</p>
+<p>SparseBox3DRefinementModule</p>
+<p>v2</p>
+<p>denoising 训练</p>
+<p>detection3d/target.py</p>
+<p>SparseBox3DTarget.get_dn_anchors</p>
+<p>v3</p>
+<p>decouple attention</p>
+<p>sparse4d_head.py</p>
+<p>graph_model（fc_before/fc_after）</p>
+<p>v3</p>
+<p>跟踪 ID</p>
+<p>instance_bank.py</p>
+<p>get_instance_id/update_instance_id</p>
+<p>v3</p>
+<h3 id="93-关键超参取值含义来自-config">9.3 关键超参取值含义（来自 config）</h3>
+<p>超参</p>
+<p>值</p>
+<p>含义</p>
+<p>num_anchor</p>
+<p>900</p>
+<p>每帧 anchor 总数</p>
+<p>num_temp_instances</p>
+<p>600</p>
+<p>历史传播 instance 数（600 时序 + 300 单帧）</p>
+<p>confidence_decay</p>
+<p>0.6</p>
+<p>历史置信度跨帧衰减系数</p>
+<p>num_decoder</p>
+<p>6</p>
+<p>decoder 层数</p>
+<p>num_single_frame_decoder</p>
+<p>1</p>
+<p>单帧层数（其余 5 为多帧层）</p>
+<p>embed_dims</p>
+<p>256</p>
+<p>特征维度</p>
+<p>num_groups</p>
+<p>8</p>
+<p>deformable 聚合 group 数</p>
+<p>num_levels</p>
+<p>4</p>
+<p>FPN 尺度数（strides 4/8/16/32）</p>
+<p>num_depth_layers</p>
+<p>3</p>
+<p>DDS 监督的尺度数</p>
+<p>kps fix_scale</p>
+<p>7 点</p>
+<p>固定关键点（中心 + 6 个轴向）</p>
+<p>num_learnable_pts</p>
+<p>6</p>
+<p>可学习关键点数（共 13 个采样点）</p>
+<p>feat_grad</p>
+<p>False</p>
+<p>缓存 instance feature 不回梯度</p>
+<p>max_time_interval</p>
+<p>2</p>
+<p>帧间隔上限（超出判时序失效）</p>
+<p>depth loss_weight</p>
+<p>0.2</p>
+<p>DDS loss 权重</p>
+<h3 id="94-工程注意点">9.4 工程注意点</h3>
+<p>EDA 需编译 CUDA 扩展：use_deformable_func=True 前要先跑 ops/setup.py，否则 DAF 为 None。未编译时会退回 Basic DA（纯 PyTorch，慢且费显存）。<br>sequential iteration 训练：时序模型按序列顺序迭代（group_in_batch_sampler + with_seq_flag + sequences_split_num=2），保证 bank 缓存的连续性。<br>detach 是递归稳定的关键：cache 时对 feature/anchor/confidence 全 detach，配合 feat_grad=False，避免计算图跨帧累积。<br>anchor 初始化：用 nuscenes_kmeans900.npy（对训练集 GT 框 kmeans 聚类得到 900 个先验 anchor）。</p>
+<h2 id="10-局限性与未来方向">10. 局限性与未来方向</h2>
+<p>局限性：<br>泛化/鲁棒性待验证：论文坦承 Sparse4Dv2 的泛化能力、场景鲁棒性、长距离检测性能仍需进一步验证。<br>低分辨率下速度劣势：256×704 输入时 FPS（20.3）不如 StreamPETR（26.7），稀疏采样的优势只在高分辨率才显现。<br>依赖 LiDAR 深度监督训练：DDS 需要 LiDAR 点云做监督（仅训练阶段），无 LiDAR 数据的场景训练会更难（去掉 DDS 会梯度崩溃）。<br>依赖准确 ego-motion：anchor 时序投影依赖自车位姿（T_global），位姿噪声会直接影响时序对齐质量。<br>未来方向：作者希望 Sparse4Dv2 成为新 baseline，并把稀疏路线推广到 HD map 构建、拓扑、轨迹预测、端到端规划等任务（这些方向后续在 v3 及衍生工作中得到延展）。</p>
+<h2 id="11-总结">11. 总结</h2>
+<p>Sparse4D v2 围绕「提升稀疏多视图时序感知性能」做了三类改进：<br>结构：时序模块从多帧采样融合 → recurrent 递归传播（instance bank，O(T)→O(1)）；引入相机参数编码。<br>训练优化：稠密深度监督作为辅助信号，解决稀疏方法早期训练收敛难/梯度崩溃。<br>效率：Efficient Deformable Aggregation 单 CUDA 算子，训练显存 -51%、推理 FPS +42%。<br>在 nuScenes 上，Sparse4Dv2 不仅推理速度大幅提升，检测性能也达到 SOTA（test 0.638 NDS，相比 v1 +4.3 NDS）。它是 PETR/DETR3D 稀疏谱系里「递归时序 + 高效采样」的集大成者，与 StreamPETR 同属 object-centric 递归传播范式，但落在 deformable 稀疏采样框架上，为后续 Sparse4D v3（检测+跟踪一体）和端到端稀疏感知奠定了基础。<br>对马爷 E2E Occupancy 项目的工程启发：<br>instance bank 递归传播 = 恒定开销的长时序记忆：占据栅格/E2E 任务里，若用 object-centric 或 voxel-centric 的稀疏 query 表示，可借鉴「Top-K 缓存 + detach + ego-motion 投影 + confidence_decay」这套机制，把时序信息以恒定显存累积，避免多帧特征图缓存的显存爆炸。<br>detach + feat_grad=False 是递归训练稳定的关键：跨帧传播一定要截断梯度，否则计算图累积会 OOM / 训练不稳。<br>稠密深度监督救收敛：稀疏/query-based 方法早期收敛差是通病，用 LiDAR 稠密深度做训练辅助（推理不激活）能显著稳住训练——E2E Occupancy 若遇到收敛慢，可加类似的稠密几何监督分支。<br>EDA 思路（融算子降访存）：自定义 CUDA 算子把「采样+加权+求和」融合，是部署落地的关键优化，对车端实时 occupancy 推理有直接参考价值。<br>anchor/feature 解耦：把结构化状态（可投影、有物理含义）与语义特征解耦，时序传播只动状态、复用特征——这个设计对 occupancy flow / 时序占据预测同样适用。</p>
+<h2 id="12-参考文献精选">12. 参考文献（精选）</h2>
+<p>[15] Lin et al. Sparse4D: Multi-view 3D Object Detection with Sparse Spatial-Temporal Fusion. arXiv:2211.10581, 2022.（v1，本篇 baseline）<br>[25] Wang et al. StreamPETR: Exploring Object-Centric Temporal Modeling for Efficient Multi-view 3D Object Detection. arXiv:2303.11926, 2023.（递归传播同范式对比对象）<br>[4] Han et al. VideoBEV: Exploring Recurrent Long-term Temporal Fusion for Multi-view 3D Perception. arXiv:2303.05970, 2023.<br>[22] Park et al. SOLOFusion: Time Will Tell. arXiv:2210.02443, 2022.（长时序滑窗）<br>[28] Wang et al. DETR3D. CoRL 2022.（稀疏 query 鼻祖）<br>[16][17] Liu et al. PETR / PETRv2. arXiv:2203.05625 / 2206.01256, 2022.<br>[13] Li et al. BEVFormer. arXiv:2203.17270, 2022.<br>[12][6] BEVDepth / BEVDet4D. arXiv:2206.10092 / 2203.17054, 2022.<br>[1] Caesar et al. nuScenes. CVPR 2020.<br>[2] Carion et al. DETR. ECCV 2020.<br>[24] Vaswani et al. Attention Is All You Need. NeurIPS 2017.</p></main><aside class="toc"><strong>目录</strong><a href="#1-研究背景与动机" class="l2">1. 研究背景与动机</a>
+<a href="#11-为什么坚持稀疏路线" class="l3">1.1 为什么坚持稀疏路线</a>
+<a href="#12-v1-的痛点多帧采样融合ot-显存爆炸" class="l3">1.2 v1 的痛点：多帧采样融合，O(T) 显存爆炸</a>
+<a href="#2-核心问题分析" class="l2">2. 核心问题分析</a>
+<a href="#21-相机-3d-检测的三条路线" class="l3">2.1 相机 3D 检测的三条路线</a>
+<a href="#22-多视图特征融合的两大流派" class="l3">2.2 多视图特征融合的两大流派</a>
+<a href="#23-时序融合的演进脉络" class="l3">2.3 时序融合的演进脉络</a>
+<a href="#3-技术架构详解" class="l2">3. 技术架构详解</a>
+<a href="#31-整体框架overall-framework" class="l3">3.1 整体框架（Overall Framework）</a>
+<a href="#32-instance-时序传播核心创新v1v2-范式转变" class="l3">3.2 Instance 时序传播（核心创新，v1→v2 范式转变）</a>
+<a href="#321-代码级拆解instancebank-的-get--update--cache" class="l3">3.2.1 代码级拆解：InstanceBank 的 get / update / cache</a>
+<a href="#322-decoder-forward-如何调用-bankrecurrent-vs-v1-多帧采样的代码差异" class="l3">3.2.2 decoder forward 如何调用 bank（recurrent vs v1 多帧采样的代码差异）</a>
+<a href="#33-高效可变形聚合-edaefficient-deformable-aggregation" class="l3">3.3 高效可变形聚合 EDA（Efficient Deformable Aggregation）</a>
+<a href="#1-所有输入存于-hbm高带宽显存" class="l2">1. 所有输入存于 HBM（高带宽显存）</a>
+<a href="#2-for-每个尺度-s-把-bilinearis-prnck-写回-hbm" class="l2">2. for 每个尺度 s: 把 Bilinear(I_s, P)∈R^{N×C×K} 写回 HBM</a>
+<a href="#3-stackreshape-后写-hbm" class="l2">3. stack/reshape 后写 HBM</a>
+<a href="#4-f--f--w--rknsc写-hbm" class="l2">4. f = f × W ∈ R^{K×N×S×C}，写 HBM</a>
+<a href="#5-沿-viewscalepoint-维-sum--输出-f" class="l2">5. 沿 view/scale/point 维 sum → 输出 F</a>
+<a href="#331-eda-代码落点" class="l3">3.3.1 EDA 代码落点</a>
+<a href="#34-相机参数编码camera-parameter-encoding-cpe" class="l3">3.4 相机参数编码（Camera Parameter Encoding, CPE）</a>
+<a href="#35-稠密深度监督dense-depth-supervision-dds" class="l3">3.5 稠密深度监督（Dense Depth Supervision, DDS）</a>
+<a href="#36--v2-论文范围-vs-仓库-v3-新增重要区分" class="l3">3.6 ⚠️ v2 论文范围 vs 仓库 v3 新增（重要区分）</a>
+<a href="#4-数学公式与理论基础" class="l2">4. 数学公式与理论基础</a>
+<a href="#41-instance-三元组表示" class="l3">4.1 Instance 三元组表示</a>
+<a href="#42-3d-检测的-anchor-定义与投影equation-2" class="l3">4.2 3D 检测的 anchor 定义与投影（Equation 2）</a>
+<a href="#43-置信度衰减confidence-decay" class="l3">4.3 置信度衰减（confidence decay）</a>
+<a href="#44-复杂度分析" class="l3">4.4 复杂度分析</a>
+<a href="#45-符号速查表" class="l3">4.5 符号速查表</a>
+<a href="#5-详细流程图" class="l2">5. 详细流程图</a>
+<a href="#51-单帧推理流程首帧--无历史" class="l3">5.1 单帧推理流程（首帧 / 无历史）</a>
+<a href="#52-时序推理流程后续帧递归核心" class="l3">5.2 时序推理流程（后续帧，递归核心）</a>
+<a href="#6-核心创新点" class="l2">6. 核心创新点</a>
+<a href="#7-实验结果与分析" class="l2">7. 实验结果与分析</a>
+<a href="#71-数据集与设置" class="l3">7.1 数据集与设置</a>
+<a href="#72-v1-vs-v2-速度显存对比table-1" class="l3">7.2 v1 vs v2 速度/显存对比（Table 1）</a>
+<a href="#73-消融实验" class="l3">7.3 消融实验</a>
+<a href="#74-主榜结果table-4nuscenes-val" class="l3">7.4 主榜结果（Table 4：nuScenes val）</a>
+<a href="#75-主榜结果table-5nuscenes-test" class="l3">7.5 主榜结果（Table 5：nuScenes test）</a>
+<a href="#8-技术发展时间线" class="l2">8. 技术发展时间线</a>
+<a href="#202203-petr--bevformer--bevdet4dpetr-用-3d-位置编码--全局注意力bevformer-用-deformable-atte" class="l3">2022.03 PETR / BEVFormer / BEVDet4D：PETR 用 3D 位置编码 + 全局注意力；BEVFormer 用 deformable attention 在 BEV 融合；BEVDet4D 两帧 BEV warp+concat 引入时序。</a>
+<a href="#202206-petrv2前后帧特征都作为-cross-attention-的-key时序扩展" class="l3">2022.06 PETRv2：前后帧特征都作为 cross-attention 的 key，时序扩展。</a>
+<a href="#202210-solofusion16-帧滑窗长时序融合性能大涨但显存高" class="l3">2022.10 SOLOFusion：16 帧滑窗长时序融合，性能大涨，但显存高。</a>
+<a href="#202211-sparse4d-v14d-关键点多帧采样--fc-融合纯稀疏路线但时序-ot-费显存" class="l3">2022.11 Sparse4D v1：4D 关键点多帧采样 + FC 融合，纯稀疏路线，但时序 O(T) 费显存。</a>
+<a href="#202303-videobev--streampetrvideobev-把并行融合改-recurrentstreampetr-object-centric-稀疏" class="l3">2023.03 VideoBEV / StreamPETR：VideoBEV 把并行融合改 recurrent；StreamPETR object-centric 稀疏 query 递归传播，SOTA。</a>
+<a href="#202305-sparse4d-v2本篇instance-bank-递归时序o1-eda--cpe--dds速度精度双-sota" class="l3">2023.05 Sparse4D v2（本篇）：instance bank 递归时序（O(1)）+ EDA + CPE + DDS，速度精度双 SOTA。</a>
+<a href="#9-代码实现技巧" class="l2">9. 代码实现技巧</a>
+<a href="#91-代码结构仓库关键文件树" class="l3">9.1 代码结构（仓库关键文件树）</a>
+<a href="#92-模块--文件--类-对应表" class="l3">9.2 模块 → 文件 → 类 对应表</a>
+<a href="#93-关键超参取值含义来自-config" class="l3">9.3 关键超参取值含义（来自 config）</a>
+<a href="#94-工程注意点" class="l3">9.4 工程注意点</a>
+<a href="#10-局限性与未来方向" class="l2">10. 局限性与未来方向</a>
+<a href="#11-总结" class="l2">11. 总结</a>
+<a href="#12-参考文献精选" class="l2">12. 参考文献（精选）</a></aside></div>
+<nav class="nav"><a href="../sparse4d/">← 上一篇：Sparse4D (v1)：稀疏时空融合的多视角 3D 目标检测 </a><a href="../far3d/">下一篇：Far3D：用2D先验扩展环视3D检测的远距离感知（PETR谱系·第10篇） →</a></nav></div></body></html>

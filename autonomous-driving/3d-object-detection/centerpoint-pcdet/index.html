@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CenterPoint-简单高效的点云目标检测 代码详解（PCDet版本） | 3D 目标检测</title><style>:root{--bg:#0b1020;--panel:#121a2f;--panel2:#17223d;--text:#e8edf7;--muted:#9fb0cc;--line:#263653;--brand:#8bd3ff;--accent:#ffd166;--green:#74d99f;--code:#0a0f1d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,#19274a 0,#0b1020 38%,#070b14 100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;line-height:1.72}.wrap{max-width:1120px;margin:0 auto;padding:36px 20px 64px}.topbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:24px}.crumb,.pill{font-size:13px;color:var(--muted)}.crumb a,.meta a,.card a,.nav a{color:var(--brand);text-decoration:none}.hero{padding:34px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,rgba(18,26,47,.96),rgba(16,31,59,.86));box-shadow:0 24px 80px rgba(0,0,0,.28)}h1{font-size:clamp(28px,4vw,46px);line-height:1.18;margin:0 0 16px}h2{font-size:26px;margin:42px 0 14px;padding-top:8px;border-top:1px solid var(--line)}h3{font-size:20px;margin:28px 0 10px;color:#d9e8ff}p{margin:12px 0}.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.pill{border:1px solid var(--line);background:rgba(255,255,255,.04);padding:6px 10px;border-radius:999px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;margin-top:24px}.content{background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:22px;padding:28px}.toc{position:sticky;top:18px;align-self:start;background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:18px;padding:18px;max-height:calc(100vh - 36px);overflow:auto}.toc strong{display:block;margin-bottom:10px}.toc a{display:block;color:var(--muted);text-decoration:none;font-size:13px;padding:4px 0}.toc a:hover{color:var(--brand)}pre{background:var(--code);border:1px solid var(--line);border-radius:14px;padding:16px;overflow:auto;white-space:pre-wrap;word-break:break-word}code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;color:#d6e8ff}.figure{border:1px dashed #3a4d73;background:rgba(139,211,255,.06);border-radius:14px;padding:14px;margin:16px 0;color:#b9c9e6}.tableish{border-left:3px solid var(--accent);padding:8px 14px;background:rgba(255,209,102,.06);border-radius:10px}.nav{display:flex;justify-content:space-between;gap:14px;margin-top:24px}.nav a{flex:1;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.04)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:22px}.card{border:1px solid var(--line);border-radius:18px;background:rgba(18,26,47,.76);padding:18px;min-height:150px}.card h3{margin-top:0}.card p{color:var(--muted);font-size:14px}.badge{display:inline-block;color:#06101d;background:var(--green);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700}.warn{border:1px solid rgba(255,209,102,.35);background:rgba(255,209,102,.08);border-radius:14px;padding:12px 14px;color:#ffe8a3}@media(max-width:900px){.layout{grid-template-columns:1fr}.toc{position:relative;top:auto}.hero{padding:24px}.content{padding:20px}}</style></head>
+<body><div class="wrap"><div class="topbar"><span class="crumb"><a href="../../../index.html">首页</a> / <a href="../../index.html">自动驾驶</a> / <a href="../index.html">3D 目标检测</a></span></div>
+<section class="hero"><h1>CenterPoint-简单高效的点云目标检测 代码详解（PCDet版本）</h1><p>从飞书知识库导出的静态 HTML 首版。正文保留原文结构、代码片段与图表文件名；复杂飞书表格/图片以占位形式展示，并提供原文回跳。</p><div class="meta"><span class="pill">来源：飞书知识库纯文本导出</span><span class="pill">更新：2026-06-02</span><span class="pill"><a href="https://tzscglpsd7.feishu.cn/wiki/XCz7wq7b2ixA1sk9ZydckBT7nW3" target="_blank" rel="noopener">飞书原文</a></span></div></section>
+<nav class="nav"><a href="../3dssd/">← 上一篇：3DSSD 技术详解 </a><a href="../sassd/">下一篇：SASSD (Structure Aware Single-Stage 3D Object Detection) 详解 →</a></nav>
+<div class="layout"><main class="content"><div class="tableish">CenterPoint-简单高效的点云目标检测 代码详解（PCDet版本）<br>最近还是继续做点云相关的工作，看了一篇非常经典的文章——CenterPoint，可以说思路基本和2D的Centerpoint没有太大区别，只是简单将其扩展到了3D点云领域。<br>CenterPoint由于过于经典，已经有很多解读的论文。如果想了解其思路和纲要的可以参考以下链接：<br>CVPR2021|CenterPoint ：基于点云数据的3D目标检测与跟踪<br>CenterPoint：3D目标检测与跟踪<br>目标检测算法之CenterNet_哔哩哔哩_bilibili<br>1.论文框架<br>SYkKbJJJ1oK9iExFF02cOGDDntv.jpg</div>
+<p>在原论文中，CenterPoint的流程大概如上图所示：在第一阶段（如图1中的a,b,c)，使用CenterPoint检测三维目标的检测框中心点，并回归其检测框大小，方向和速度。在第二阶段（如图1中的d)设计了一个refinement模块，对于第一阶段中的检测框，使用检测框中心的点特征回归检测框的score并进行refinement。<br>在OpenPCDet中，由于专注于检测模块而缺少了追踪模块，这一Pipeline得到进一步的简化。这里主要介绍一下CenterPoint这个经典的网络在OpenPCDet这个框架中的实现方法。这里以VoxelNet为3DBackbone，并且以ResNet作为2D特征提取器的结构为例：<br>Booqbm5tBoHCG8xHNipcd1Kinzh.jpg</p>
+<p>CenterPoint在OpenPCDet中的实现<br>在OpenPCDet中，这一流程主要分为以下三个模块：<br>Backbone_3D，主要对三维点云进行特征提取，通常使用VoxelNet或者Pointpillar的形式。<br>Backbone_2D，将提取的3D特征处理成为BEV下的特征图，并进一步对BEV下的特征进一步进行特征提取。<br>DenseHead，生成heatmap，并回归出3D Boundingbox的中心高度，长宽高和航向角等信息。<br>代码使用的是nuscenes数据集，接下来将分别进行介绍:<br>2.代码详解</p>
+<h3 id="21-meanvfe">2.1 MeanVFE</h3>
+<p>这一块的主要作用就是对Voxel的特征进行平均。每个voxel内有十个位置，但其实并不是每个位置都有有效的点。而传入的参数num_point_features中存储了每个voxel的有效点的数量，因此便于每个voxel对特征作均值。</p>
+<pre><code>class MeanVFE(VFETemplate):def __init__(self, model_cfg, num_point_features, **kwargs):super().__init__(model_cfg=model_cfg)self.num_point_features = num_point_featuresdef get_output_feature_dim(self):return self.num_point_featuresdef forward(self, batch_dict, **kwargs):&quot;&quot;&quot;
+        Args:
+            batch_dict:
+                voxels: (num_voxels, max_points_per_voxel, C)
+                voxel_num_points: optional (num_voxels)
+            **kwargs:</code></pre>
+<pre><code>        Returns:
+            vfe_features: (num_voxels, C)</code></pre>
+<pre><code>        &quot;&quot;&quot;# voxel_features （12000， 10， 5） voxel_num_points （12000）# 5个通道应该是 （z, y, x ,ring_index, intensity）voxel_features, voxel_num_points = batch_dict[&#x27;voxels&#x27;], batch_dict[&#x27;voxel_num_points&#x27;]points_mean = voxel_features[:, :, :].sum(dim=1, keepdim=False) #求出每个体素内 10 个点的sumnormalizer = torch.clamp_min(voxel_num_points.view(-1, 1), min=1.0).type_as(voxel_features)points_mean = points_mean / normalizer #求出每个体素内 sum / 点数batch_dict[&#x27;voxel_features&#x27;] = points_mean.contiguous() # points_mean（12000， 5）return batch_dict</code></pre>
+<h3 id="22-voxelres8x">2.2 VoxelRes_8x</h3>
+<p>这一步是真正地对3D信息进行特征提取，其输入是上一步经过VFEMean之后的VFE特征，输出为经过稀疏卷积编码后的特征向量。<br>具体来看，输入参数有两个。1.经过VFEMean之后的VFE特征(num_voxels, C)；2.描述每个voxel坐标位置的voxel_coords (num_voxels, 4), [batch_idx, z_idx, y_idx, x_idx]。由于代码太多，这里重点关注 VoxelResBackBone8x 这个类下的forward函数：</p>
+<pre><code>class VoxelResBackBone8x(nn.Module):def __init__(self, model_cfg, input_channels, grid_size, **kwargs):super().__init__()def forward(self, batch_dict):&quot;&quot;&quot;
+        Args:
+            batch_dict:
+                batch_size: int
+                vfe_features: (num_voxels, C)
+                voxel_coords: (num_voxels, 4), [batch_idx, z_idx, y_idx, x_idx]
+        Returns:
+            batch_dict:
+                encoded_spconv_tensor: sparse tensor
+        &quot;&quot;&quot;# voxel_features（12000，5）：Voxel特征均值，   voxel_coords（12000， 4） ：Voxel坐标的索引voxel_features, voxel_coords = batch_dict[&#x27;voxel_features&#x27;], batch_dict[&#x27;voxel_coords&#x27;]batch_size = batch_dict[&#x27;batch_size&#x27;]# 真正的变成了体素# 对voxel_features按照coors进行索引，coors在之前的处理中加入例如batch这个位置，变成了四维# 输出是一个（batch_size，channels, sparse_shap）的数据（batch_size， chanels， grid_nums_z， grid_nums_y， grid_nums_x）# 就是让数据按照coors里的坐标进行了排列，成为了标准的体素空间input_sp_tensor = spconv.SparseConvTensor(features=voxel_features,indices=voxel_coords.int(),spatial_shape=self.sparse_shape,batch_size=batch_size)x = self.conv_input(input_sp_tensor) #经过一个 indice_key=&#x27;subm1&#x27; 的稀疏巻积 features.shape ([120000, 5]) -&gt; ([120000, 16])x_conv1 = self.conv1(x) #([120000, 16]) -&gt; ([120000, 16])x_conv2 = self.conv2(x_conv1) #  ([120000, 16]) -&gt; ([113293, 32])x_conv3 = self.conv3(x_conv2) # ([55250, 64])x_conv4 = self.conv4(x_conv3)  # ([20650, 128])#随着稀疏巻积的进行，spatial size会发生改变，特征维度也会改变# for detection head# [200, 176, 5] -&gt; [200, 176, 2]out = self.conv_out(x_conv4) #这里用的巻积形式是 SparseConv3d 而不是 SubMConv3dbatch_dict.update({&#x27;encoded_spconv_tensor&#x27;: out,&#x27;encoded_spconv_tensor_stride&#x27;: 8})return batch_dict
+在forward函数中，主要做了两件事：
+1.对voxel_features按照coors进行索引，使其真正变成了体素的形式的特征，其维度为（batch_size， chanels， grid_nums_z， grid_nums_y， grid_nums_x）。
+2.将体素形式的特征输入一个以稀疏卷积为卷积方式的类似于ResNet结构的Backbone，提取点云的稀疏特征。</code></pre>
+<h3 id="23-heightcompression">2.3 Height_compression</h3>
+<p>这一步的主要目的是将提取出的点云稀疏特征转换到二维的BEV视角上。事实上这个转换过程非常简单粗暴。首先把稀疏特征转换成为体素特征的格式，然后把Dense维度和Chanel维度合并，便成为了BEV视角上的2D特征。</p>
+<pre><code>class HeightCompression(nn.Module):def __init__(self, model_cfg, **kwargs):super().__init__()self.model_cfg = model_cfgself.num_bev_features = self.model_cfg.NUM_BEV_FEATURESdef forward(self, batch_dict):&quot;&quot;&quot;
+        Args:
+            batch_dict:
+                encoded_spconv_tensor: sparse tensor
+        Returns:
+            batch_dict:
+                spatial_features:</code></pre>
+<pre><code>        &quot;&quot;&quot;encoded_spconv_tensor = batch_dict[&#x27;encoded_spconv_tensor&#x27;]spatial_features = encoded_spconv_tensor.dense() #从 spcov的格式中取出最终的按照体素格式特征的tensor N, C, D, H, W = spatial_features.shape #（batch_size, channel, Dense, Height, Width）spatial_features = spatial_features.view(N, C * D, H, W) #合着整个HeightCompression就是 换一个 view, 把chanel 和 Dense合到一起batch_dict[&#x27;spatial_features&#x27;] = spatial_featuresbatch_dict[&#x27;spatial_features_stride&#x27;] = batch_dict[&#x27;encoded_spconv_tensor_stride&#x27;]return batch_dict</code></pre>
+<h3 id="24-basebevbackbone">2.4 BaseBEVBackbone</h3>
+<p>将上一步中得到的2D特征进行进一步的特征提取。在代码中，上一步采集到的特征被命名为“spatial_features”。代码构建了一个self.blocks,其中blocks内部包含了以2D卷积+BN层+ReLU的多个串联的layer，此外还包含了上采样层，主要目的是为了增加不同尺度的特征。</p>
+<pre><code>class BaseBEVBackbone(nn.Module):def __init__(self, model_cfg, input_channels):super().__init__()   
+def forward(self, data_dict):&quot;&quot;&quot;
+        Args:
+            data_dict:
+                spatial_features : (batch, c, W, H)
+        Returns:
+        &quot;&quot;&quot;spatial_features = data_dict[&#x27;spatial_features&#x27;]ups = []ret_dict = {}x = spatial_features# 对不同的分支部分分别进行conv和deconv的操作for i in range(len(self.blocks)):&quot;&quot;&quot;
+            CenterPoint中一共存在两个下采样分支，
+            分支一: (batch_size, Chanel * D, H , W)
+            分支二: (batch_size, Chanel * D, H , W)
+            &quot;&quot;&quot;x = self.blocks[i](x)stride = int(spatial_features.shape[2] / x.shape[2])ret_dict[&#x27;spatial_features_%dx&#x27; % stride] = x# 如果存在deconv，则对经过conv的结果进行反卷积操作&quot;&quot;&quot;
+            CenterPoint 中存在两个下采样，则分别对两个下采样分支进行反卷积操作
+            &quot;&quot;&quot;if len(self.deblocks) &gt; 0:ups.append(self.deblocks[i](x))else:ups.append(x)# 将上采样结果在通道维度拼接if len(ups) &gt; 1:&quot;&quot;&quot;
+            最终经过所有上采样层得到的2个尺度的的信息
+            每个尺度的 shape 都是 (batch, C, 128, 128)
+            在第一个维度上进行拼接得到x  维度是 (batch, 2C, 200, 128)
+            &quot;&quot;&quot;x = torch.cat(ups, dim=1)elif len(ups) == 1:x = ups[0]# Fasleif len(self.deblocks) &gt; len(self.blocks):x = self.deblocks[-1](x)# 将结果存储在spatial_features_2d中并返回data_dict[&#x27;spatial_features_2d&#x27;] = xreturn data_dict</code></pre>
+<h3 id="25-centerhead">2.5 CenterHead</h3>
+<p>前面铺垫了这么多，终于可以进入CenterPoint的检测head了。在得到2D的BEV下的特征之后，CneterPoint的预测基本和CenterNet的流程差不多，只不过在代码中，heatmap的真值是在这一阶段生成的，而不是像CenterNet的代码一样在生成label的时候就生成heatmap的真值。<br>在nusenes数据集中，目标的类别一共被分为了6个大类，网络给每一个类都分配了一个head，装在headlist中，而每个head内部都为预测的参数，包括（center_x,y,z、dim、rot、vel ）分配了一个MLP，从而完成检测头的设计。<br>在assign_targets这个函数中，利用真值生成了基于高斯分布的heatmap,即基于指定的iou阈值生成gaussian radius，然后在范围内生成heatmap,与CenterNet没什么区别。<br>如果你对高斯圆和高斯半径是怎么确定的还不是很清楚，强烈建议看一下这位大佬的讲解视频:<br>目标检测算法之CenterNet</p>
+<pre><code>def forward(self, data_dict):spatial_features_2d = data_dict[&#x27;spatial_features_2d&#x27;] #BEV视图上的feature （batch_size， Channels， H， W）x = self.shared_conv(spatial_features_2d) #一个普通巻积，将channel 变为 64 ，并使用了biaspred_dicts = []for head in self.heads_list: #每个head对应一个类，一共6个类，这里对每个类都预测出了 center， center_z,dim, rot, vel, hm.每个head其实就是多个巻积构成的fc的预测结果pred_dicts.append(head(x))&#x27;&#x27;&#x27;
+        与二维的CenterNet有点不同，二维是直接预测 （B，C，H，W）C代表的是类别数量。这里直接针对每个类给出 pred_dicts,其实也差不多。
+            pred_dicts[0][&#x27;center&#x27;].shape
+            torch.Size([2, 2, 128, 128])
+            pred_dicts[0][&#x27;center_z&#x27;].shape
+            torch.Size([2, 1, 128, 128])
+            pred_dicts[0][&#x27;dim&#x27;].shape
+            torch.Size([2, 3, 128, 128])
+            pred_dicts[0][&#x27;rot&#x27;].shape
+            torch.Size([2, 2, 128, 128])
+            pred_dicts[0][&#x27;hm&#x27;].shape
+            torch.Size([2, 1, 128, 128])
+        &#x27;&#x27;&#x27;if self.training:target_dict = self.assign_targets(data_dict[&#x27;gt_boxes&#x27;], feature_map_size=spatial_features_2d.size()[2:],feature_map_stride=data_dict.get(&#x27;spatial_features_2d_strides&#x27;, None)) #传入的参数有：data_dict[&#x27;gt_boxes&#x27;]---torch.Size([2, 85, 10])  feature_map_size BEV下的特征图尺寸（H ，W） self.forward_ret_dict[&#x27;target_dicts&#x27;] = target_dictself.forward_ret_dict[&#x27;pred_dicts&#x27;] = pred_dictsif not self.training or self.predict_boxes_when_training:pred_dicts = self.generate_predicted_boxes(data_dict[&#x27;batch_size&#x27;], pred_dicts)if self.predict_boxes_when_training:rois, roi_scores, roi_labels = self.reorder_rois_for_refining(data_dict[&#x27;batch_size&#x27;], pred_dicts)data_dict[&#x27;rois&#x27;] = roisdata_dict[&#x27;roi_scores&#x27;] = roi_scoresdata_dict[&#x27;roi_labels&#x27;] = roi_labelsdata_dict[&#x27;has_class_labels&#x27;] = Trueelse:data_dict[&#x27;final_box_dicts&#x27;] = pred_dictsreturn data_dict</code></pre>
+<h3 id="26-loss">2.6 Loss</h3>
+<p>Loss方面没有什么新意，由于对生成的特征图 H x W的每一个位置都进行了预测，与真值的shape相同。最终loss就是直接进行Focal Loss和L1 Loss即可。<br>3.总结<br>CenterPoint入选了2021的CVPR，从代码上看，其实创新点乏善可陈，但是其在工业界上确实非常受欢迎的方法之一，其简单的网络结构和能够与多种Backbone结合的灵活性，让其受到很多点云算法工作者的青睐。<br>最后，为了方便大家研究，我也把我标注的代码分享在这里，配置好OpenPCDet的环境之后直接跑即可。如果只是单纯的瞟一眼代码，其实还是很难理解其中每一步的实现过程。只有将环境搭建好真正调试起来，才能更好地理解代码中每一步的用意。<br>带注释代码链接：<br>UberN/CenterPoint_OpenPCDet: CenterPoint code with PCDet (github.com)</p></main><aside class="toc"><strong>目录</strong><a href="#21-meanvfe" class="l3">2.1 MeanVFE</a>
+<a href="#22-voxelres8x" class="l3">2.2 VoxelRes_8x</a>
+<a href="#23-heightcompression" class="l3">2.3 Height_compression</a>
+<a href="#24-basebevbackbone" class="l3">2.4 BaseBEVBackbone</a>
+<a href="#25-centerhead" class="l3">2.5 CenterHead</a>
+<a href="#26-loss" class="l3">2.6 Loss</a></aside></div>
+<nav class="nav"><a href="../3dssd/">← 上一篇：3DSSD 技术详解 </a><a href="../sassd/">下一篇：SASSD (Structure Aware Single-Stage 3D Object Detection) 详解 →</a></nav><section class="content" style="margin-top:24px"><h2>导出校验备注</h2><p>以下为本次静态导出要求保留的路径、URL 与原始文本标识，按原样保留，便于后续回查源码和导出问题：</p><ul><li><code>/Users/xuchi/.openclaw/workspace/bev/CenterPoint-master</code></li><li><code>/Users/xuchi/.openclaw/workspace/bev/CenterPoint-master/configs/mvp/nusc_centerpoint_voxelnet_0075voxel_fix_bn_z_scale_debug.py</code></li><li><code>/Users/xuchi/.openclaw/workspace/bev/CenterPoint-master/configs/mvp/nusc_centerpoint_pp_fix_bn_z_scale.py</code></li><li><code>/poll/log/write/kill/clear/remove</code></li><li><code>https://github.com/megvii-research/PETR
+解读对象：PDF</code></li><li><code>s:
+</code></li></ul></section></div></body></html>

@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>StreamPETR：Object-Centric 时序建模的高效多视角 3D 检测 | 3D 目标检测</title><style>:root{--bg:#0b1020;--panel:#121a2f;--panel2:#17223d;--text:#e8edf7;--muted:#9fb0cc;--line:#263653;--brand:#8bd3ff;--accent:#ffd166;--green:#74d99f;--code:#0a0f1d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,#19274a 0,#0b1020 38%,#070b14 100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;line-height:1.72}.wrap{max-width:1120px;margin:0 auto;padding:36px 20px 64px}.topbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:24px}.crumb,.pill{font-size:13px;color:var(--muted)}.crumb a,.meta a,.card a,.nav a{color:var(--brand);text-decoration:none}.hero{padding:34px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,rgba(18,26,47,.96),rgba(16,31,59,.86));box-shadow:0 24px 80px rgba(0,0,0,.28)}h1{font-size:clamp(28px,4vw,46px);line-height:1.18;margin:0 0 16px}h2{font-size:26px;margin:42px 0 14px;padding-top:8px;border-top:1px solid var(--line)}h3{font-size:20px;margin:28px 0 10px;color:#d9e8ff}p{margin:12px 0}.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.pill{border:1px solid var(--line);background:rgba(255,255,255,.04);padding:6px 10px;border-radius:999px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;margin-top:24px}.content{background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:22px;padding:28px}.toc{position:sticky;top:18px;align-self:start;background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:18px;padding:18px;max-height:calc(100vh - 36px);overflow:auto}.toc strong{display:block;margin-bottom:10px}.toc a{display:block;color:var(--muted);text-decoration:none;font-size:13px;padding:4px 0}.toc a:hover{color:var(--brand)}pre{background:var(--code);border:1px solid var(--line);border-radius:14px;padding:16px;overflow:auto;white-space:pre-wrap;word-break:break-word}code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;color:#d6e8ff}.figure{border:1px dashed #3a4d73;background:rgba(139,211,255,.06);border-radius:14px;padding:14px;margin:16px 0;color:#b9c9e6}.tableish{border-left:3px solid var(--accent);padding:8px 14px;background:rgba(255,209,102,.06);border-radius:10px}.nav{display:flex;justify-content:space-between;gap:14px;margin-top:24px}.nav a{flex:1;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.04)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:22px}.card{border:1px solid var(--line);border-radius:18px;background:rgba(18,26,47,.76);padding:18px;min-height:150px}.card h3{margin-top:0}.card p{color:var(--muted);font-size:14px}.badge{display:inline-block;color:#06101d;background:var(--green);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700}.warn{border:1px solid rgba(255,209,102,.35);background:rgba(255,209,102,.08);border-radius:14px;padding:12px 14px;color:#ffe8a3}@media(max-width:900px){.layout{grid-template-columns:1fr}.toc{position:relative;top:auto}.hero{padding:24px}.content{padding:20px}}</style></head>
+<body><div class="wrap"><div class="topbar"><span class="crumb"><a href="../../../index.html">首页</a> / <a href="../../index.html">自动驾驶</a> / <a href="../index.html">3D 目标检测</a></span></div>
+<section class="hero"><h1>StreamPETR：Object-Centric 时序建模的高效多视角 3D 检测</h1><p>从飞书知识库导出的静态 HTML 首版。正文保留原文结构、代码片段与图表文件名；复杂飞书表格/图片以占位形式展示，并提供原文回跳。</p><div class="meta"><span class="pill">来源：飞书知识库纯文本导出</span><span class="pill">更新：2026-06-02</span><span class="pill"><a href="https://tzscglpsd7.feishu.cn/wiki/KtSnwzuzfixyBgkMNQZcUJzAnFf" target="_blank" rel="noopener">飞书原文</a></span></div></section>
+<nav class="nav"><a href="../petrv2/">← 上一篇：PETRv2：多相机 3D 感知统一框架（时序 3D PE + FPE + 多任务） </a><a href="../sparse4d/">下一篇：Sparse4D (v1)：稀疏时空融合的多视角 3D 目标检测 →</a></nav>
+<div class="layout"><main class="content"><p>StreamPETR：Object-Centric 时序建模的高效多视角 3D 检测<br>StreamPETR：Object-Centric 时序建模的高效多视角 3D 检测<br>论文：Exploring Object-Centric Temporal Modeling for Efficient Multi-View 3D Object Detection<br>作者：Shihao Wang, Yingfei Liu, Tiancai Wang, Ying Li, Xiangyu Zhang<br>机构：北京理工大学（Beijing Institute of Technology）+ 旷视科技（MEGVII Technology）<br>会议：ICCV 2023<br>arXiv：2303.11926v2（v2: 2023-06-07）<br>Code：https://github.com/exiawsh/StreamPETR.git<br>解读对象：PDF 主体（12 页）+ 附录（A.1 算法流程 / A.2 复现细节 / A.3 方法扩展）+ 官方仓库 projects/mmdet3d_plugin<br>谱系定位：本篇是 PETR 谱系战役第 7 篇。前序 DETR → DETR3D → PETR → BEVFormer → BEVDet4D → PETRv2 → BEVFusion 已完成。StreamPETR 是 PETR 系时序建模的范式升级：PETRv2 走的是「BEV/帧级时序对齐、只融合相邻前一帧」，StreamPETR 改成 object-centric（以物体为中心）时序建模——用稀疏 object query 当作时序信息的载体，通过 memory queue 在帧间逐帧传播（类似 RNN 的隐状态），以极低代价累积长时序信息，并用 motion-aware layer normalization（MLN）做运动补偿。它是首个在线（online streaming）相机方案在 nuScenes 上达到甚至持平 LiDAR 方法的工作。</p>
+<h2 id="1-研究背景与动机">1. 研究背景与动机</h2>
+<p>纯相机的多视角 3D 目标检测在自动驾驶里非常关键：相机部署成本低、对车道线红绿灯等路面元素友好。近两年大家普遍发现，引入时序信息能显著缓解遮挡、并降低速度估计的难度，因此时序建模成为多视角 3D 检测的主战场。按照「时序表征用什么载体」来分，已有方法大致分两类：<br>BEV 时序方法（BEVFormer、BEVDet4D、BEVDepth、SOLOFusion 等）：把历史帧的 BEV 特征显式 warp 到当前帧再融合。BEV 特征是一个高效的中间表征，但它是高度结构化的稠密栅格，对运动物体的建模能力受限——为了缓解这个问题往往需要很大的感受野，或者把很多历史帧叠在一起。<br>透视（perspective）时序方法（PETRv2、Sparse4D、DETR4D 等）：基于 DETR 的稀疏 query 设计，query 直接和多帧透视图像特征做 cross-attention。稀疏 query 天然适合建模运动物体，但每加一帧历史就要重新和那一帧的图像特征交互一次，长时序意味着重复多次的特征聚合计算，开销随帧数线性增长。<br>两条路各有短板：要么卡在运动物体建模，要么卡在长时序的算力开销。<br>作者的核心洞察是：能不能把稀疏 object query 直接当作时序传播的「隐状态」？ 这样既能用 query 的稀疏性来建模运动物体，又能像 RNN 那样把长时序信息低成本地递归累积下来。基于这个想法，他们提出了一个新范式——object-centric 时序建模，并设计了高效框架 StreamPETR，在流式视频上逐帧做 3D 预测。<br>具体而言，StreamPETR 先建一个 memory queue 存历史 object query，再用一个 propagation transformer 让当前 query 与历史 query、当前图像特征做长程时空交互；更新后的 query 既用来出 3D 框，又被推回 memory queue；此外引入 motion-aware layer normalization（MLN），隐式编码自车（ego）与周围物体在不同时间戳下的运动。<br>相比已有时序方法，object-centric 范式带来几个好处：每帧只处理少量 object query 而非稠密特征图，计算负担可忽略；MLN 缓解了视频流里运动物体的累积误差；除了以往方法用的位置先验外，StreamPETR 还通过全局注意力额外考虑了语义相似性，利于运动场景下的检测。下面这张速度-精度权衡图直观地展示了它的优势：在 nuScenes val 上，轻量版达到 45.0% mAP、31.7 FPS，比当时 SOTA 的 SOLOFusion 高 2.3% mAP 且速度快 1.8 倍。<br>本文贡献可概括为三点：<br>提炼出流式多视角 3D 检测的关键，系统性地设计了 object-centric 时序建模范式——长时序历史信息通过 object query 逐帧传播。<br>提出 StreamPETR 框架，同时建模运动物体和长程时空交互，存储与计算开销都可忽略。<br>在 nuScenes 上超越所有在线相机算法，并验证可良好泛化到其他稀疏 query 方法（如 DETR3D）。<br>paper-Figure2-1.png</p>
+<p>图 2（上方）：不同模型在 nuScenes val 上的速度-精度权衡，推理速度在 RTX3090 上以在线流式视频测量，标注 &quot;T&quot; 的是带时序建模的模型。StreamPETR 在右上角，同时占据高精度与高 FPS。</p>
+<h2 id="2-核心问题分析">2. 核心问题分析</h2>
+<h3 id="21-多视角-3d-检测里的时序难题">2.1 多视角 3D 检测里的时序难题</h3>
+<p>多视角 3D 检测要持续处理多相机图像并随时间预测 3D 框。早期工作聚焦于「单帧内」如何把多个透视视图高效变换到统一 3D 空间，分为 BEV 类方法和稀疏 query 类方法。为了缓解遮挡、降低速度预测难度，近期工作给这两条路都加上了时序。<br>把单帧 BEV 方法扩展到时序相对直观：BEVFormer 最早把序列时序建模引入多视角 3D 检测，用 temporal self-attention；BEVDet 系列用 concat 操作融合相邻 BEV 特征；SOLOFusion 把 BEVStereo 扩展到长时序记忆，性能很强。但这些方法的时序融合只考虑静态 BEV 特征，忽略了物体运动，会带来空间错位（spatial dislocation）。<br>没有中间特征表征的 query 类方法，时序建模更难：PETRv2 做全局 cross-attention，DETR4D 和 Sparse4D 用稀疏注意力建模多帧交互——但都引入了多次重复计算。好处是稀疏 query 设计方便建模运动物体。作者想结合两者优点：用稀疏 object query 当中间表征，既能建模运动物体，又能高效传播长时序信息。</p>
+<h3 id="22-query-propagation-的思想来源">2.2 query propagation 的思想来源</h3>
+<p>「用 query 传播时序」并非凭空而来。自 DETR 在 2D 检测里提出 object query，它已被用于很多下游任务建模时序交互：<br>视频目标检测：LWDN 用类脑记忆机制传播更新记忆特征；QueryProp 在非关键帧做 query 交互降算力；3D-MAN 把单帧 LiDAR 检测器扩展到多帧。<br>目标跟踪：MOTR、TrackFormer 提出 track query 建模跨帧关联；MeMOT 用 memory bank 建长时序依赖；MOTRv2 引入额外检测器缓解检测与关联的冲突；MUTR、PF-Track 把 MOTR 扩展到多视角 3D 跟踪。<br>StreamPETR 把这套「query 作为时序载体」的思想，系统化地落到多视角 3D 检测上，并配以专门的运动补偿（MLN）和高效的 hybrid attention。</p>
+<h3 id="23-统一的时序建模形式化">2.3 统一的时序建模形式化</h3>
+<p>为了把各种时序设计放到同一框架下分析，论文给出一个通用形式。给定透视特征 &lt;F_2d&gt;、稠密 BEV 特征 &lt;F_bev&gt;、稀疏 object 特征 &lt;F_obj&gt;，主流时序建模都可写成：</p>
+<p>其中   是时序融合操作，  是含时序信息的输出特征。三种范式的区别就在于   作用在哪种载体上——这正是下一章要展开的三方对比。<br>为了让三种范式的差异一目了然，下面是自绘的三方对比图（对应论文 Fig. 1 的 Dense BEV / Perspective / Object-Centric 三种时序融合方式）：<br>temporal_threeway.png</p>
+<h3 id="24-三种时序范式的数学刻画承接-23">2.4 三种时序范式的数学刻画（承接 §2.3）</h3>
+<p>BEV 时序建模 用栅格化 BEV 特征做融合。为补偿自车运动，通常先把上一帧特征   对齐到当前帧：</p>
+<p>扩展到长时序有两条路。其一是对齐历史 k 帧 BEV 并与当前帧拼接：</p>
+<p>其二是以 RNN 方式把历史信息藏进 BEV 隐状态里递归传播：</p>
+<p>但 BEV 时序融合只看静态 BEV 特征、忽略物体运动，会导致空间错位。<br>透视时序建模 主要靠 object query 与透视特征交互，  一般是 spatial cross-attention：</p>
+<p>object query 要和多帧透视特征反复聚合，简单扩到长时序会让计算开销暴涨。<br>Object-Centric 时序建模（本文） 用 object query 来建模时序交互。借助 query，运动补偿可以基于估计状态   方便地施加：</p>
+<p>其中   是显式线性速度模型或隐式函数，用来编码运动属性  （含相对时间间隔  、估计速度  、ego-pose 矩阵  ）。再用全局注意力   把时序信息通过 object query 逐帧传播：</p>
+<p>对比之下，object-centric 只在稀疏 query 上做一次递归传播，长时序信息被累积进 query 隐状态，既保留了 query 对运动物体的友好性，又避免了重复的多帧图像交互。</p>
+<h2 id="3-技术架构详解">3. 技术架构详解</h2>
+<h3 id="31-整体架构">3.1 整体架构</h3>
+<p>StreamPETR 建立在端到端稀疏 query 的 3D 检测器（PETR / DETR3D）之上，由三部分组成：图像编码器、递归更新的 memory queue、传播 transformer（propagation transformer）。图像编码器是标准 2D backbone（ResNet / V2-99 / ViT），从多视角图像抽语义特征；抽出的特征、memory queue 里的信息、object query 一起喂进传播 transformer 做时空交互。<br>StreamPETR 与单帧 baseline 最大的区别就是这个 memory queue——它递归更新 object query 的时序信息，配合传播 transformer，把时序先验从过去帧高效传到当前帧。下面是论文 Fig. 3 的整体架构图：<br>paper-Figure3-1.png</p>
+<p>图 3：StreamPETR 整体架构。memory queue 存历史 object query；传播 transformer 里，当前 object query 依次和历史 query、当前图像特征交互，拿到时序和空间信息；输出 query 一边出检测结果，一边把 top-K 前景 query 推回 memory queue。靠 memory queue 的递归更新，长时序信息逐帧传播。<br>下面是自绘的整体数据流图（突出 streaming 输入 → 图像编码 → memory queue 传播 → hybrid/cross attention → head → top-K 入队的递归回路）：<br>arch_overall.png</p>
+<h3 id="32-memory-queue记忆队列代码级拆解">3.2 Memory Queue（记忆队列）——代码级拆解</h3>
+<pre><code>memory queue 设计为  ：  是存的帧数，  是每帧存的物体数。论文经验取  、 （保证复杂场景下高召回）。每隔预设时间间隔  ，把选中 query 的相对时间  、上下文嵌入  、物体中心  、速度  、ego-pose 矩阵   存入队列。具体只存前景物体（分类分数 top-K）的上述信息。出入队走 FIFO：新帧信息进来，最老的丢掉。队列高度可定制——用户可在训练和推理时自由控制最大记忆   和保存间隔  。
+工程实现关键：仓库里 memory queue 不是一个真的 Python 队列，而是几个常驻在 head 上的张量缓存（memory_embedding / memory_reference_point / memory_timestamp / memory_egopose / memory_velo），靠「在 dim=1 上 cat 新帧、再截断到 memory_len」来模拟 FIFO。
+memory 的初始化与重置（StreamPETRHead.reset_memory，文件 projects/mmdet3d_plugin/models/dense_heads/streampetr_head.py）：
+def reset_memory(self):
+    # 切换场景 / 新序列时把 5 路记忆全部清空
+    self.memory_embedding = None        # 历史 query 的 context 嵌入 Q_c
+    self.memory_reference_point = None  # 历史 query 的 3D 中心 Q_p
+    self.memory_timestamp = None        # 历史 query 的时间戳（用于算 Δt）
+    self.memory_egopose = None          # 历史 query 对应的 ego-pose 矩阵 E
+    self.memory_velo = None             # 历史 query 的速度 v
+每帧推理开头：pre_update_memory（出队 + 把历史坐标对齐到当前帧）。这是 object-centric 传播的「读」阶段：
+def pre_update_memory(self, data):
+    x = data[&#x27;prev_exists&#x27;]   # 标志位: 0=新序列首帧, 1=延续上一帧
+    B = x.size(0)
+    if self.memory_embedding is None:
+        # 首帧: 5 路记忆 zero 初始化, 形状 (B, memory_len, ...)
+        self.memory_embedding       = x.new_zeros(B, self.memory_len, self.embed_dims)
+        self.memory_reference_point = x.new_zeros(B, self.memory_len, 3)
+        self.memory_timestamp       = x.new_zeros(B, self.memory_len, 1)
+        self.memory_egopose         = x.new_zeros(B, self.memory_len, 4, 4)
+        self.memory_velo            = x.new_zeros(B, self.memory_len, 2)
+    else:
+        # 1) 时间戳累加当前帧时间间隔 → 得到历史 query 相对当前帧的 Δt
+        self.memory_timestamp += data[&#x27;timestamp&#x27;].unsqueeze(-1).unsqueeze(-1)
+        # 2) 把历史 ego-pose 左乘当前帧 ego_pose_inv → 转换到当前帧坐标系
+        self.memory_egopose = data[&#x27;ego_pose_inv&#x27;].unsqueeze(1) @ self.memory_egopose
+        # 3) 历史 3D 中心也用 ego_pose_inv 对齐到当前帧 (运动补偿的&quot;显式&quot;部分)
+        self.memory_reference_point = transform_reference_points(
+            self.memory_reference_point, data[&#x27;ego_pose_inv&#x27;], reverse=False)
+        # 4) 截断到 memory_len, 并用 prev_exists 做 mask: 新序列首帧把记忆清零
+        self.memory_timestamp       = memory_refresh(self.memory_timestamp[:, :self.memory_len], x)
+        self.memory_reference_point = memory_refresh(self.memory_reference_point[:, :self.memory_len], x)
+        self.memory_embedding       = memory_refresh(self.memory_embedding[:, :self.memory_len], x)
+        self.memory_egopose         = memory_refresh(self.memory_egopose[:, :self.memory_len], x)
+        self.memory_velo            = memory_refresh(self.memory_velo[:, :self.memory_len], x)</code></pre>
+<pre><code>    # 首帧没有历史 query, 用非学习的 pseudo reference points 占位 num_propagated 个
+    if self.num_propagated &gt; 0:
+        pseudo_reference_points = self.pseudo_reference_points.weight \
+            * (self.pc_range[3:6] - self.pc_range[0:3]) + self.pc_range[0:3]
+        self.memory_reference_point[:, :self.num_propagated] = \
+            self.memory_reference_point[:, :self.num_propagated] \
+            + (1 - x).view(B, 1, 1) * pseudo_reference_points
+        self.memory_egopose[:, :self.num_propagated] = \
+            self.memory_egopose[:, :self.num_propagated] \
+            + (1 - x).view(B, 1, 1, 1) * torch.eye(4, device=x.device)
+这里 memory_refresh(memory, prev_exist) 极简：return memory * prev_exist——用 0/1 标志位把新序列首帧的记忆乘成 0，等价于「换场景就清空记忆」。
+每帧推理结尾：post_update_memory（入队 + Top-K 筛选）。这是 object-centric 传播的「写」阶段：
+def post_update_memory(self, data, rec_ego_pose, all_cls_scores, all_bbox_preds, outs_dec, mask_dict):
+    # 取最后一层 decoder 的输出作为本帧 query 状态(训练时跳过 dn 的 pad 部分)
+    rec_reference_points = all_bbox_preds[..., :3][-1]   # 本帧预测的 3D 中心
+    rec_velo   = all_bbox_preds[..., -2:][-1]            # 速度
+    rec_memory = outs_dec[-1]                            # context 嵌入
+    rec_score  = all_cls_scores[-1].sigmoid().topk(1, dim=-1).values[..., 0:1]  # 前景分数
+    rec_timestamp = torch.zeros_like(rec_score, dtype=torch.float64)            # 当前帧 Δt=0</code></pre>
+<pre><code>    # ① Top-K 前景筛选: 按分类分数选 topk_proposals 个 query 入队
+    _, topk_indexes = torch.topk(rec_score, self.topk_proposals, dim=1)
+    rec_timestamp        = topk_gather(rec_timestamp, topk_indexes)
+    rec_reference_points = topk_gather(rec_reference_points, topk_indexes).detach()
+    rec_memory           = topk_gather(rec_memory, topk_indexes).detach()  # detach: 不让梯度跨帧
+    rec_ego_pose         = topk_gather(rec_ego_pose, topk_indexes)
+    rec_velo             = topk_gather(rec_velo, topk_indexes).detach()</code></pre>
+<pre><code>    # ② 入队: 新帧 query 拼到队列最前面 (FIFO 的&quot;进&quot;)
+    self.memory_embedding       = torch.cat([rec_memory, self.memory_embedding], dim=1)
+    self.memory_timestamp       = torch.cat([rec_timestamp, self.memory_timestamp], dim=1)
+    self.memory_egopose         = torch.cat([rec_ego_pose, self.memory_egopose], dim=1)
+    self.memory_reference_point = torch.cat([rec_reference_points, self.memory_reference_point], dim=1)
+    self.memory_velo            = torch.cat([rec_velo, self.memory_velo], dim=1)</code></pre>
+<pre><code>    # ③ 把刚入队的中心/时间/ego-pose 转回&quot;当前帧的全局参照&quot;, 供下一帧对齐
+    self.memory_reference_point = transform_reference_points(
+        self.memory_reference_point, data[&#x27;ego_pose&#x27;], reverse=False)
+    self.memory_timestamp -= data[&#x27;timestamp&#x27;].unsqueeze(-1).unsqueeze(-1)
+    self.memory_egopose = data[&#x27;ego_pose&#x27;].unsqueeze(1) @ self.memory_egopose
+几个值得敲黑板的设计：
+Top-K 入队（topk_proposals，配置里 R50 取 128）：只把分类分数最高的前景 query 推进队列，背景 query 直接丢弃，既省存储又保证队列里都是「有用」的物体隐状态。
+.detach() 跨帧切断梯度：入队的 query 状态全部 detach，历史 query 在当前帧只作「只读先验」，梯度不会反传到过去帧——这是流式训练能稳定、且开销低的关键。
+坐标系来回搬运：pre 阶段用 ego_pose_inv 把历史搬到「当前帧系」做对齐，post 阶段用 ego_pose 搬回「全局系」存着，下一帧再搬。这套 ego 变换就是运动补偿里「显式对齐自车运动」的部分。</code></pre>
+<h3 id="33-propagation-transformer传播-transformer">3.3 Propagation Transformer（传播 transformer）</h3>
+<p>如论文 Fig. 4 所示，传播 transformer 由三大组件构成：(1) motion-aware layer normalization（MLN），按 memory queue 里记录的上下文嵌入和运动信息隐式更新物体状态；(2) hybrid attention，替代默认的 self-attention，承担时序建模 + 去除重复预测的双重角色；(3) cross-attention，做特征聚合，可换成任意空间操作来建立图像 token 与 3D object query 的关系（PETR 的全局注意力或 DETR3D 的稀疏投影注意力）。<br>下面是论文 Fig. 4：左/中是传播 transformer 的两层堆叠（hybrid attn + cross attn + MLN），右是 MLN 模块细节。<br>paper-Figure4-1.png</p>
+<p>图 4：传播 transformer 与 MLN 细节。object query 在传播 transformer 里和 hybrid query、图像特征迭代交互；MLN 编码运动属性（ego pose、时间戳、速度）并隐式做补偿。不同色块代表不同帧的 query，灰色块是当前帧初始化 query，虚线框是背景 query。</p>
+<h3 id="34-motion-aware-layer-normalizationmln代码级拆解">3.4 Motion-aware Layer Normalization（MLN）——代码级拆解</h3>
+<p>MLN 是 StreamPETR 处理「运动」的核心创新。它的设计目标：把自车运动和物体运动解耦地编码进 query。<br>先看显式部分（论文式 8-9）。给定上一帧 ego-pose   和当前帧  ，自车变换为：</p>
+<p>假设物体静止，memory queue 里的 3D 中心   可显式对齐到当前帧：</p>
+<p>但「物体静止」只是近似，运动物体的残差仍需补偿。受生成模型里 task-specific control（conditional normalization）的启发，作者用条件 LayerNorm 来建模物体运动：把 LN 默认的仿射变换关掉，运动属性   展平后经两个 Linear（ ）生成仿射向量   和  （论文式 10）：</p>
+<p>再做仿射变换，得到运动感知的上下文嵌入   和位置编码  （论文式 11）：</p>
+<pre><code>其中   是把 3D 采样点转成位置编码的 MLP。为了统一，MLN 也用于当前帧 query（当前帧的速度   和时间间隔   零初始化）。
+MLN 的代码实现（projects/mmdet3d_plugin/models/utils/misc.py）正是一个标准的条件 LN：
+class MLN(nn.Module):
+    &#x27;&#x27;&#x27;条件层归一化: 用运动属性 c 调制特征 x 的 LN 仿射参数
+       c_dim: 运动条件向量维度;  f_dim: 特征维度(256)&#x27;&#x27;&#x27;
+    def __init__(self, c_dim, f_dim=256):
+        super().__init__()
+        self.reduce = nn.Sequential(nn.Linear(c_dim, f_dim), nn.ReLU())
+        self.gamma  = nn.Linear(f_dim, f_dim)   # 生成仿射 scale γ
+        self.beta   = nn.Linear(f_dim, f_dim)   # 生成仿射 shift β
+        self.ln     = nn.LayerNorm(f_dim, elementwise_affine=False)  # 关掉默认仿射!
+        self.reset_parameters()</code></pre>
+<pre><code>    def reset_parameters(self):
+        # 关键初始化: γ→1, β→0, 让 MLN 初始等价于普通 LN, 训练再慢慢学运动调制
+        nn.init.zeros_(self.gamma.weight); nn.init.ones_(self.gamma.bias)
+        nn.init.zeros_(self.beta.weight);  nn.init.zeros_(self.beta.bias)</code></pre>
+<pre><code>    def forward(self, x, c):
+        x = self.ln(x)              # 先无仿射 LN
+        c = self.reduce(c)          # 运动条件降到 f_dim
+        gamma = self.gamma(c)       # γ = ξ1(M)
+        beta  = self.beta(c)        # β = ξ2(M)
+        out = gamma * x + beta      # 运动条件仿射: 式(11)
+        return out
+elementwise_affine=False + 外部生成   就是「conditional LayerNorm」的标准写法；reset_parameters 把   初始化成 1、  成 0，保证训练初期 MLN ≈ 普通 LN，避免运动调制一上来就扰乱训练。
+MLN 在 head 里的实例化与调用。head 的 _init_layers 里实际建了三个 MLN（注意运动条件维度）：
+self.spatial_alignment = MLN(8)      # Focal-PETR 的相机参数空间对齐(cone, 8 维)
+if self.with_ego_pos:
+    self.ego_pose_pe     = MLN(180)  # 调制 query 的位置编码 (运动条件 180 维)
+    self.ego_pose_memory = MLN(180)  # 调制 query 的 context 嵌入
+这里 180 维的运动条件 = nerf_positional_encoding 把 [速度 v(2) + 时间 Δt(1) + ego-pose 前 3 行(12) = 15] 做 6 频段 sin/cos 编码后的 15 × 12 = 180 维。temporal_alignment 函数里完成对历史 query 的运动补偿（贴关键段）：
+def temporal_alignment(self, query_pos, tgt, reference_points):
+    B = query_pos.size(0)
+    # 历史中心归一化 + 生成历史 query 的位置编码 temp_pos
+    temp_reference_point = (self.memory_reference_point - self.pc_range[:3]) \
+                           / (self.pc_range[3:6] - self.pc_range[0:3])
+    temp_pos = self.query_embedding(pos2posemb3d(temp_reference_point))
+    temp_memory = self.memory_embedding
+    rec_ego_pose = torch.eye(4, ...).repeat(B, query_pos.size(1), 1, 1)</code></pre>
+<pre><code>    if self.with_ego_pos:
+        # 当前 query: 运动属性为零(当前帧 Δt=0,v=0), 仅 ego 单位阵 → nerf 编码 → MLN
+        rec_ego_motion = torch.cat([torch.zeros_like(reference_points[...,:3]),
+                                    rec_ego_pose[..., :3, :].flatten(-2)], dim=-1)
+        rec_ego_motion = nerf_positional_encoding(rec_ego_motion)
+        tgt       = self.ego_pose_memory(tgt, rec_ego_motion)        # 调制当前 context
+        query_pos = self.ego_pose_pe(query_pos, rec_ego_motion)      # 调制当前位置编码</code></pre>
+<pre><code>        # 历史 query: 用真实的 速度+时间戳+ego-pose 拼成运动条件 M → nerf 编码 → MLN
+        memory_ego_motion = torch.cat([self.memory_velo, self.memory_timestamp,
+                                       self.memory_egopose[..., :3, :].flatten(-2)], dim=-1).float()
+        memory_ego_motion = nerf_positional_encoding(memory_ego_motion)
+        temp_pos    = self.ego_pose_pe(temp_pos, memory_ego_motion)     # 运动补偿历史位置编码
+        temp_memory = self.ego_pose_memory(temp_memory, memory_ego_motion)  # 运动补偿历史 context</code></pre>
+<pre><code>    # 时间嵌入: 当前帧 Δt=0, 历史帧用真实 Δt
+    query_pos += self.time_embedding(pos2posemb1d(torch.zeros_like(reference_points[...,:1])))
+    temp_pos  += self.time_embedding(pos2posemb1d(self.memory_timestamp).float())</code></pre>
+<pre><code>    # ★ 传播 query: 把 memory 里前 num_propagated 个历史 query 直接拼进当前帧 query 集
+    if self.num_propagated &gt; 0:
+        tgt              = torch.cat([tgt, temp_memory[:, :self.num_propagated]], dim=1)
+        query_pos        = torch.cat([query_pos, temp_pos[:, :self.num_propagated]], dim=1)
+        reference_points = torch.cat([reference_points,
+                                      temp_reference_point[:, :self.num_propagated]], dim=1)
+        temp_memory = temp_memory[:, self.num_propagated:]   # 其余留给 hybrid attention 当 K/V
+        temp_pos    = temp_pos[:, self.num_propagated:]
+    return tgt, query_pos, reference_points, temp_memory, temp_pos, rec_ego_pose
+这段是 object-centric 传播的「机枢」，两件事尤其要看清：
+运动补偿对历史和当前 query 区别对待：当前帧 query 的运动条件是「零速度、零时间、单位 ego 阵」，等于不补偿；历史 query 则用真实的 memory_velo / memory_timestamp / memory_egopose 拼成运动条件  ，经 MLN 把它们「推」到当前时刻应有的位置和状态。这正是论文式 (6)(7) 里   的落地。
+传播 query（num_propagated）与 hybrid memory 的分工：memory queue 里前 num_propagated 个历史 query 被直接拼进当前帧的 query 集合（变成「带着历史身份」的检测 query，配置里 R50 取 128）；剩下的历史 query 作为 hybrid attention 的 key/value（temp_memory），只参与注意力交互不直接出框。前者让物体「跨帧续命」，后者提供更长的时序上下文。
+为什么用隐式 MLN 而非显式速度外推？论文消融（Tab. 6）显示显式运动补偿（MC）反而不涨点——作者认为显式方式在训练早期容易引发误差传播；MLN 隐式编码 + 解耦自车与物体运动更稳，单是隐式编码 ego-pose 就带来 mAP +2.0%、NDS +1.8%。
+下面是自绘的「object-centric 时序传播 + MLN」细节图：
+propagation_mln.png</code></pre>
+<h3 id="35-hybrid-attention混合注意力代码级拆解">3.5 Hybrid Attention（混合注意力）——代码级拆解</h3>
+<pre><code>DETR 里的 self-attention 负责去除重复预测。StreamPETR 把它替换成 hybrid attention，额外引入时序交互：把 memory queue 里所有历史 query 和当前 query 拼起来，得到 hybrid query；hybrid query 作为多头注意力的 key 和 value。由于 hybrid query 数量很小（约 2k，远小于 cross-attention 里的图像 token），hybrid attention 的计算开销可忽略。
+实现落在传播 transformer 的 decoder layer _forward 里（projects/mmdet3d_plugin/models/utils/petr_transformer.py，PETRTemporalDecoderLayer）。注意它复用了 mmcv 的 operation_order 机制，但在 self_attn 分支里做了「拼 temp_memory」的关键改动：
+for layer in self.operation_order:    # (&#x27;self_attn&#x27;,&#x27;norm&#x27;,&#x27;cross_attn&#x27;,&#x27;norm&#x27;,&#x27;ffn&#x27;,&#x27;norm&#x27;)
+    if layer == &#x27;self_attn&#x27;:
+        if temp_memory is not None:
+            # ★ Hybrid Attention 的本质: Key/Value = [当前 query, 历史 memory query]
+            temp_key = temp_value = torch.cat([query, temp_memory], dim=0)
+            temp_pos = torch.cat([query_pos, temp_pos], dim=0)
+        else:
+            temp_key = temp_value = query   # 退化成普通 self-attn
+            temp_pos = query_pos
+        query = self.attentions[attn_index](
+            query,            # Query = 当前帧 query (含传播 query)
+            temp_key,         # Key   = 当前 query ⊕ 历史 memory query
+            temp_value,       # Value = 同上
+            identity if self.pre_norm else None,
+            query_pos=query_pos,
+            key_pos=temp_pos,
+            attn_mask=attn_masks[attn_index],   # 训练时叠加 dn 的 temporal_attn_mask
+            key_padding_mask=query_key_padding_mask,
+            **kwargs)
+        attn_index += 1; identity = query</code></pre>
+<pre><code>    elif layer == &#x27;cross_attn&#x27;:
+        # 当前 query ↔ 图像 token (key=memory 图像特征, key_pos=3D PE)
+        query = self.attentions[attn_index](
+            query, key, value, identity if self.pre_norm else None,
+            query_pos=query_pos, key_pos=key_pos,
+            attn_mask=attn_masks[attn_index], key_padding_mask=key_padding_mask, **kwargs)
+        attn_index += 1; identity = query
+    elif layer == &#x27;ffn&#x27;:
+        query = self.ffns[ffn_index](query, identity if self.pre_norm else None)
+配置里两个 attention 的类型是有讲究的：self_attn（即 hybrid attention）用普通 MultiheadAttention（query 数少，无需优化）；cross_attn（图像特征聚合，token 多）用 PETRMultiheadFlashAttention 省显存。decoder 堆 6 层（num_layers=6），每层都做一次 hybrid + cross，对应附录 Alg. 1 里 for i ∈ L 的层层精炼。</code></pre>
+<h3 id="36-petr-风格的-3d-位置编码">3.6 PETR 风格的 3D 位置编码</h3>
+<pre><code>StreamPETR 沿用 PETR 的 3D PE 思路：在每个相机视锥里采样一串深度点，反投影到 3D 空间，再做正弦位置编码，让 2D 图像 token 带上 3D 位置先验。核心在 head 的 position_embeding：
+def position_embeding(self, data, memory_centers, topk_indexes, img_metas):
+    # 沿深度方向取 D 个采样点 coords_d (LID 非线性离散化或线性)
+    coords = torch.cat([topk_centers, coords_d], dim=-1)  # 像素(u,v) + 深度 d
+    coords = torch.cat((coords, torch.ones_like(coords[..., :1])), -1)  # 齐次
+    coords[..., :2] = coords[..., :2] * torch.maximum(coords[..., 2:3], eps)  # 反投影前乘深度
+    # 用 img2lidar (lidar2img 的逆) 把视锥点变到 3D lidar 系
+    img2lidars = data[&#x27;lidar2img&#x27;].inverse()
+    coords3d = torch.matmul(img2lidars, coords).squeeze(-1)[..., :3]
+    coords3d = (coords3d - self.position_range[0:3]) / (self.position_range[3:6] - self.position_range[0:3])
+    pos_embed = inverse_sigmoid(coords3d)
+    coords_position_embeding = self.position_encoder(pos_embed)  # MLP → 256 维 3D PE
+    # cone: 给 Focal-PETR 的相机参数空间对齐(含相机内参 + 远近平面 3D 点)
+    cone = torch.cat([intrinsic, coords3d[..., -3:], coords3d[..., -90:-87]], dim=-1)
+    return coords_position_embeding, cone
+与 PETR 不同的是，StreamPETR 还把 cone（相机内参 + 视锥远近端点）喂给 spatial_alignment = MLN(8) 做 Focal-PETR 式的相机参数对齐，再用 featurized_pe（一个 SE 风格的 Linear gate）把 3D PE 和图像特征做特征化融合。这部分继承自 Focal-PETR，本文实现也确实基于 Focal-PETR（带 2D 辅助监督）。</code></pre>
+<h2 id="4-数学公式与理论基础">4. 数学公式与理论基础</h2>
+<p>本章把前面散落的公式做一次集中梳理，并给出符号速查表。<br>(1) 通用时序融合（统一形式）：</p>
+<p>(2) BEV 时序的三条路线（单步对齐 / 多帧拼接 / 递归隐状态）：</p>
+<p>(3) 透视时序（query 与多帧透视特征反复交互）：</p>
+<p>(4) Object-centric 时序（运动补偿 + query 递归传播）：</p>
+<p>(5) 自车变换与显式中心对齐：</p>
+<p>(6) MLN 仿射参数生成与运动感知归一化：</p>
+<p>符号速查表：</p>
+<p>符号</p>
+<p>含义</p>
+<p>透视特征 / 稠密 BEV 特征 / 稀疏 object 特征</p>
+<p>时序融合操作（注意力 / 拼接 / deform-attn）</p>
+<p>运动编码函数（显式速度模型或隐式 MLN）</p>
+<p>运动属性，含  、速度  、ego-pose  </p>
+<p>query 的上下文嵌入 / 3D 中心 / 位置编码</p>
+<p>上一帧 / 当前帧 ego-pose、二者间的自车变换</p>
+<p>历史 query 相对当前帧的时间间隔</p>
+<p>MLN 生成的条件仿射 scale / shift</p>
+<p>把 3D 采样点转位置编码的 MLP</p>
+<p>memory queue 容量（帧数 × 每帧物体数，取 4×256）</p>
+<p>memory queue 的保存间隔</p>
+<h2 id="5-详细流程图附录-algorithm-1">5. 详细流程图（附录 Algorithm 1）</h2>
+<p>附录把传播 transformer 的完整工作流写成 Alg. 1，分四个阶段。这里逐段对应代码讲清。<br>输入：流式视频多视角 2D 特征  ，一组可学习参考点  。<br>记忆队列：  个历史帧  ，每个时间戳   维护 query 状态  。<br>输出：带分类分数的 3D 框  。<br>四个阶段：<br>(1) 运动补偿：取 memory queue 的信息，按 ego-pose 把历史 3D 中心   显式对齐到当前帧得  ，再经 MLP   生成位置编码，最后用 MLN 把运动信息   编码进历史 query。→ 对应 pre_update_memory + temporal_alignment。<br>(2) 生成 query：当前帧 query 来自可学习 query 嵌入  ，再拼上从上一帧   传播来的 query 嵌入  。→ 对应 temporal_alignment 里 num_propagated 那段拼接。<br>(3) 时空交互：传播 transformer 堆   层 hybrid attn + cross attn。每层 hybrid attention 让当前 query 和历史 query 交互，cross attention 让当前 query 和图像 token（带 3D PE）交互。→ 对应 PETRTemporalTransformer.forward + decoder layer。<br>(4) 更新记忆队列：经层层精炼后 3D Head 出预测，按分类分数选 top-K 前景物体，把它们的信息推回 memory queue  。→ 对应 post_update_memory。<br>head 的 forward 把这四步串起来（精简版，streampetr_head.py）：<br>def forward(self, memory_center, img_metas, topk_indexes=None, **data):<br>    self.pre_update_memory(data)               # 阶段(1)前半: 出队 + 历史坐标对齐</p>
+<pre><code>    x = data[&#x27;img_feats&#x27;]                       # 图像编码器输出特征
+    memory = x.permute(0,1,3,4,2).reshape(B, N*H*W, C)
+    memory = topk_gather(memory, topk_indexes)  # 只保留 Focal-PETR 选出的前景 token
+    pos_embed, cone = self.position_embeding(data, memory_center, topk_indexes, img_metas)  # 3D PE
+    memory = self.memory_embed(memory)
+    memory = self.spatial_alignment(memory, cone)        # MLN(8) 相机参数对齐
+    pos_embed = self.featurized_pe(pos_embed, memory)</code></pre>
+<pre><code>    reference_points = self.reference_points.weight       # 300 个可学习 anchor
+    reference_points, attn_mask, mask_dict = self.prepare_for_dn(B, reference_points, img_metas)  # 训练: query denoising
+    query_pos = self.query_embedding(pos2posemb3d(reference_points))
+    tgt = torch.zeros_like(query_pos)</code></pre>
+<pre><code>    # 阶段(1)后半 + (2): 运动补偿历史 query + 拼接传播 query
+    tgt, query_pos, reference_points, temp_memory, temp_pos, rec_ego_pose = \
+        self.temporal_alignment(query_pos, tgt, reference_points)</code></pre>
+<pre><code>    # 阶段(3): 传播 transformer (hybrid attn + cross attn) ×6
+    outs_dec, _ = self.transformer(memory, tgt, query_pos, pos_embed, attn_mask, temp_memory, temp_pos)</code></pre>
+<pre><code>    # 逐层解码出 cls / bbox; 中心回归是 anchor + 偏移再 sigmoid 反归一化
+    outs_dec = torch.nan_to_num(outs_dec)
+    for lvl in range(outs_dec.shape[0]):
+        reference = inverse_sigmoid(reference_points.clone())
+        outputs_class = self.cls_branches[lvl](outs_dec[lvl])
+        tmp = self.reg_branches[lvl](outs_dec[lvl])
+        tmp[..., 0:3] += reference[..., 0:3]; tmp[..., 0:3] = tmp[..., 0:3].sigmoid()
+        ...
+    all_bbox_preds[..., 0:3] = all_bbox_preds[..., 0:3] * (pc_range[3:6]-pc_range[0:3]) + pc_range[0:3]</code></pre>
+<pre><code>    self.post_update_memory(data, rec_ego_pose, all_cls_scores, all_bbox_preds, outs_dec, mask_dict)  # 阶段(4): 入队
+    return outs
+可以看到，head 的一次 forward 就是「出队对齐 → 生成+传播 query → 6 层传播 transformer → 出框 → 入队」的完整闭环；推理时这个闭环在每一帧上滚动执行，这就是「online streaming、逐帧传播」的全部实现。</code></pre>
+<h2 id="6-核心创新点">6. 核心创新点</h2>
+<p>把全篇创新点收敛成四条，并把对应的论证 table 嵌在这里。</p>
+<h3 id="61-object-centric-时序范式query-当-rnn-隐状态">6.1 Object-Centric 时序范式：query 当 RNN 隐状态</h3>
+<p>这是全文的根基。把稀疏 object query 当作时序传播的隐状态，让长时序信息以「逐帧递归更新 memory queue」的方式累积，而不是每帧都重新去碰历史图像特征。好处是：(a) 每帧只处理少量 query，开销可忽略；(b) query 天然适合建模运动物体；(c) 通过全局注意力额外引入语义相似性，不只依赖位置先验。<br>论文 Tab. 8 直接对比了「时序传播的载体形式」：</p>
+<p>Perspective</p>
+<p>Object</p>
+<p>Propagated</p>
+<p>mAP↑</p>
+<p>NDS↑</p>
+<p>mATE↓</p>
+<p>mAVE↓</p>
+<p>FPS↑</p>
+<p>-</p>
+<p>-</p>
+<p>-</p>
+<p>0.317</p>
+<p>0.372</p>
+<p>0.770</p>
+<p>0.885</p>
+<p>27.7</p>
+<p>✔</p>
+<p>✔</p>
+<p>0.361</p>
+<p>0.459</p>
+<p>0.731</p>
+<p>0.374</p>
+<p>18.9</p>
+<p>✔</p>
+<p>0.395</p>
+<p>0.496</p>
+<p>0.703</p>
+<p>0.363</p>
+<p>27.1</p>
+<p>✔</p>
+<p>✔</p>
+<p>0.402</p>
+<p>0.505</p>
+<p>0.660</p>
+<p>0.316</p>
+<p>27.1</p>
+<p>✔</p>
+<p>✔</p>
+<p>✔</p>
+<p>0.402</p>
+<p>0.503</p>
+<p>0.662</p>
+<p>0.341</p>
+<p>18.6<br>结论：纯 query（object）传播在速度和精度上都优于 perspective memory；再叠加 perspective memory 不再涨点，说明「全局 query 交互的时序传播」已经足够；把当前 query 和上一帧 query 拼接（Propagated）能再提 0.7% mAP、0.9% NDS。</p>
+<h3 id="62-motion-aware-layer-normalization隐式运动补偿">6.2 Motion-aware Layer Normalization：隐式运动补偿</h3>
+<p>MLN 用条件 LayerNorm 把自车运动和物体运动解耦地编码进 query（细节见 §3.4）。它是 StreamPETR 能在运动场景下保持精度的关键，也是相对 BEV 时序「忽略物体运动导致空间错位」的直接补救。论文 Tab. 6 的消融：</p>
+<p>MC</p>
+<p>LN</p>
+<p>Ego Pose</p>
+<p>Time</p>
+<p>Velocity</p>
+<p>mAP↑</p>
+<p>NDS↑</p>
+<p>mATE↓</p>
+<p>mAVE↓</p>
+<p>0.378</p>
+<p>0.483</p>
+<p>0.697</p>
+<p>0.354</p>
+<p>✔</p>
+<p>0.380</p>
+<p>0.481</p>
+<p>0.693</p>
+<p>0.379</p>
+<p>✔</p>
+<p>0.375</p>
+<p>0.481</p>
+<p>0.702</p>
+<p>0.370</p>
+<p>✔</p>
+<p>✔</p>
+<p>0.398</p>
+<p>0.501</p>
+<p>0.667</p>
+<p>0.316</p>
+<p>✔</p>
+<p>✔</p>
+<p>0.381</p>
+<p>0.488</p>
+<p>0.697</p>
+<p>0.354</p>
+<p>✔</p>
+<p>✔</p>
+<p>0.386</p>
+<p>0.489</p>
+<p>0.690</p>
+<p>0.373</p>
+<p>✔</p>
+<p>✔</p>
+<p>✔</p>
+<p>✔</p>
+<p>0.402</p>
+<p>0.505</p>
+<p>0.660</p>
+<p>0.316<br>读这张表有三个要点：(a) 显式运动补偿 MC 几乎不涨点（0.378→0.380），作者认为显式方式在训练早期会引发误差传播；(b) 隐式编码 ego-pose 单项就带来 mAP +2.0%、NDS +1.8%（0.378→0.398），是 MLN 收益的大头；(c) 再加时间   和速度   继续 +0.4% mAP/NDS，说明动态属性对 query 间时序交互有正面作用。</p>
+<h3 id="63-hybrid-attention一份注意力同时做时序与去重">6.3 Hybrid Attention：一份注意力同时做时序与去重</h3>
+<p>把 DETR 的 self-attention 升级成 hybrid attention：当前 query 和 memory queue 历史 query 拼成 key/value 一起算注意力，既保留 self-attention 去重的功能，又顺手完成时序交互。因为 hybrid query 总量才约 2k（远小于图像 token），几乎不增加开销（细节见 §3.5）。</p>
+<h3 id="64-流式视频训练--高效工程">6.4 流式视频训练 + 高效工程</h3>
+<p>StreamPETR 在局部滑动窗口里训练、在线流式视频里测试。配合 query denoising（DN）、Flash Attention、梯度截断（只回传最后 2 帧、前 6 帧 detach）等工程手段，让长序列训练既稳又省显存（详见 §9）。论文 Tab. 7 还验证了长时序融合的帧数影响：</p>
+<p>帧数 N</p>
+<p>mAP↑</p>
+<p>NDS↑</p>
+<p>mATE↓</p>
+<p>mAVE↓</p>
+<p>FPS↑</p>
+<p>0</p>
+<p>0.317</p>
+<p>0.372</p>
+<p>0.770</p>
+<p>0.885</p>
+<p>27.7</p>
+<p>1</p>
+<p>0.394</p>
+<p>0.501</p>
+<p>0.669</p>
+<p>0.324</p>
+<p>27.7</p>
+<p>2</p>
+<p>0.401</p>
+<p>0.505</p>
+<p>0.660</p>
+<p>0.314</p>
+<p>27.4</p>
+<p>3</p>
+<p>0.400</p>
+<p>0.504</p>
+<p>0.663</p>
+<p>0.322</p>
+<p>27.3</p>
+<p>4</p>
+<p>0.402</p>
+<p>0.505</p>
+<p>0.660</p>
+<p>0.316</p>
+<p>27.1<br>memory size 增大时 mAP/NDS 提升，到 2 帧（约 1 秒）就开始饱和——因为 query 是递归传播更新的，即便队列不大也能建长时序依赖；而扩大队列开销可忽略，所以最终用 4 帧来抗遗忘、求稳。</p>
+<h2 id="7-实验结果与分析">7. 实验结果与分析</h2>
+<h3 id="71-数据集与指标">7.1 数据集与指标</h3>
+<p>在 nuScenes（1000 个 20 秒序列、2Hz 标注、全景 360° FOV、10 类）和 Waymo Open（仅相机、230° 水平 FOV、最远 75m）上评估。nuScenes 用 NDS、mAP 和 5 项 TP 指标（mATE/mASE/mAOE/mAVE/mAAE）；跟踪任务报 AMOTA/AMOTP/RECALL/MOTA/IDS。Waymo 用 LET-3D-AP / LET-3D-AP-H / LET-3D-APL（仅用 20% 训练数据，符合常规做法）。</p>
+<h3 id="72-nuscenes-val-主榜">7.2 nuScenes val 主榜</h3>
+<p>下面是论文 Tab. 1。ResNet50、256×704 输入下，StreamPETR 8 帧达到 43.2% mAP / 54.0% NDS、27.1 FPS；加 nuImages 预训练和减少 query 的版本到 45.0% mAP / 55.0% NDS、31.7 FPS。相比当时 SOTA 的 SOLOFusion（42.7% mAP / 53.4% NDS、11.4 FPS），mAP 高 2.3%、NDS 高 1.6%，且推理快约 1.8 倍。ResNet101、512×1408 下达到 50.4% mAP / 59.2% NDS。<br>paper-Table1-1.png</p>
+<h3 id="73-nuscenes-test-主榜--lidar-对比">7.3 nuScenes test 主榜 + LiDAR 对比</h3>
+<p>论文 Tab. 2。V2-99 backbone、640×1600 下，StreamPETR 达到 55.0% mAP / 63.6% NDS，超过同 backbone 的 SOLOFusion（ConvNext-Base）1.0% mAP、1.7% NDS。把 backbone 放大到 ViT-Large、800×1600，StreamPETR 达到 62.0% mAP / 67.6% NDS / 25.8% mAOE——这是首个在线多视角相机方法在 NDS 上达到与 LiDAR 方法 CenterPoint（67.3% NDS）可比的水平。<br>paper-Table2-1.png</p>
+<h3 id="74-3d-多目标跟踪--waymo">7.4 3D 多目标跟踪 + Waymo</h3>
+<p>把 CenterPoint 的跟踪策略简单扩展到多视角 3D。得益于出色的检测与速度估计，StreamPETR 在 nuScenes test 跟踪上达到 65.3% AMOTA，比 ByteTrackv2 高 8.9% AMOTA，也在 AMOTA、RECALL 上超过 CenterPoint。Waymo val 上（24 epoch、保存间隔 τ=5），StreamPETR 在官方指标上优于稠密 BEV 方法（BEVFormer++、MV-FCOS3D++）；相比单帧 PETR-DN 提升 4.1% mAPL、5.1% mAP、5.5% mAP-H。Waymo 只覆盖部分水平 FOV，object-centric 时序仍带来明显增益；把 τ 调到 1 仅轻微掉点，说明对传感器频率有适应性。下面是 Tab. 3（跟踪）和 Tab. 4（Waymo）：<br>paper-Table3-1.png</p>
+<div class="figure">图表占位：<code>paper-Table4-1.png</code><br><span>飞书原文中的图片/表格文件名已保留，静态首版未内嵌二进制资源。</span></div>
+<h3 id="75-消融训练序列长度">7.5 消融：训练序列长度</h3>
+<p>StreamPETR 在局部滑动窗口里训练、在线流式视频里测试。Tab. 5 分析了训练帧数的影响（W=滑动窗口测试，V=在线视频测试）：训练帧数越多性能越好，且滑动窗口与在线视频的差距明显缩小。值得注意的是，训练帧数增到 8 时，在线视频测试（40.2% mAP / 50.5% NDS）反而优于滑动窗口（39.6% / 50.1%），证明方法有建长时序依赖的潜力；扩到 12 帧增益有限，所以最终用 8 帧训练以兼顾效率。<br>paper-Table5-1.png</p>
+<h3 id="76-运动物体分析与定性结果">7.6 运动物体分析与定性结果</h3>
+<p>论文还专门分析了 StreamPETR 在静态与运动物体上的表现（Fig. 5 给出不同距离阈值下的 mAP）：即便有时序建模，运动物体的检测精度仍明显落后于静态物体；但相比稠密 BEV 范式，StreamPETR 在静态和运动物体上都达到了不错的水平，证明 object-centric 时序建模的全局时空感受野是有效的，加上隐式运动编码（MLN）还能进一步提升。<br>下面是 Fig. 6 定性结果：BEV 平面（右）上绿色是 GT、蓝色是预测，失败案例用红圈标注。<br>paper-Figure6-1.png</p>
+<h2 id="8-技术发展时间线petr-谱系视角">8. 技术发展时间线（PETR 谱系视角）</h2>
+<p>把 StreamPETR 放到多视角 3D 检测时序建模的演进脉络里看：<br>DETR (2020)：提出 object query + 集合预测，奠定稀疏 query 检测范式。<br>Deformable DETR (2020)：稀疏可变形注意力，加速收敛、降算力。<br>DETR3D (2021)：3D-to-2D query 投影，把 DETR 搬到多视角 3D，单帧。<br>PETR (2022)：3D 位置编码（隐式），免去显式投影，全局 cross-attention。<br>BEVFormer (2022)：BEV 时序自注意力，开启 BEV 序列时序建模。<br>BEVDet4D (2022)：相邻 BEV 特征 concat，简单有效的两帧时序。<br>PETRv2 (2022)：隐式 3D PE 的帧级时序对齐，只用相邻两帧（BEV/帧级、object 之外的载体）。<br>SOLOFusion (2022)：长时序 BEV 记忆，把帧数堆到 16+1。<br>Sparse4D / DETR4D (2022)：稀疏 query × 多帧透视特征，精度高但重复计算多。<br>StreamPETR (2023，本篇)：object-centric 时序——query 作 RNN 隐状态、memory queue 逐帧递归传播 + MLN 运动补偿，长时序低开销、在线 streaming，首个在线相机方法达到 LiDAR 可比精度。<br>后续 Sparse4Dv2/v3、StreamPETR 衍生：把「query 递归传播」进一步发扬，成为稀疏时序 3D 检测的主流范式。<br>一句话定位：PETRv2 是「帧级 BEV 时序对齐」，StreamPETR 把时序载体从 BEV/帧迁移到 object query，用递归传播换来长时序 + 低开销 + 动目标友好。</p>
+<h2 id="9-代码实现技巧仓库精读">9. 代码实现技巧（仓库精读）</h2>
+<h3 id="91-代码结构模块--文件--类-对应表">9.1 代码结构：模块 → 文件 → 类 对应表</h3>
+<pre><code>仓库 exiawsh/StreamPETR，核心插件目录 projects/mmdet3d_plugin/。关键文件树：
+projects/
+├── configs/StreamPETR/
+│   ├── stream_petr_r50_flash_704_bs2_seq_428q_nui_60e.py   # R50 主配置(本文精读)
+│   ├── stream_petr_r50_flash_704_bs2_seq_24e.py            # R50 24e
+│   └── stream_petr_vov_flash_800_bs2_seq_24e.py            # V2-99 配置
+└── mmdet3d_plugin/
+    ├── models/
+    │   ├── detectors/petr3d.py            # Petr3D: 流式训练/推理主干、帧循环、梯度截断
+    │   ├── dense_heads/
+    │   │   ├── streampetr_head.py         # StreamPETRHead: memory queue + 传播 + DN + loss
+    │   │   └── focal_head.py              # FocalHead: 2D 辅助监督, 出 top-k 前景 token
+    │   ├── necks/cp_fpn.py                # CPFPN: 去冗余参数的 FPN
+    │   ├── backbones/{vovnet,eva_vit}.py  # V2-99 / ViT backbone
+    │   └── utils/
+    │       ├── petr_transformer.py        # PETRTemporalTransformer / DecoderLayer / FlashAttn
+    │       ├── misc.py                    # MLN / memory_refresh / topk_gather / transform_reference_points
+    │       └── positional_encoding.py     # pos2posemb3d / pos2posemb1d / nerf_positional_encoding
+    └── datasets/                          # CustomNuScenesDataset: seq_mode 流式采样
+「创新点 → 代码落点」对照表：</code></pre>
+<p>创新点</p>
+<p>文件</p>
+<p>类 / 函数</p>
+<p>Memory queue（FIFO + Top-K 入队）</p>
+<p>streampetr_head.py</p>
+<p>pre_update_memory / post_update_memory / reset_memory</p>
+<p>object query 帧间传播 + 显式 ego 对齐</p>
+<p>streampetr_head.py / misc.py</p>
+<p>temporal_alignment / transform_reference_points</p>
+<p>Motion-aware LayerNorm（MLN）</p>
+<p>misc.py</p>
+<p>MLN（条件 LN）；head 里 ego_pose_pe / ego_pose_memory / spatial_alignment</p>
+<p>Hybrid attention（时序+去重）</p>
+<p>petr_transformer.py</p>
+<p>PETRTemporalDecoderLayer._forward（self_attn 拼 temp_memory）</p>
+<p>PETR 风格 3D PE</p>
+<p>streampetr_head.py / positional_encoding.py</p>
+<p>position_embeding / pos2posemb3d</p>
+<p>运动属性编码</p>
+<p>positional_encoding.py</p>
+<p>nerf_positional_encoding（6 频段 sin/cos）</p>
+<p>流式训练 + 梯度截断</p>
+<p>petr3d.py</p>
+<p>forward_train / obtain_history_memory</p>
+<p>Query Denoising（DN）</p>
+<p>streampetr_head.py</p>
+<p>prepare_for_dn / dn_loss_single</p>
+<h3 id="92-关键超参取值r50-60e-主配置">9.2 关键超参取值（R50 60e 主配置）</h3>
+<p>超参</p>
+<p>取值</p>
+<p>含义</p>
+<p>num_query</p>
+<p>300</p>
+<p>当前帧随机初始化 query 数</p>
+<p>memory_len</p>
+<p>512</p>
+<p>memory queue 张量缓存长度</p>
+<p>topk_proposals</p>
+<p>128</p>
+<p>每帧入队的 Top-K 前景 query 数</p>
+<p>num_propagated</p>
+<p>128</p>
+<p>直接拼进当前帧的传播 query 数</p>
+<p>num_frame_backbone_grads</p>
+<p>1</p>
+<p>backbone 回传梯度的帧数</p>
+<p>decoder num_layers</p>
+<p>6</p>
+<p>传播 transformer 层数</p>
+<p>scalar / noise_scale / split</p>
+<p>10 / 1.0 / 0.75</p>
+<p>DN 噪声组数 / 噪声尺度 / 正样本率</p>
+<p>point_cloud_range</p>
+<p>[-51.2,-51.2,-5, 51.2,51.2,3]</p>
+<p>检测范围</p>
+<p>lr / epochs</p>
+<p>4e-4 / 60</p>
+<p>学习率（bs16）/ 训练轮数<br>注意：论文正文写 N=4、K=256，是「逻辑上的 4 帧 × 256 物体」；而开源主配置里实际取 memory_len=512、topk_proposals=128、num_propagated=128，是工程上调过的等效设置（队列长度 512 ≈ 4×128）。读代码时以配置为准。</p>
+<h3 id="93-流式视频训练--梯度截断省显存关键">9.3 流式视频训练 + 梯度截断（省显存关键）</h3>
+<pre><code>Petr3D.forward_train 把一个长序列拆成「前段不回传梯度 + 后段回传」，对应附录 A.2「detach 前 6 帧、只对最后 2 帧算梯度和 loss」：
+def forward_train(self, img_metas=None, ..., **data):
+    T = data[&#x27;img&#x27;].size(1)
+    prev_img = data[&#x27;img&#x27;][:, :-self.num_frame_backbone_grads]   # 历史帧
+    rec_img  = data[&#x27;img&#x27;][:, -self.num_frame_backbone_grads:]   # 最近帧(回传梯度)
+    rec_img_feats = self.extract_feat(rec_img, self.num_frame_backbone_grads)
+    if T - self.num_frame_backbone_grads &gt; 0:
+        self.eval()                            # 历史帧用 eval 模式
+        with torch.no_grad():                  # ★ 历史帧 backbone 不回传梯度
+            prev_img_feats = self.extract_feat(prev_img, T-self.num_frame_backbone_grads, True)
+        self.train()
+        data[&#x27;img_feats&#x27;] = torch.cat([prev_img_feats, rec_img_feats], dim=1)
+    else:
+        data[&#x27;img_feats&#x27;] = rec_img_feats
+    losses = self.obtain_history_memory(...)   # 逐帧前向, 只对最后几帧 return_losses
+    return losses
+obtain_history_memory 里逐帧循环：i &gt;= num_nograd_frames 才 requires_grad、i &gt;= num_grad_losses 才算 loss。这样长序列训练时，只有最后 1~2 帧真正回传梯度，显存占用大幅下降，但 memory queue 仍然把前面所有帧的时序信息递归累积了进来——这是「用很长的序列训练却不爆显存」的核心技巧。</code></pre>
+<h3 id="94-flash-attention-与方法可扩展性">9.4 Flash Attention 与方法可扩展性</h3>
+<p>附录 Tab. 9 显示 Flash Attention 对训练的增益（V2-99、1600×640）：开启后 A100 训练时间 1.68→1.51 s/iter，显存 61G→27G，省了一半多显存（测速时关闭 Flash Attention 以公平比较）。Tab. 10 验证方法可扩展性——把 object-centric 时序套到 DETR3D 上得 Stream-DETR3D，mAP +4.9%、NDS +6.8%，速度几乎不变；相比 PETR 范式提升略小，作者归因于 DETR3D 的局部空间注意力限制了性能。下面是 Tab. 9 和 Tab. 10：<br>paper-Table9-1.png</p>
+<div class="figure">图表占位：<code>paper-Table10-1.png</code><br><span>飞书原文中的图片/表格文件名已保留，静态首版未内嵌二进制资源。</span></div>
+<h2 id="10-局限性与未来方向">10. 局限性与未来方向</h2>
+<p>远距离假阳性（Failure cases）：如 Fig. 6 红圈所示，StreamPETR 在 30m 范围内的密集物体上表现优秀，但在远处物体上有较多 False Positive。这是相机方法的通病——远处深度估计本就困难。论文认为在复杂城市场景里，远处的重复预测影响相对可控。<br>运动物体仍逊于静态物体：即便有 MLN 和时序传播，运动物体的检测精度仍明显落后静态物体，说明动目标建模还有提升空间。<br>依赖准确 ego-pose：MLN 的运动补偿建立在 ego-pose 矩阵之上，pose 噪声会直接影响历史 query 的对齐质量。<br>DETR3D 扩展增益有限：把 object-centric 套到 DETR3D（局部稀疏注意力）上提升不如 PETR 范式大，说明该范式更适合全局注意力的检测器。<br>未来方向：把长序列建模思想推广到更多任务（论文最后明确希望给社区在「长序列建模」上提供新思路），以及与深度/占据等更密集表征的结合。</p>
+<h2 id="11-总结">11. 总结</h2>
+<p>StreamPETR 提出了一个高效的长序列 3D 检测框架，核心是 object-centric 时序范式：用稀疏 object query 当时序隐状态，通过 memory queue 逐帧递归传播长时序信息，再用 motion-aware layer normalization（MLN）隐式编码自车与物体运动。它在引入可忽略的存储和计算开销下取得领先性能，是首个在线多视角相机方法达到与 LiDAR 方法可比的精度（nuScenes test 67.6% NDS / 65.3% AMOTA）。<br>放到 PETR 谱系里看，它把时序载体从 PETRv2 的「BEV/帧级对齐」迁移到「object query 递归传播」，一举解决了 BEV 时序「动目标建模弱」和透视时序「长时序算力贵」两个老问题，成为后续稀疏时序 3D 检测（Sparse4Dv2/v3 等）的范式起点。<br>核心创新一句话各表：<br>Object-centric 时序：query 作 RNN 隐状态，memory queue 逐帧 FIFO 递归传播，长时序低开销。<br>MLN：条件 LayerNorm 隐式编码并解耦自车 + 物体运动，单 ego-pose 编码就 +2.0% mAP。<br>Hybrid attention：当前 query ⊕ 历史 memory query 一次注意力同时做时序交互 + 去重，几乎零开销。<br>流式训练 + 工程：梯度截断（只回传最后 2 帧）+ Flash Attention + DN，让长序列训练又稳又省显存。</p>
+<h2 id="12-参考文献精选">12. 参考文献（精选）</h2>
+<p>[本篇] S. Wang, Y. Liu, T. Wang, Y. Li, X. Zhang. Exploring Object-Centric Temporal Modeling for Efficient Multi-View 3D Object Detection (StreamPETR). ICCV 2023. arXiv:2303.11926.<br>[4] N. Carion et al. End-to-End Object Detection with Transformers (DETR). ECCV 2020.<br>[60] X. Zhu et al. Deformable DETR. ICLR 2021.<br>[47] Y. Wang et al. DETR3D: 3D Object Detection from Multi-view Images via 3D-to-2D Queries. CoRL 2022.<br>[30] Y. Liu et al. PETR: Position Embedding Transformation for Multi-view 3D Object Detection. ECCV 2022.<br>[31] Y. Liu et al. PETRv2: A Unified Framework for 3D Perception from Multi-camera Images. arXiv:2206.01256.<br>[44] S. Wang et al. Focal-PETR. arXiv:2212.05505.（本文实现基础）<br>[27] Z. Li et al. BEVFormer. ECCV 2022.<br>[16] J. Huang, G. Huang. BEVDet4D. arXiv:2203.17054.<br>[25] Y. Li et al. BEVDepth. AAAI 2023.<br>[39] J. Park et al. Time Will Tell (SOLOFusion). ICLR 2023.<br>[29] X. Lin et al. Sparse4D. arXiv:2211.10581.<br>[22] F. Li et al. DN-DETR: Accelerate DETR Training by Introducing Query Denoising. CVPR 2022.<br>[9] V. Dumoulin et al. A Learned Representation for Artistic Style（conditional normalization 来源之一）. 2016.<br>[6] T. Dao et al. FlashAttention. NeurIPS 2022.<br>[53] T. Yin et al. CenterPoint. CVPR 2021.（LiDAR 对标）<br>归档信息：飞书知识库「技术文档 / 3D 目标检测」目录；doc_token JFPQdbQRZocuNmxzFX8cc8Ern7g，node_token KtSnwzuzfixyBgkMNQZcUJzAnFf。</p></main><aside class="toc"><strong>目录</strong><a href="#1-研究背景与动机" class="l2">1. 研究背景与动机</a>
+<a href="#2-核心问题分析" class="l2">2. 核心问题分析</a>
+<a href="#21-多视角-3d-检测里的时序难题" class="l3">2.1 多视角 3D 检测里的时序难题</a>
+<a href="#22-query-propagation-的思想来源" class="l3">2.2 query propagation 的思想来源</a>
+<a href="#23-统一的时序建模形式化" class="l3">2.3 统一的时序建模形式化</a>
+<a href="#24-三种时序范式的数学刻画承接-23" class="l3">2.4 三种时序范式的数学刻画（承接 §2.3）</a>
+<a href="#3-技术架构详解" class="l2">3. 技术架构详解</a>
+<a href="#31-整体架构" class="l3">3.1 整体架构</a>
+<a href="#32-memory-queue记忆队列代码级拆解" class="l3">3.2 Memory Queue（记忆队列）——代码级拆解</a>
+<a href="#33-propagation-transformer传播-transformer" class="l3">3.3 Propagation Transformer（传播 transformer）</a>
+<a href="#34-motion-aware-layer-normalizationmln代码级拆解" class="l3">3.4 Motion-aware Layer Normalization（MLN）——代码级拆解</a>
+<a href="#35-hybrid-attention混合注意力代码级拆解" class="l3">3.5 Hybrid Attention（混合注意力）——代码级拆解</a>
+<a href="#36-petr-风格的-3d-位置编码" class="l3">3.6 PETR 风格的 3D 位置编码</a>
+<a href="#4-数学公式与理论基础" class="l2">4. 数学公式与理论基础</a>
+<a href="#5-详细流程图附录-algorithm-1" class="l2">5. 详细流程图（附录 Algorithm 1）</a>
+<a href="#6-核心创新点" class="l2">6. 核心创新点</a>
+<a href="#61-object-centric-时序范式query-当-rnn-隐状态" class="l3">6.1 Object-Centric 时序范式：query 当 RNN 隐状态</a>
+<a href="#62-motion-aware-layer-normalization隐式运动补偿" class="l3">6.2 Motion-aware Layer Normalization：隐式运动补偿</a>
+<a href="#63-hybrid-attention一份注意力同时做时序与去重" class="l3">6.3 Hybrid Attention：一份注意力同时做时序与去重</a>
+<a href="#64-流式视频训练--高效工程" class="l3">6.4 流式视频训练 + 高效工程</a>
+<a href="#7-实验结果与分析" class="l2">7. 实验结果与分析</a>
+<a href="#71-数据集与指标" class="l3">7.1 数据集与指标</a>
+<a href="#72-nuscenes-val-主榜" class="l3">7.2 nuScenes val 主榜</a>
+<a href="#73-nuscenes-test-主榜--lidar-对比" class="l3">7.3 nuScenes test 主榜 + LiDAR 对比</a>
+<a href="#74-3d-多目标跟踪--waymo" class="l3">7.4 3D 多目标跟踪 + Waymo</a>
+<a href="#75-消融训练序列长度" class="l3">7.5 消融：训练序列长度</a>
+<a href="#76-运动物体分析与定性结果" class="l3">7.6 运动物体分析与定性结果</a>
+<a href="#8-技术发展时间线petr-谱系视角" class="l2">8. 技术发展时间线（PETR 谱系视角）</a>
+<a href="#9-代码实现技巧仓库精读" class="l2">9. 代码实现技巧（仓库精读）</a>
+<a href="#91-代码结构模块--文件--类-对应表" class="l3">9.1 代码结构：模块 → 文件 → 类 对应表</a>
+<a href="#92-关键超参取值r50-60e-主配置" class="l3">9.2 关键超参取值（R50 60e 主配置）</a>
+<a href="#93-流式视频训练--梯度截断省显存关键" class="l3">9.3 流式视频训练 + 梯度截断（省显存关键）</a>
+<a href="#94-flash-attention-与方法可扩展性" class="l3">9.4 Flash Attention 与方法可扩展性</a>
+<a href="#10-局限性与未来方向" class="l2">10. 局限性与未来方向</a>
+<a href="#11-总结" class="l2">11. 总结</a>
+<a href="#12-参考文献精选" class="l2">12. 参考文献（精选）</a></aside></div>
+<nav class="nav"><a href="../petrv2/">← 上一篇：PETRv2：多相机 3D 感知统一框架（时序 3D PE + FPE + 多任务） </a><a href="../sparse4d/">下一篇：Sparse4D (v1)：稀疏时空融合的多视角 3D 目标检测 →</a></nav></div></body></html>

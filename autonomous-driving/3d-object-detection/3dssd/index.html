@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>3DSSD 技术详解 | 3D 目标检测</title><style>:root{--bg:#0b1020;--panel:#121a2f;--panel2:#17223d;--text:#e8edf7;--muted:#9fb0cc;--line:#263653;--brand:#8bd3ff;--accent:#ffd166;--green:#74d99f;--code:#0a0f1d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,#19274a 0,#0b1020 38%,#070b14 100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;line-height:1.72}.wrap{max-width:1120px;margin:0 auto;padding:36px 20px 64px}.topbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:24px}.crumb,.pill{font-size:13px;color:var(--muted)}.crumb a,.meta a,.card a,.nav a{color:var(--brand);text-decoration:none}.hero{padding:34px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,rgba(18,26,47,.96),rgba(16,31,59,.86));box-shadow:0 24px 80px rgba(0,0,0,.28)}h1{font-size:clamp(28px,4vw,46px);line-height:1.18;margin:0 0 16px}h2{font-size:26px;margin:42px 0 14px;padding-top:8px;border-top:1px solid var(--line)}h3{font-size:20px;margin:28px 0 10px;color:#d9e8ff}p{margin:12px 0}.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.pill{border:1px solid var(--line);background:rgba(255,255,255,.04);padding:6px 10px;border-radius:999px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;margin-top:24px}.content{background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:22px;padding:28px}.toc{position:sticky;top:18px;align-self:start;background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:18px;padding:18px;max-height:calc(100vh - 36px);overflow:auto}.toc strong{display:block;margin-bottom:10px}.toc a{display:block;color:var(--muted);text-decoration:none;font-size:13px;padding:4px 0}.toc a:hover{color:var(--brand)}pre{background:var(--code);border:1px solid var(--line);border-radius:14px;padding:16px;overflow:auto;white-space:pre-wrap;word-break:break-word}code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;color:#d6e8ff}.figure{border:1px dashed #3a4d73;background:rgba(139,211,255,.06);border-radius:14px;padding:14px;margin:16px 0;color:#b9c9e6}.tableish{border-left:3px solid var(--accent);padding:8px 14px;background:rgba(255,209,102,.06);border-radius:10px}.nav{display:flex;justify-content:space-between;gap:14px;margin-top:24px}.nav a{flex:1;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.04)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:22px}.card{border:1px solid var(--line);border-radius:18px;background:rgba(18,26,47,.76);padding:18px;min-height:150px}.card h3{margin-top:0}.card p{color:var(--muted);font-size:14px}.badge{display:inline-block;color:#06101d;background:var(--green);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700}.warn{border:1px solid rgba(255,209,102,.35);background:rgba(255,209,102,.08);border-radius:14px;padding:12px 14px;color:#ffe8a3}@media(max-width:900px){.layout{grid-template-columns:1fr}.toc{position:relative;top:auto}.hero{padding:24px}.content{padding:20px}}</style></head>
+<body><div class="wrap"><div class="topbar"><span class="crumb"><a href="../../../index.html">首页</a> / <a href="../../index.html">自动驾驶</a> / <a href="../index.html">3D 目标检测</a></span></div>
+<section class="hero"><h1>3DSSD 技术详解</h1><p>从飞书知识库导出的静态 HTML 首版。正文保留原文结构、代码片段与图表文件名；复杂飞书表格/图片以占位形式展示，并提供原文回跳。</p><div class="meta"><span class="pill">来源：飞书知识库纯文本导出</span><span class="pill">更新：2026-06-02</span><span class="pill"><a href="https://tzscglpsd7.feishu.cn/wiki/YsrQwyGMsigUDUkatklcE03Cn3c" target="_blank" rel="noopener">飞书原文</a></span></div></section>
+<nav class="nav"><a href="../root/">← 上一篇：Det3d </a><a href="../centerpoint-pcdet/">下一篇：CenterPoint-简单高效的点云目标检测 代码详解（PCDet版本） →</a></nav>
+<div class="layout"><main class="content"><p>3DSSD 技术详解<br>3DSSD 技术详解：Point-based 3D 单阶段检测器<br>论文：3DSSD: Point-based 3D Single Stage Object Detector<br>作者：Zetong Yang、Yanan Sun、Shu Liu、Jiaya Jia<br>机构：香港中文大学（CUHK） + 香港科技大学（HKUST）<br>会议：CVPR 2020（Oral）<br>arXiv：2002.10187v1（2020-02-24）<br>Code：https://github.com/dvlab-research/3DSSD （官方 TensorFlow 实现）<br>解读对象：PDF 主体 9 页 + 官方仓库 lib/（layers_util / loss_builder / single_stage_detector / head_builder / configs）</p>
+<h2 id="1-研究背景与动机">1. 研究背景与动机</h2>
+<h3 id="11-一句话定位">1.1 一句话定位</h3>
+<p>3DSSD 是第一个轻量高效的纯点云（point-based）单阶段 3D 检测器。它的核心动作是：把以往 point-based 方法里两个最耗时的模块——特征传播层（FP layers）和第二阶段精修（refinement）——全部砍掉，再用一套「融合采样（Fusion Sampling）+ 候选生成层（CG layer）+ anchor-free + 3D center-ness」的组合拳，补回砍掉模块造成的信息损失。最终在 KITTI 上做到 38ms / 25+ FPS，比此前最快的 point-based 方法快 2 倍以上，精度还能追平两阶段的 STD。</p>
+<h3 id="12-摘要逐句拆解">1.2 摘要逐句拆解</h3>
+<p>&quot;Currently, there have been many kinds of voxel-based 3D single stage detectors, while point-based single stage methods are still underexplored.&quot;<br>解读：基于体素（voxel）的单阶段检测器已经很多（SECOND、PointPillars），但「纯点云 + 单阶段」这条路线还是空白——这就是 3DSSD 要填的坑。<br>&quot;In this paradigm, all upsampling layers and refinement stage, which are indispensable in all existing point-based methods, are abandoned to reduce the large computation cost.&quot;<br>解读：本文最激进的决定——把所有 point-based 方法都视为标配的「上采样层（FP）+ 精修阶段」全部丢弃，目的就是砍计算量。<br>&quot;We novelly propose a fusion sampling strategy in downsampling process to make detection on less representative points feasible.&quot;<br>解读：丢掉 FP 后只剩下采样后的稀疏点，作者提出融合采样，让「在少量代表点上直接检测」变得可行。<br>&quot;A delicate box prediction network including a candidate generation layer, an anchor-free regression head with a 3D center-ness assignment strategy is designed to meet with our demand of accuracy and speed.&quot;<br>解读：预测网络三件套——候选生成层（CG）、anchor-free 回归头、3D center-ness 标签分配，三者一起兼顾精度与速度。<br>&quot;Our method outperforms all state-of-the-art voxel-based single stage methods by a large margin, and has comparable performance to two stage point-based methods as well, with inference speed more than 25 FPS, 2× faster than former state-of-the-art point-based methods.&quot;<br>解读：结果三连——大幅超过体素单阶段、追平两阶段 point-based、速度 25+ FPS 比此前 point-based 快 2 倍。</p>
+<h3 id="13-两条技术路线的取舍">1.3 两条技术路线的取舍</h3>
+<p>路线</p>
+<p>代表方法</p>
+<p>优点</p>
+<p>缺点</p>
+<p>Voxel-based（体素）</p>
+<p>VoxelNet / SECOND / PointPillars</p>
+<p>规整、可套 2D CNN、快</p>
+<p>体素化有信息损失，遇瓶颈</p>
+<p>Point-based（点云）</p>
+<p>PointRCNN / STD / IPOD</p>
+<p>精度高、保留几何</p>
+<p>都是两阶段，推理慢到无法实时<br>3DSSD 的野心：要 point-based 的精度，又要 voxel-based 的速度。</p>
+<h2 id="2-核心问题分析">2. 核心问题分析</h2>
+<h3 id="21-瓶颈定位fp-层和-refinement-吃掉一半时间">2.1 瓶颈定位：FP 层和 refinement 吃掉一半时间</h3>
+<p>作者复现 PointRCNN 后，按组件拆分耗时（论文 Table 1）：backbone 的 SA 层 40ms、FP 层 14ms、refinement 模块 35ms。也就是说 FP + refinement ≈ 49ms，占总耗时的一半以上。这直接指向优化方向：把这两块砍掉。</p>
+<h3 id="22-挑战砍掉-fp-层为什么不简单">2.2 挑战：砍掉 FP 层为什么不简单</h3>
+<p>FP 层不是白存在的。backbone 的 SA 层用 D-FPS（基于 3D 欧氏距离的最远点采样） 做下采样，这种采样只看空间位置。问题在于：背景点（如地面）数量极多，D-FPS 采样后大量代表点都落在背景上，很多前景物体（尤其远处、内部点少的）会被整体抹掉，根本无法检测。<br>作者用 points recall（实例内部点存活率） 量化这个问题（论文 Table 2 第一行）：在 nuScenes 上，当代表点降到 1024 / 512 时，D-FPS 的 recall 只有 65.9% / 51.8%，意味着近一半实例被完全抹除。以往方法正是靠 FP 层把这些被丢弃的点重新上采样回来——代价就是那 14ms。</p>
+<h3 id="23-痛点--对策映射表">2.3 痛点 → 对策映射表</h3>
+<p>痛点</p>
+<p>直观表现</p>
+<p>本文对策</p>
+<p>FP 层 + refinement 太慢</p>
+<p>占总推理时间一半（Table 1）</p>
+<p>直接砍掉两个模块（单阶段 anchor-free）</p>
+<p>砍掉 FP 后 D-FPS 丢前景点</p>
+<p>1024 点时 recall 仅 65.9%</p>
+<p>F-FPS：用特征距离采样保前景点</p>
+<p>只用 F-FPS 又丢背景点</p>
+<p>分类时负点周围找不到邻居，无法扩感受野</p>
+<p>Fusion Sampling：F-FPS + D-FPS 各采一半</p>
+<p>表面点直接回归框不准</p>
+<p>LiDAR 点都在物体表面，离中心远</p>
+<p>CG 层 shift：把点投向实例中心成 candidate</p>
+<p>多类多朝向需大量 anchor</p>
+<p>nuScenes 10 类需 ≥20 个 anchor</p>
+<p>anchor-free 回归头</p>
+<p>表面点 center-ness 都很小且相近</p>
+<p>无法区分点的质量</p>
+<p>先 shift 再算 center-ness（立方根放大）</p>
+<h2 id="3-技术架构详解">3. 技术架构详解</h2>
+<p>3DSSD 整体由两大部分组成：Backbone（含 fusion sampling 的多层 SA） 和 Box Prediction Network（候选生成层 CG + anchor-free 预测头）。下图（论文 Figure 1）是官方框架总览：(a) backbone 吃原始点云 (x,y,z,r)，经多个带 fusion sampling 的 SA 层输出代表点的全局特征；(b) CG 层对代表点做下采样、shift、特征提取；(c) anchor-free 预测头出框与类别。<br>3DSSD-Figure1-1.png</p>
+<p>下面是我按官方代码 single_stage_detector.py 的 network_forward + KITTI 配置 3dssd.yaml 重绘的整体数据流（标注了真实的点数与通道变化）：<br>d1_overall.png</p>
+<h3 id="31-主干网络-backbone带-fusion-sampling-的-sa-层">3.1 主干网络 Backbone（带 fusion sampling 的 SA 层）</h3>
+<p>Backbone 接收每帧随机采样的 16384 个点（KITTI），通过若干个 Set Abstraction（SA）层逐级下采样并提取特征。与 PointNet++ 原版不同，3DSSD 在 SA 层的「center point selection」步骤里用 fusion sampling（FS） 替代纯 D-FPS。<br>下图（论文 Figure 3）是 KITTI（左）与 nuScenes（右）的 backbone 具体配置，每层标注了点数、半径 r 和各尺度 MLP 通道 C：<br>3DSSD-Figure3-1.png</p>
+<p>关键尺寸/维度变化表（KITTI，取自 configs/kitti/3dssd/3dssd.yaml 的 ARCHITECTURE）：</p>
+<p>信息流（层）</p>
+<p>采样方式</p>
+<p>点数变化</p>
+<p>输出通道</p>
+<p>物理含义</p>
+<p>输入</p>
+<p>—</p>
+<p>16384 × 4</p>
+<p>(x,y,z,r)</p>
+<p>原始点云</p>
+<p>SA layer1</p>
+<p>D-FPS</p>
+<p>16384 → 4096</p>
+<p>64</p>
+<p>浅层局部几何，点多用纯几何采样够用</p>
+<p>SA layer2</p>
+<p>FS（F-FPS+D-FPS）</p>
+<p>4096 → 512</p>
+<p>128</p>
+<p>开始用特征距离保前景</p>
+<p>SA layer3</p>
+<p>F-FPS 256 + D-FPS 256</p>
+<p>512 → 512</p>
+<p>256</p>
+<p>两路各 256，前景/背景均衡</p>
+<p>Vote 层</p>
+<p>仅对 F-FPS 的 256 点</p>
+<p>256 → 256</p>
+<p>256</p>
+<p>预测 shift 得 candidate points</p>
+<p>CG 层（SA layer4）</p>
+<p>以 candidate 为中心</p>
+<p>256 → 256</p>
+<p>512</p>
+<p>从全集 group 提特征</p>
+<p>预测头</p>
+<p>—</p>
+<p>256</p>
+<p>cls + reg</p>
+<p>每个 candidate 出一个框<br>注意 SA layer3 的关键设计：fps_method_list = [&#x27;F-FPS&#x27;, &#x27;D-FPS&#x27;]、npoint_list = [256, 256]，即显式地一半点走 F-FPS、一半走 D-FPS，这就是 fusion sampling 在配置层面的落地。</p>
+<h3 id="32-候选生成层-cgcandidate-generation-layer">3.2 候选生成层 CG（Candidate Generation Layer）</h3>
+<p>CG 层是 SA 层的一个变体，放在预测头之前，作用是「下采样 + shift + 特征提取」三合一。关键设计：<br>只用 F-FPS 的点作初始中心：因为 D-FPS 的点大多是背景负点，对回归无用。<br>shift 操作：把这些初始中心点朝它所属实例的中心平移（受相对位置监督），平移后的点叫 candidate points，思想同 VoteNet。<br>以 candidate 为中心 group：再从「F-FPS + D-FPS 的全部代表点」里找邻域、拼归一化坐标和语义特征、过 MLP，送预测头。<br>下图（论文 Figure 2）示意 shift 操作：灰框是一个实例，绿点是 F-FPS 正点、蓝点是 D-FPS 正点、红点是实例中心。只对 F-FPS 的点做 shift（朝红点中心移动）。<br>3DSSD-Figure2-1.png</p>
+<h3 id="33-anchor-free-回归头">3.3 Anchor-free 回归头</h3>
+<p>砍掉 FP + refinement 后，预测头有 anchor-based 和 anchor-free 两个选择。anchor-based 在 nuScenes 这种 10 类、朝向多变的场景下需要至少 20 个 anchor（10 种尺寸 × 2 种朝向），既笨重又不符合轻量设计，所以 3DSSD 选 anchor-free。<br>对每个 candidate point，回归头预测：<br>到所属实例中心的偏移 (dx, dy, dz)<br>实例尺寸 (dl, dw, dh)<br>朝向角：采用「分类 + 回归」混合方式（同 F-PointNet），预设 Na=12 个等分角度 bin，先分类到 bin 再回归 bin 内残差。</p>
+<h2 id="4-数学公式与理论基础">4. 数学公式与理论基础</h2>
+<h3 id="41-符号速查表">4.1 符号速查表</h3>
+<p>符号</p>
+<p>含义</p>
+<p>一层 SA 后保留的代表点总数</p>
+<p>点 A、B 间的 L2 XYZ（几何）距离</p>
+<p>点 A、B 间的 L2 特征距离</p>
+<p>F-FPS 中几何距离的平衡因子</p>
+<p>候选点是否落在实例内（二值）</p>
+<p>3D center-ness 软标签</p>
+<p>点到实例 6 个面（前后左右上下）的距离</p>
+<p>候选点总数 / 正候选点数</p>
+<p>F-FPS 正代表点数（shift loss 归一化用）</p>
+<p>点 i 的预测分类分 / center-ness 标签</p>
+<h3 id="42-eq1--f-fps-的融合距离判据">4.2 Eq.1 — F-FPS 的融合距离判据</h3>
+<p>F-FPS 在最远点采样里同时考虑空间距离和语义特征距离：</p>
+<p>物理含义：纯 D-FPS 只用  （几何），导致地面等背景点被大量采样；纯特征距离（ ）又会在同一物体上采太多冗余点（车窗 vs 车轮特征差异大）。两者加权融合，既保前景又控冗余。论文 Table 2 验证：1024 点时   的 recall 达 89.2%，比 D-FPS（65.9%）高 23.3%。</p>
+<h3 id="43-eq2--3d-center-ness-标签">4.3 Eq.2 — 3D center-ness 标签</h3>
+<p>直接套 2D FCOS 的 center-ness 不行：LiDAR 点都在物体表面，离中心都远，算出来的 center-ness 都很小且彼此接近，无法区分点的好坏。所以 3DSSD 先用 CG 层把点 shift 到接近中心，再算 center-ness：</p>
+<p>其中   是点到实例前后/左右/上下 6 个面的距离。三个比值都在  ，点越居中比值越接近 1。开立方根是为了把整体偏小的值放大、拉开区分度。最终分类标签 =  。</p>
+<h3 id="44-eq3--总损失">4.4 Eq.3 — 总损失</h3>
+<p>三项分别是：分类损失  （带 center-ness 软标签的交叉熵）、回归损失  （仅对正点，  是指示函数）、shifting 损失  （CG 层 shift 的监督）。</p>
+<h3 id="45-eq4--角度损失分类回归混合">4.5 Eq.4 — 角度损失（分类+回归混合）</h3>
+<p>  是预测的角度类别/残差，  是对应目标。即先分类到角度 bin（交叉熵），再回归 bin 内残差（smooth-L1）。</p>
+<h3 id="46-eq5--corner-loss角点损失">4.6 Eq.5 — corner loss（角点损失）</h3>
+<p>  是预测框和 GT 框的第 m 个角点。8 个角点直接对齐，是对中心/尺寸/朝向的联合约束，让框整体更准。回归损失   由  （中心偏移）+  （尺寸）+  （角度）+  （角点）组成，前两者用 smooth-L1。</p>
+<h3 id="47-eq6--nuscenes-nds-指标">4.7 Eq.6 — nuScenes NDS 指标</h3>
+<p>NDS 是 mAP 与 5 项平均误差（位置 mATE、尺寸 mASE、朝向 mAOE、属性 mAAE、速度 mAVE）的加权和，是 nuScenes 的综合主指标。</p>
+<h2 id="5-详细流程图结合真实源码">5. 详细流程图（结合真实源码）</h2>
+<p>本章把三个核心模块的官方真实源码逐行拆开讲，配代码流程图。源码来自官方仓库 github.com/dvlab-research/3DSSD（TensorFlow 1.x 实现）。</p>
+<h3 id="51-fusion-sampling-真实实现">5.1 Fusion Sampling 真实实现</h3>
+<pre><code>下面是 SA 层核心函数 pointnet_sa_module_msg 里采样分支的真实代码（lib/utils/layers_util.py），三种采样方式 F-FPS / D-FPS / FS 在此分流：
+# lib/utils/layers_util.py  pointnet_sa_module_msg 内
+for fps_sample_range, fps_method, npoint in zip(
+        fps_sample_range_list, fps_method_list, npoint_list):
+    tmp_xyz    = tf.slice(xyz,    [0, last_fps_end_index, 0], [-1, fps_sample_range, -1])
+    tmp_points = tf.slice(points, [0, last_fps_end_index, 0], [-1, fps_sample_range, -1])
+    if npoint == 0:
+        last_fps_end_index += fps_sample_range
+        continue</code></pre>
+<pre><code>    if vote_ctr is not None:                       # CG 层：中心点已由 vote 给定
+        npoint = vote_ctr.get_shape().as_list()[1]
+        fps_idx = tf.tile(tf.reshape(tf.range(npoint), [1, npoint]), [bs, 1])</code></pre>
+<pre><code>    elif fps_method == &#x27;FS&#x27;:                        # ★ Fusion Sampling
+        features_for_fps = tf.concat([tmp_xyz, tmp_points], axis=-1)   # [bs,n,3+C]
+        features_for_fps_distance = model_util.calc_square_dist(
+            features_for_fps, features_for_fps, norm=False)           # 几何+特征距离
+        fps_idx_1 = farthest_point_sample_with_distance(npoint, features_for_fps_distance)  # F-FPS
+        fps_idx_2 = farthest_point_sample(npoint, tmp_xyz)            # D-FPS
+        fps_idx   = tf.concat([fps_idx_1, fps_idx_2], axis=-1)        # [bs, npoint*2]</code></pre>
+<pre><code>    elif fps_method == &#x27;F-FPS&#x27;:                     # 仅特征+几何
+        features_for_fps = tf.concat([tmp_xyz, tmp_points], axis=-1)
+        features_for_fps_distance = model_util.calc_square_dist(
+            features_for_fps, features_for_fps, norm=False)
+        fps_idx = farthest_point_sample_with_distance(npoint, features_for_fps_distance)</code></pre>
+<pre><code>    else:                                           # D-FPS：纯几何
+        fps_idx = farthest_point_sample(npoint, tmp_xyz)</code></pre>
+<pre><code>    fps_idx = fps_idx + last_fps_end_index
+    cur_fps_idx_list.append(fps_idx)
+    last_fps_end_index += fps_sample_range
+fps_idx = tf.concat(cur_fps_idx_list, axis=-1)
+逐行要点：
+&#x27;FS&#x27; 分支正是论文的融合采样：F-FPS（farthest_point_sample_with_distance，距离含特征）和 D-FPS（farthest_point_sample，纯 xyz）各采 npoint 个再 concat，所以输出是 npoint*2。
+注意 F-FPS 的「特征距离」是怎么算进去的：features_for_fps = concat([xyz, points]) 把坐标和特征拼起来，再算欧氏平方距离——所以 Eq.1 里的   实际是通过「xyz 与特征向量拼接后的相对尺度」隐式体现的。
+calc_square_dist 的真实实现（lib/utils/model_util.py），用了   的矩阵展开：
+# lib/utils/model_util.py
+def calc_square_dist(a, b, norm=True):
+    a = tf.expand_dims(a, axis=2)              # [bs, npoint, 1, c]
+    b = tf.expand_dims(b, axis=1)              # [bs, 1, ndataset, c]
+    a_square = tf.reduce_sum(tf.square(a), axis=-1)   # [bs, npoint, 1]
+    b_square = tf.reduce_sum(tf.square(b), axis=-1)   # [bs, 1, ndataset]
+    a = tf.squeeze(a, axis=2); b = tf.squeeze(b, axis=1)
+    if norm:
+        dist = tf.sqrt(a_square + b_square - 2*tf.matmul(a, tf.transpose(b,[0,2,1]))) / tf.cast(tf.shape(a)[-1], tf.float32)
+    else:                                       # F-FPS 走这条：不开方、不归一
+        dist = a_square + b_square - 2*tf.matmul(a, tf.transpose(b,[0,2,1]))
+    return dist
+下图是这段 FS 分支的代码数据流：
+d2_fusion_sampling_code.png</code></pre>
+<pre><code>采样拿到 fps_idx 后，同一函数继续做 grouping + MLP 提特征（真实代码，多尺度 MSG）：
+# lib/utils/layers_util.py  pointnet_sa_module_msg 续
+new_xyz = gather_point(xyz, fps_idx)                    # 取出代表点坐标
+...
+for i in range(len(radius_list)):                       # 多尺度分组
+    idx, pts_cnt = query_ball_point(radius, nsample, xyz, new_xyz)   # 球查询邻域
+    grouped_xyz = group_point(xyz, idx)
+    grouped_xyz -= tf.expand_dims(new_xyz, 2)           # ★ 局部坐标归一化（减中心）
+    grouped_points = group_point(points, idx)
+    grouped_points = tf.concat([grouped_points, grouped_xyz], axis=-1)  # 特征+相对坐标
+    for j, num_out_channel in enumerate(mlp_list[i]):   # 逐层 MLP
+        grouped_points = tf_util.conv2d(grouped_points, num_out_channel, [1,1], ...)
+    new_points = tf.reduce_max(grouped_points, axis=[2])  # ★ 对称函数 max-pool 聚合
+    new_points *= tf.expand_dims(pts_cnt_fmask, axis=-1)  # 空邻域置零（防伪特征）
+    new_points_list.append(new_points)
+new_points_concat = tf.concat(new_points_list, axis=-1)   # 多尺度特征拼接
+if cfg.MODEL.NETWORK.AGGREGATION_SA_FEATURE:              # KITTI 配置为 True
+    new_points_concat = tf_util.conv1d(new_points_concat, aggregation_channel, 1, ...)
+要点：grouped_xyz -= new_xyz 把邻域点转成相对中心的局部坐标（PointNet++ 标准操作）；reduce_max 是 PointNet 的对称聚合函数，保证对点的排列不变性；pts_cnt_fmask 把空邻域（查询不到点）的特征强制置零，避免伪特征污染。</code></pre>
+<h3 id="52-cg-层-shiftvotelayer真实实现">5.2 CG 层 shift（vote_layer）真实实现</h3>
+<pre><code>CG 层的 shift 由 vote_layer 完成（lib/utils/layers_util.py），代码极短但关键：
+# lib/utils/layers_util.py
+def vote_layer(xyz, points, mlp_list, is_training, bn_decay, bn, scope):
+    with tf.variable_scope(scope) as sc:
+        for i, channel in enumerate(mlp_list):
+            points = tf_util.conv1d(points, channel, 1, padding=&#x27;VALID&#x27;, stride=1,
+                                    bn=bn, scope=&#x27;vote_layer_%d&#x27;%i, bn_decay=bn_decay,
+                                    is_training=is_training)
+        ctr_offsets = tf_util.conv1d(points, 3, 1, padding=&#x27;VALID&#x27;, stride=1,
+                                     bn=False, activation_fn=None, scope=&#x27;vote_offsets&#x27;)  # 预测 3D 偏移
+        min_offset = tf.reshape(cfg.MODEL.MAX_TRANSLATE_RANGE, [1, 1, 3])
+        limited_ctr_offsets = tf.minimum(tf.maximum(ctr_offsets, min_offset), -min_offset) # ★ 限幅
+        xyz = xyz + limited_ctr_offsets                  # ★ 表面点 → candidate point
+    return xyz, points, ctr_offsets
+要点：ctr_offsets 就是论文里 shift 的 Δ（每点一个 3D 偏移）；MAX_TRANSLATE_RANGE 在 KITTI 配置里是 [-3.0, -2.0, -3.0]，用 min/max 双向夹逼把偏移限制在物体尺度内，防止 shift 跑飞；最后 xyz + offset 得到 candidate points。ctr_offsets 同时作为 shifting loss   的预测值。</code></pre>
+<h3 id="53-3d-center-ness-标签真实计算">5.3 3D center-ness 标签真实计算</h3>
+<pre><code>center-ness 标签在 loss_builder.py 的 _generate_centerness_label 里算（Eq.2 的代码落地）：
+# lib/builder/loss_builder.py
+def _generate_centerness_label(self, base_xyz, assigned_boxes_3d, pmask, epsilon=1e-6):
+    canonical_xyz = base_xyz - assigned_boxes_3d[:, :, :3]      # 平移到框中心
+    canonical_xyz = rotate_points(canonical_xyz, -rys)          # ★ 旋转到物体本体坐标系
+    distance_front  = assigned_boxes_3d[:,:,3]/2. - canonical_xyz[:,:,0]
+    distance_back   = canonical_xyz[:,:,0] + assigned_boxes_3d[:,:,3]/2.
+    distance_bottom = 0 - canonical_xyz[:,:,1]
+    distance_top    = canonical_xyz[:,:,1] + assigned_boxes_3d[:,:,4]
+    distance_left   = assigned_boxes_3d[:,:,5]/2. - canonical_xyz[:,:,2]
+    distance_right  = canonical_xyz[:,:,2] + assigned_boxes_3d[:,:,5]/2.
+    ctr_ness_l = tf.minimum(distance_front, distance_back)  / tf.maximum(distance_front, distance_back)  * pmask
+    ctr_ness_w = tf.minimum(distance_left,  distance_right) / tf.maximum(distance_left,  distance_right) * pmask
+    ctr_ness_h = tf.minimum(distance_bottom,distance_top)   / tf.maximum(distance_bottom,distance_top)   * pmask
+    ctr_ness = tf.maximum(ctr_ness_l * ctr_ness_w * ctr_ness_h, epsilon)
+    ctr_ness = tf.pow(ctr_ness, 1/3.)                           # ★ 立方根（Eq.2）
+    return ctr_ness
+要点：先把点平移并 rotate_points(-rys) 旋转到物体本体坐标系（这样 6 个面距离才好算）；6 个面距离严格对应 Eq.2 的  ；三个 min/max 比值相乘再开立方根，与论文公式完全一致；tf.pow(ctr_ness, 1/3.) 就是 Eq.2 的立方根。
+下图把 vote_layer 与 center-ness 两段代码的关系画在一起：
+d3_vote_centerness_code.png</code></pre>
+<h2 id="6-核心创新点">6. 核心创新点</h2>
+<h3 id="61-创新点一fusion-sampling融合采样">6.1 创新点一：Fusion Sampling（融合采样）</h3>
+<p>这是 3DSSD 能砍掉 FP 层的根本前提。核心 insight：D-FPS 只看几何，背景点（地面）数量碾压前景，导致前景召回低；纯 F-FPS（特征距离）虽保前景，但同一物体上特征差异大的点（车窗 vs 车轮）会被重复采，且采不够背景负点，导致分类阶段负点周围找不到邻居、无法扩感受野，分类变差。<br>解法是两者各采一半：F-FPS 保前景（利于回归召回），D-FPS 保背景（利于分类）。论文 Table 2 给出不同   下 F-FPS 的 points recall：<br>3DSSD-Table2-1.png</p>
+<p>下图（论文 Figure 5）直观对比融合采样（上）和纯 D-FPS（下）保留的代表点：白色是全部点、黄色是代表点、红色是前景正点。可见 fusion sampling 在远处稀疏物体上保留了明显更多前景红点。<br>3DSSD-Figure5-1.png</p>
+<h3 id="62-创新点二候选生成层-cgshift-表面点到中心">6.2 创新点二：候选生成层 CG（shift 表面点到中心）</h3>
+<p>LiDAR 点都在物体表面，直接用表面点回归框中心，偏移量大且难学。CG 层借鉴 VoteNet 的「投票」思想，先把 F-FPS 的表面点 shift 到接近实例中心成 candidate point，再以 candidate 为中心提特征。这样做有两个好处：(1) 回归目标变小（candidate 离中心近）；(2) 后续 center-ness 标签更有区分度。论文 Table 8 消融显示：加 shift 后，center-ness 策略的 AP 从 43.0 暴涨到 79.4。</p>
+<h3 id="63-创新点三anchor-free-头--3d-center-ness-软标签">6.3 创新点三：anchor-free 头 + 3D center-ness 软标签</h3>
+<p>anchor-free：免去 nuScenes 那种 10 类需要 ≥20 个 anchor 的笨重设置，轻量。<br>3D center-ness：把 FCOS 的 center-ness 从 2D 拓展到 3D。但直接套不行（点都在表面，center-ness 都小且相近），所以必须先 shift 再算 center-ness，并用立方根放大区分度。center-ness 软标签让靠近中心的候选点分类分更高，从而在 NMS 时被优先保留，定位更准。<br>论文 Table 8 对比了 IoU / mask / 3D center-ness 三种标签分配策略，center-ness（配 shift）效果最好。</p>
+<h2 id="7-实验结果与分析">7. 实验结果与分析</h2>
+<h3 id="71-kitti-test-主榜car-类">7.1 KITTI test 主榜（Car 类）</h3>
+<p>论文 Table 3：3DSSD 在 moderate 难度上超 SECOND 3.61%、超 PointPillars 5.26%，追平两阶段 STD，且比 STD 快 2 倍以上。<br>3DSSD-Table3-1.png</p>
+<h3 id="72-kitti-val-单阶段对比">7.2 KITTI val 单阶段对比</h3>
+<p>论文 Table 6：moderate 难度上 3DSSD 比 PointPillars / SECOND / VoxelNet 分别高 1.47% / 2.97% / 13.99%。<br>3DSSD-Table6-1.png</p>
+<h3 id="73-nuscenes-结果">7.3 nuScenes 结果</h3>
+<p>论文 Table 4（各类 AP）+ Table 5（NDS）：3DSSD 在 nuScenes 上 mAP 42.66、NDS 56.4，全面超过 SECOND 和 PointPillars，且在每个类别上都领先。<br>3DSSD-Table4-1.png</p>
+<div class="figure">图表占位：<code>3DSSD-Table5-1.png</code><br><span>飞书原文中的图片/表格文件名已保留，静态首版未内嵌二进制资源。</span></div>
+<h3 id="74-消融实验">7.4 消融实验</h3>
+<p>采样策略消融（论文 Table 7）：D-FPS / F-FPS / FS 三者的 points recall 和 AP。FS 的 AP（79.4）比纯 F-FPS（76.7）高 2.7%，原因是 fusion sampling 补回了足够的负点，扩大感受野、提升分类。<br>3DSSD-Table7-1.png</p>
+<p>分配策略消融（论文 Table 8）：IoU / mask / 3D center-ness，以及有无 shifting 的对比。center-ness + shift 组合 AP 最高（79.4），且 shift 对 center-ness 的提升最显著（43.0 → 79.4）。<br>3DSSD-Table8-1.png</p>
+<h3 id="75-推理速度">7.5 推理速度</h3>
+<p>论文 Table 9：3DSSD 38ms，远快于 F-PointNet（170ms）/ PointRCNN（100ms）/ STD（80ms）。在 Titan V 上测得，KITTI 单帧。只比经过 TensorRT 等工程优化的 PointPillars 略慢。<br>3DSSD-Table9-1.png</p>
+<h3 id="76-定性结果">7.6 定性结果</h3>
+<p>论文 Figure 4：3DSSD 在 KITTI（上）和 nuScenes（下）的定性检测结果，红色为 GT、绿色为预测，框基本贴合。<br>3DSSD-Figure4-1.png</p>
+<h2 id="8-技术发展时间线">8. 技术发展时间线</h2>
+<p>时间</p>
+<p>方法</p>
+<p>关键贡献</p>
+<p>与 3DSSD 的关系</p>
+<p>2017</p>
+<p>PointNet / PointNet++</p>
+<p>点云直接深度学习；SA 层 + D-FPS</p>
+<p>3DSSD 的 backbone 基础</p>
+<p>2017</p>
+<p>VoxelNet</p>
+<p>体素化 + PointNet 编码</p>
+<p>voxel 路线起点，3DSSD 的对比对象</p>
+<p>2018</p>
+<p>SECOND</p>
+<p>稀疏卷积加速 voxel</p>
+<p>单阶段 voxel 标杆</p>
+<p>2018</p>
+<p>F-PointNet / IPOD</p>
+<p>用 2D 检测/分割筛点</p>
+<p>早期 point-based</p>
+<p>2019</p>
+<p>PointRCNN</p>
+<p>PointNet++ SA+FP + RPN + 精修（两阶段）</p>
+<p>3DSSD 砍掉的 FP+refine 来源</p>
+<p>2019</p>
+<p>PointPillars</p>
+<p>pseudo-image，工程极致优化</p>
+<p>速度对手</p>
+<p>2019</p>
+<p>STD</p>
+<p>sparse-to-dense + PointsPool（两阶段）</p>
+<p>3DSSD 追平的精度对手</p>
+<p>2019</p>
+<p>VoteNet</p>
+<p>投票 shift 表面点到中心</p>
+<p>3DSSD CG 层 shift 的来源</p>
+<p>2019</p>
+<p>FCOS</p>
+<p>2D anchor-free + center-ness</p>
+<p>3DSSD center-ness 的 2D 原型</p>
+<p>2020</p>
+<p>3DSSD</p>
+<p>首个纯点云单阶段：FS + CG + anchor-free</p>
+<p>本文</p>
+<h2 id="9-代码实现技巧">9. 代码实现技巧</h2>
+<h3 id="91-主模型-forward真实代码">9.1 主模型 forward（真实代码）</h3>
+<pre><code>single_stage_detector.py 的 network_forward 串起整个流程，配置驱动建层：
+# lib/modeling/single_stage_detector.py
+def network_forward(self, point_cloud, bn_decay):
+    l0_xyz    = tf.slice(point_cloud, [0,0,0], [-1,-1,3])   # 坐标 xyz
+    l0_points = tf.slice(point_cloud, [0,0,3], [-1,-1,-1])  # 特征（反射率 r 等）
+    xyz_list, feature_list, fps_idx_list = [l0_xyz], [l0_points], [None]
+    for layer in self.layers:                               # 按配置逐层 build
+        xyz_list, feature_list, fps_idx_list = layer.build_layer(
+            xyz_list, feature_list, fps_idx_list, bn_decay, self.output)
+    cur_head_start_idx = len(self.output[maps_dict.KEY_OUTPUT_XYZ])
+    for head in self.heads:                                 # 预测头
+        head.build_layer(xyz_list, feature_list, bn_decay, self.output)
+    merge_head_prediction(cur_head_start_idx, self.output, self.prediction_keys)
+技巧：整个网络由 cfg.MODEL.NETWORK.FIRST_STAGE.ARCHITECTURE 这个配置列表驱动，每个元素是一层的全部超参（xyz_index / radius / nsample / mlp / fps_method / npoint / layer_type 等）。LayerBuilder 根据 layer_type 分派到 SA_Layer / Vote_Layer / FP_Layer。这种「配置即架构」的写法让 backbone 改起来不用动代码。</code></pre>
+<h3 id="92-kitti-真实配置预设表3dssdyaml-关键项">9.2 KITTI 真实配置预设表（3dssd.yaml 关键项）</h3>
+<p>配置项</p>
+<p>值</p>
+<p>含义</p>
+<p>POINTS_NUM_FOR_TRAINING</p>
+<p>16384</p>
+<p>每帧采样点数</p>
+<p>POINT_CLOUD_RANGE</p>
+<p>(-40,40,-5,3,0,70)</p>
+<p>点云范围 (x,y,z)</p>
+<p>ANGLE_CLS_NUM</p>
+<p>12</p>
+<p>朝向角 bin 数（Na=12）</p>
+<p>MAX_TRANSLATE_RANGE</p>
+<p>[-3.0,-2.0,-3.0]</p>
+<p>CG 层 shift 限幅</p>
+<p>REGRESSION_METHOD</p>
+<p>Dist-Anchor-free</p>
+<p>anchor-free 回归</p>
+<p>CLS_ACTIVATION</p>
+<p>Sigmoid</p>
+<p>分类用 sigmoid</p>
+<p>CLASSIFICATION_LOSS.TYPE</p>
+<p>Center-ness</p>
+<p>3D center-ness 软标签</p>
+<p>CORNER_LOSS</p>
+<p>True</p>
+<p>启用角点损失</p>
+<p>SOLVER</p>
+<p>Adam, lr=0.002</p>
+<p>优化器</p>
+<p>BATCH_SIZE / GPU_NUM</p>
+<p>4 / 2</p>
+<p>训练批大小</p>
+<h3 id="93-预测头输出维度真实代码">9.3 预测头输出维度（真实代码）</h3>
+<pre><code>head_util.py 的 box_regression_head 决定每个 candidate 输出多少通道：
+# lib/utils/head_util.py  box_regression_head
+pred_cls = conv_op(feature_input, 128, scope=&#x27;pred_cls_base&#x27;, ...)
+pred_cls = conv_op(pred_cls, pred_cls_channel, activation_fn=None, scope=&#x27;pred_cls&#x27;)  # 分类
+pred_reg = conv_op(feature_input, 128, scope=&#x27;pred_reg_base&#x27;, ...)
+pred_reg = conv_op(pred_reg, pred_reg_base_num * (pred_reg_channel_num + ANGLE_CLS_NUM*2), ...)
+pred_reg = tf.reshape(pred_reg, [bs, points_num, pred_reg_base_num, pred_reg_channel_num + ANGLE_CLS_NUM*2])
+# 拆成 offset(6) / angle_cls(12) / angle_res(12)
+output_dict[PRED_OFFSET].append(tf.slice(pred_reg, ..., pred_reg_channel_num))           # 6: dx,dy,dz,dl,dw,dh
+output_dict[PRED_ANGLE_CLS].append(tf.slice(pred_reg, ..., ANGLE_CLS_NUM))               # 12: 角度 bin 分类
+output_dict[PRED_ANGLE_RES].append(tf.slice(pred_reg, ...))                              # 12: 角度 bin 残差
+要点：回归通道 = 6（位置+尺寸）+ 12×2（角度分类 + 残差）= 30 维，Dist-Anchor-free 下 pred_reg_base_num=1（不依赖 anchor，每点出 1 个框）。这正是 anchor-free 的代码体现。</code></pre>
+<h3 id="94-工程注意">9.4 工程注意</h3>
+<p>TensorFlow 1.x + 自定义 CUDA op：F-FPS / grouping / 三线性插值都是自定义 tf_ops，需先 compile_all.sh 编译。<br>F-FPS 距离不归一化：calc_square_dist(..., norm=False)，直接用平方距离做 FPS，省 sqrt。<br>空邻域置零：grouping 后用 pts_cnt_fmask 把查不到点的位置特征清零，防伪特征。</p>
+<h2 id="10-局限性与未来方向">10. 局限性与未来方向</h2>
+<h3 id="101-局限">10.1 局限</h3>
+<p>依赖自定义 CUDA op：F-FPS、grouping 都是手写算子，部署到非 CUDA 平台或新框架（PyTorch/TensorRT）需要重新实现，工程迁移成本高。<br>F-FPS 的特征距离开销：calc_square_dist 是   的两两距离矩阵，点数大时（如 nuScenes 65536 点）显存和算力压力明显，这也是为什么 backbone 早期层仍用 D-FPS。<br>小物体 / 密集场景：下采样到 256 candidate，对行人、骑车人等小目标的召回不如对车友好；论文主榜也只在 Car 类做 KITTI 评测。<br>单帧为主：时序信息仅通过 nuScenes 的多帧点云堆叠引入，没有显式时序建模。<br>下表（论文 Table 1）再次量化了 3DSSD 想避免的计算瓶颈——FP 层（14ms）+ refinement（35ms）正是被砍掉的部分：<br>3DSSD-Table1-1.png</p>
+<h3 id="102-未来方向">10.2 未来方向</h3>
+<div class="tableish">用更高效的近似 F-FPS（如哈希/分块）降低   距离矩阵开销。<br>引入显式时序建模（多帧特征对齐）提升速度与遮挡场景。<br>把 fusion sampling 思想推广到多模态（相机+LiDAR）的点采样上。</div>
+<h2 id="11-总结">11. 总结</h2>
+<p>3DSSD 的精髓是一次漂亮的「做减法 + 补偿」：先大胆砍掉 point-based 方法里最贵的 FP 层和 refinement 阶段（省掉一半推理时间），再用三个轻量设计补回砍掉造成的信息损失——<br>Fusion Sampling：F-FPS 保前景召回 + D-FPS 保背景上下文，让「在下采样点上直接检测」可行；<br>CG 层 shift：把 LiDAR 表面点投向实例中心成 candidate，降低回归难度；<br>anchor-free + 3D center-ness：免 anchor 笨重设置，软标签提升定位质量。<br>最终 38ms / 25+FPS、精度追平两阶段 STD，成为纯点云单阶段检测的奠基性工作。下图是它的设计哲学速记与对马爷 E2E Occupancy 项目的可迁移启发：<br>d4_design_philosophy.png</p>
+<h3 id="111-对马爷-e2e-occupancy-项目的工程启发">11.1 对马爷 E2E Occupancy 项目的工程启发</h3>
+<p>3DSSD 处理的是 LiDAR 点云检测，但它的几个设计思想可以直接搬到你 E2E Occupancy 模型的 LiDAR 分支和占用头：<br>「训练期重、推理期裁」的取舍范式：3DSSD 砍 FP/refine 的逻辑，与你项目「未来 occupancy 当训练期辅助头、推理丢弃」「深度分支只监督不 splat」高度同源——凡是只为辅助监督而非最终输出的模块，推理时都可裁掉，成本可以做重。<br>采样要兼顾「前景召回 + 背景上下文」：你的 LiDAR 分支（SECOND/稀疏卷积）若做点级采样或 query 选取，可借鉴 fusion sampling——别只用几何 FPS，混入特征距离采样保住远处稀疏前景体素，同时保留足够背景点供分类/占用判断扩感受野。<br>表面 → 中心的 shift（vote）思想用于占用致密化：LiDAR 点都在物体表面，3DSSD 用 vote_layer 把点投向中心。occupancy 预测同样面临「点只在表面、物体内部体素该不该占据」的问题，可借鉴 shift/vote 把表面观测向物体内部扩散，致密化占用体素。<br>center-ness 软标签缓解「都在表面」难题：占用头给体素打分时，可借鉴 3D center-ness——离物体中心越近的体素给更高置信度（立方根放大区分度），而不是简单二值占用，让 NMS/后处理保留更准的体素。<br>配置驱动架构：3DSSD 用一个 ARCHITECTURE 列表描述整个 backbone，改层不动代码。你的多分支（环视/鱼眼/LiDAR/融合/时序）配置很复杂，这种「配置即架构」的写法值得借鉴，方便消融不同采样/融合策略。</p>
+<h2 id="12-参考文献">12. 参考文献</h2>
+<p>Zetong Yang, Yanan Sun, Shu Liu, Jiaya Jia. 3DSSD: Point-based 3D Single Stage Object Detector. CVPR 2020. arXiv:2002.10187.<br>Qi et al. PointNet++: Deep Hierarchical Feature Learning on Point Sets in a Metric Space. NeurIPS 2017.（SA 层、D-FPS 来源）<br>Qi et al. Deep Hough Voting for 3D Object Detection in Point Clouds (VoteNet). ICCV 2019.（CG 层 shift 来源）<br>Tian et al. FCOS: Fully Convolutional One-Stage Object Detection. ICCV 2019.（center-ness 2D 原型）<br>Shi et al. PointRCNN: 3D Object Proposal Generation and Detection from Point Cloud. CVPR 2019.（被对比的两阶段方法）<br>Yang et al. STD: Sparse-to-Dense 3D Object Detector for Point Cloud. ICCV 2019.（追平的精度对手）<br>Yan et al. SECOND: Sparsely Embedded Convolutional Detection. Sensors 2018.<br>Lang et al. PointPillars: Fast Encoders for Object Detection from Point Clouds. CVPR 2019.<br>官方代码：https://github.com/dvlab-research/3DSSD</p></main><aside class="toc"><strong>目录</strong><a href="#1-研究背景与动机" class="l2">1. 研究背景与动机</a>
+<a href="#11-一句话定位" class="l3">1.1 一句话定位</a>
+<a href="#12-摘要逐句拆解" class="l3">1.2 摘要逐句拆解</a>
+<a href="#13-两条技术路线的取舍" class="l3">1.3 两条技术路线的取舍</a>
+<a href="#2-核心问题分析" class="l2">2. 核心问题分析</a>
+<a href="#21-瓶颈定位fp-层和-refinement-吃掉一半时间" class="l3">2.1 瓶颈定位：FP 层和 refinement 吃掉一半时间</a>
+<a href="#22-挑战砍掉-fp-层为什么不简单" class="l3">2.2 挑战：砍掉 FP 层为什么不简单</a>
+<a href="#23-痛点--对策映射表" class="l3">2.3 痛点 → 对策映射表</a>
+<a href="#3-技术架构详解" class="l2">3. 技术架构详解</a>
+<a href="#31-主干网络-backbone带-fusion-sampling-的-sa-层" class="l3">3.1 主干网络 Backbone（带 fusion sampling 的 SA 层）</a>
+<a href="#32-候选生成层-cgcandidate-generation-layer" class="l3">3.2 候选生成层 CG（Candidate Generation Layer）</a>
+<a href="#33-anchor-free-回归头" class="l3">3.3 Anchor-free 回归头</a>
+<a href="#4-数学公式与理论基础" class="l2">4. 数学公式与理论基础</a>
+<a href="#41-符号速查表" class="l3">4.1 符号速查表</a>
+<a href="#42-eq1--f-fps-的融合距离判据" class="l3">4.2 Eq.1 — F-FPS 的融合距离判据</a>
+<a href="#43-eq2--3d-center-ness-标签" class="l3">4.3 Eq.2 — 3D center-ness 标签</a>
+<a href="#44-eq3--总损失" class="l3">4.4 Eq.3 — 总损失</a>
+<a href="#45-eq4--角度损失分类回归混合" class="l3">4.5 Eq.4 — 角度损失（分类+回归混合）</a>
+<a href="#46-eq5--corner-loss角点损失" class="l3">4.6 Eq.5 — corner loss（角点损失）</a>
+<a href="#47-eq6--nuscenes-nds-指标" class="l3">4.7 Eq.6 — nuScenes NDS 指标</a>
+<a href="#5-详细流程图结合真实源码" class="l2">5. 详细流程图（结合真实源码）</a>
+<a href="#51-fusion-sampling-真实实现" class="l3">5.1 Fusion Sampling 真实实现</a>
+<a href="#52-cg-层-shiftvotelayer真实实现" class="l3">5.2 CG 层 shift（vote_layer）真实实现</a>
+<a href="#53-3d-center-ness-标签真实计算" class="l3">5.3 3D center-ness 标签真实计算</a>
+<a href="#6-核心创新点" class="l2">6. 核心创新点</a>
+<a href="#61-创新点一fusion-sampling融合采样" class="l3">6.1 创新点一：Fusion Sampling（融合采样）</a>
+<a href="#62-创新点二候选生成层-cgshift-表面点到中心" class="l3">6.2 创新点二：候选生成层 CG（shift 表面点到中心）</a>
+<a href="#63-创新点三anchor-free-头--3d-center-ness-软标签" class="l3">6.3 创新点三：anchor-free 头 + 3D center-ness 软标签</a>
+<a href="#7-实验结果与分析" class="l2">7. 实验结果与分析</a>
+<a href="#71-kitti-test-主榜car-类" class="l3">7.1 KITTI test 主榜（Car 类）</a>
+<a href="#72-kitti-val-单阶段对比" class="l3">7.2 KITTI val 单阶段对比</a>
+<a href="#73-nuscenes-结果" class="l3">7.3 nuScenes 结果</a>
+<a href="#74-消融实验" class="l3">7.4 消融实验</a>
+<a href="#75-推理速度" class="l3">7.5 推理速度</a>
+<a href="#76-定性结果" class="l3">7.6 定性结果</a>
+<a href="#8-技术发展时间线" class="l2">8. 技术发展时间线</a>
+<a href="#9-代码实现技巧" class="l2">9. 代码实现技巧</a>
+<a href="#91-主模型-forward真实代码" class="l3">9.1 主模型 forward（真实代码）</a>
+<a href="#92-kitti-真实配置预设表3dssdyaml-关键项" class="l3">9.2 KITTI 真实配置预设表（3dssd.yaml 关键项）</a>
+<a href="#93-预测头输出维度真实代码" class="l3">9.3 预测头输出维度（真实代码）</a>
+<a href="#94-工程注意" class="l3">9.4 工程注意</a>
+<a href="#10-局限性与未来方向" class="l2">10. 局限性与未来方向</a>
+<a href="#101-局限" class="l3">10.1 局限</a>
+<a href="#102-未来方向" class="l3">10.2 未来方向</a>
+<a href="#11-总结" class="l2">11. 总结</a>
+<a href="#111-对马爷-e2e-occupancy-项目的工程启发" class="l3">11.1 对马爷 E2E Occupancy 项目的工程启发</a>
+<a href="#12-参考文献" class="l2">12. 参考文献</a></aside></div>
+<nav class="nav"><a href="../root/">← 上一篇：Det3d </a><a href="../centerpoint-pcdet/">下一篇：CenterPoint-简单高效的点云目标检测 代码详解（PCDet版本） →</a></nav></div></body></html>

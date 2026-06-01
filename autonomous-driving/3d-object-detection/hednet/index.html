@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>HEDNet：层级编解码网络的 3D 点云目标检测 | 3D 目标检测</title><style>:root{--bg:#0b1020;--panel:#121a2f;--panel2:#17223d;--text:#e8edf7;--muted:#9fb0cc;--line:#263653;--brand:#8bd3ff;--accent:#ffd166;--green:#74d99f;--code:#0a0f1d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,#19274a 0,#0b1020 38%,#070b14 100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;line-height:1.72}.wrap{max-width:1120px;margin:0 auto;padding:36px 20px 64px}.topbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:24px}.crumb,.pill{font-size:13px;color:var(--muted)}.crumb a,.meta a,.card a,.nav a{color:var(--brand);text-decoration:none}.hero{padding:34px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,rgba(18,26,47,.96),rgba(16,31,59,.86));box-shadow:0 24px 80px rgba(0,0,0,.28)}h1{font-size:clamp(28px,4vw,46px);line-height:1.18;margin:0 0 16px}h2{font-size:26px;margin:42px 0 14px;padding-top:8px;border-top:1px solid var(--line)}h3{font-size:20px;margin:28px 0 10px;color:#d9e8ff}p{margin:12px 0}.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.pill{border:1px solid var(--line);background:rgba(255,255,255,.04);padding:6px 10px;border-radius:999px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;margin-top:24px}.content{background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:22px;padding:28px}.toc{position:sticky;top:18px;align-self:start;background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:18px;padding:18px;max-height:calc(100vh - 36px);overflow:auto}.toc strong{display:block;margin-bottom:10px}.toc a{display:block;color:var(--muted);text-decoration:none;font-size:13px;padding:4px 0}.toc a:hover{color:var(--brand)}pre{background:var(--code);border:1px solid var(--line);border-radius:14px;padding:16px;overflow:auto;white-space:pre-wrap;word-break:break-word}code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;color:#d6e8ff}.figure{border:1px dashed #3a4d73;background:rgba(139,211,255,.06);border-radius:14px;padding:14px;margin:16px 0;color:#b9c9e6}.tableish{border-left:3px solid var(--accent);padding:8px 14px;background:rgba(255,209,102,.06);border-radius:10px}.nav{display:flex;justify-content:space-between;gap:14px;margin-top:24px}.nav a{flex:1;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.04)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:22px}.card{border:1px solid var(--line);border-radius:18px;background:rgba(18,26,47,.76);padding:18px;min-height:150px}.card h3{margin-top:0}.card p{color:var(--muted);font-size:14px}.badge{display:inline-block;color:#06101d;background:var(--green);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700}.warn{border:1px solid rgba(255,209,102,.35);background:rgba(255,209,102,.08);border-radius:14px;padding:12px 14px;color:#ffe8a3}@media(max-width:900px){.layout{grid-template-columns:1fr}.toc{position:relative;top:auto}.hero{padding:24px}.content{padding:20px}}</style></head>
+<body><div class="wrap"><div class="topbar"><span class="crumb"><a href="../../../index.html">首页</a> / <a href="../../index.html">自动驾驶</a> / <a href="../index.html">3D 目标检测</a></span></div>
+<section class="hero"><h1>HEDNet：层级编解码网络的 3D 点云目标检测</h1><p>从飞书知识库导出的静态 HTML 首版。正文保留原文结构、代码片段与图表文件名；复杂飞书表格/图片以占位形式展示，并提供原文回跳。</p><div class="meta"><span class="pill">来源：飞书知识库纯文本导出</span><span class="pill">更新：2026-06-02</span><span class="pill"><a href="https://tzscglpsd7.feishu.cn/wiki/KflBwGiwxi72ArkE7qlc21hPn2e" target="_blank" rel="noopener">飞书原文</a></span></div></section>
+<nav class="nav"><a href="../sparsebev/">← 上一篇：SparseBEV：多相机视频高性能稀疏 3D 目标检测（ICCV 2023） </a><span></span></nav>
+<div class="layout"><main class="content"><p>HEDNet：层级编解码网络的 3D 点云目标检测<br>HEDNet：层级编解码网络的 3D 点云目标检测<br>论文：HEDNet: A Hierarchical Encoder-Decoder Network for 3D Object Detection in Point Clouds<br>作者：Gang Zhang, Junnan Chen, Guohuan Gao, Jianmin Li, Xiaolin Hu<br>机构：清华大学（计算机系 / 智源 BNRist / THU-Bosch JCML / THBI 脑与智能实验室）+ 华中科技大学 + 北京理工大学 + 北京脑科学中心 CIBR<br>会议：NeurIPS 2023<br>arXiv：2310.20234v1（2023-10-31）<br>Code：https://github.com/zhanggang001/HEDNet （基于 OpenPCDet，已开源；同仓库还含 CVPR 2024 续作 SAFDNet）<br>解读对象：PDF 正文 14 页（含附录 A/B/C）+ 仓库核心源码 pcdet/models/backbones_3d/hednet.py、pcdet/models/model_utils/hednet_utils.py<br>谱系定位：这是「PETR 谱系」解读战役的收官第 12 篇。前 11 篇（DETR→DETR3D→PETR→BEVFormer→BEVDet4D→PETRv2→BEVFusion→StreamPETR→Sparse4D→Sparse4D v2→Far3D→SparseBEV）走的是多相机 / 视觉 query 路线。HEDNet 转向 LiDAR 点云稀疏卷积 backbone 这条线，关注的核心矛盾是：稀疏卷积如何在保持效率的前提下捕获 long-range dependency（远距离依赖），尤其针对大目标和远距离目标。它与马爷 E2E Occupancy 项目的 LiDAR 分支（SECOND backbone + 稀疏卷积）高度相关，可直接作为 LiDAR backbone 的升级方向。</p>
+<h2 id="1-研究背景与动机">1. 研究背景与动机</h2>
+<h3 id="11-点云-3d-检测的三条技术路线">1.1 点云 3D 检测的三条技术路线</h3>
+<p>从稀疏点云中学习有效表征，是 3D 目标检测的核心挑战。现有方法分三类：<br>point-based（点级）：用 PointNet 系列直接从原始点云提特征（如 PointRCNN、3DSSD）。需要昂贵的点采样和近邻搜索，计算开销大。<br>range-based（距离图像）：把点云投影成伪图像，复用成熟 2D 检测器。效率高但精度偏低。<br>voxel-based（体素）：把无序点云划分成规则体素，用稀疏 CNN 或 transformer 提特征。这是当前高性能 3D 检测的主流路线，HEDNet 也属于这一类。</p>
+<h3 id="12-核心痛点submanifold-稀疏卷积阻断了信息交换">1.2 核心痛点：submanifold 稀疏卷积阻断了信息交换</h3>
+<p>主流体素方法（SECOND、CenterPoint、TransFusion 等）的稀疏 backbone 主要由 SSR block（submanifold sparse residual block，子流形稀疏残差块） 堆叠而成，每个 SSR block 含两个小核（3×3×3）的 SS 卷积（submanifold sparse convolution，子流形稀疏卷积）。<br>SS 卷积的关键特性：只在 valid（非零）特征位置上计算，输出特征图与输入保持相同稀疏度。这带来效率，但也带来致命问题——它阻断了空间上不相连特征之间的信息交换。空间上离得远的两团点，永远无法通过堆叠 SS 卷积「看到」彼此，模型难以捕获 long-range dependency。<br>后果：对大目标（车的尺度是行人/骑车人的约 10 倍）和远距离目标（点稀疏、需要更多上下文）的检测精度受限。</p>
+<h3 id="13-已有补救方案及其局限">1.3 已有补救方案及其局限</h3>
+<p>方案</p>
+<p>代表方法</p>
+<p>局限</p>
+<p>用 RS 卷积替换 SS 卷积</p>
+<p>RSR block</p>
+<p>稀疏度随网络加深急剧下降，计算量暴涨</p>
+<p>大核稀疏卷积</p>
+<p>LargeKernel3D、LinK</p>
+<p>精度提升有限，且仍低效（需权重共享缓解过拟合）</p>
+<p>单步长稀疏 transformer</p>
+<p>SST、DSVT</p>
+<p>精度相当或更慢；DSVT 沿 X/Y 轴顺序做窗口自注意力，速度仍是瓶颈<br>于是论文提出核心问题：有没有一种高效的方法，让稀疏 CNN 也能有效捕获 long-range dependency？</p>
+<h3 id="14-灵感来源编解码结构">1.4 灵感来源：编解码结构</h3>
+<p>作者回顾了各类稠密预测任务（语义分割、2D 检测）的 backbone 设计，发现 encoder-decoder（编解码）结构 在捕获 long-range dependency 上被反复验证有效：用高到低分辨率的编码器提多尺度特征，再用解码器恢复高分辨率特征以建模长程关系。例如 PSPNet 用金字塔池化聚合多尺度上下文，SWFormer 在 transformer backbone 里加 top-down 通路捕获跨窗口相关性。<br>但在 3D 稀疏卷积 backbone 中引入编解码结构，此前尚无人探索。HEDNet 正是填补这个空白。</p>
+<h2 id="2-核心问题分析">2. 核心问题分析</h2>
+<h3 id="21-一句话概括贡献">2.1 一句话概括贡献</h3>
+<p>HEDNet 提出两种编解码积木，再用它们搭出一个层级网络：<br>SED block（Sparse Encoder-Decoder block，稀疏编解码块）：通过特征下采样把空间上离得远的 valid 特征拉到相邻位置实现信息交换，再通过多尺度融合恢复细节。关键特性——输入输出稀疏度保持一致，所以堆叠多个 SED block 不会引入过量计算。<br>DED block（Dense Encoder-Decoder block，稠密编解码块）：把 SED 的思路搬到 2D 稠密特征上，专门把稀疏特征向物体中心扩散，填补大目标中心的「空洞」（center-based 检测器依赖物体中心特征）。<br>HEDNet（Hierarchical Encoder-Decoder Network）：宏观上像 SECOND 一样层级下采样，微观上每个积木都是编解码结构——名字由此而来。</p>
+<h3 id="22-与既有路线的本质区别">2.2 与既有路线的本质区别</h3>
+<p>相比 SS 卷积堆叠：SED block 用「下采样—融合」主动制造远距离特征交互，而不是被动等待感受野慢慢扩大。<br>相比 RS 卷积 / 大核：SED 通过 inverse conv 上采样时只恢复到原 valid 位置，稀疏度不膨胀，因此效率远高于 RSR block（实验里 RSR 176ms vs SED 48ms）。<br>相比 transformer（DSVT）：纯卷积实现，无需窗口注意力的串行计算，速度快 50%，精度还更高。</p>
+<h2 id="3-技术架构详解">3. 技术架构详解</h2>
+<h3 id="31-整体架构总览">3.1 整体架构总览</h3>
+<p>给定原始点云，HEDNet 的前向流水线如下：<br>动态 VFE 体素化：用 DynamicVoxelVFE 把无序点云划成规则体素网格，记为  （分辨率 1×），输出体素特征。<br>3D 稀疏 backbone：由若干 SSR block + 若干 SED block 组成，逐级下采样提取 3D 稀疏特征。SED block 在这里负责捕获 long-range dependency。<br>压成 BEV：把 3D 稀疏特征沿 Z 轴压扁成稠密 BEV 特征（类似 SECOND 的 height compression）。<br>2D 稠密 backbone：由   个 DED block 组成，负责把稀疏特征向物体中心扩散。<br>检测头：Waymo 上用 CenterPoint head，nuScenes 上用 TransFusion-L head，输出最终 3D 框。<br>宏观看，HEDNet 沿用 SECOND 式的层级结构（feature map 分辨率逐级降低）；微观看，每个 SED/DED 积木都是编解码结构。默认 SED/DED 都用三尺度（three-scale）。下图是论文 Figure 3 的官方架构图：<br>paper-Figure3-1.png</p>
+<p>下面是我按源码 pcdet/models/backbones_3d/hednet.py 重画的端到端数据流（含每级分辨率、通道数与 spconv 类型），便于对照代码理解：<br>arch.png</p>
+<h3 id="32-sed-block稀疏编解码块核心创新一">3.2 SED block：稀疏编解码块（核心创新一）</h3>
+<p>先看基线 SSR block 的问题。 单个 SSR block 顺序作用两个 SS 卷积，输入输出间加 skip 连接。稀疏度定义为「未被 valid 特征占据的区域 / 特征图总面积」。SS 卷积只在 valid 特征上算，所以输出稀疏度与输入一致。代价是：空间上不相连的特征无法交换信息——下图（论文 Figure 1）里被星号标记的输出特征，收不到红框外那三个特征点（红三角）的信息。<br>RSR block（一种朴素补救）：把 SS 卷积换成 RS 卷积（regular sparse convolution，常规稀疏卷积）。RS 卷积同时作用在 valid 特征和 expanded 特征（valid 特征邻域内的位置）上，能捕获远距离上下文，但输出稀疏度比输入低。堆叠 RS 卷积会让稀疏度急剧下降、效率崩塌——这就是为什么已有方法只敢在下采样层用 RS 卷积。<br>下图对比了 SSR block (a)、RSR block (b) 和 HEDNet 的 SED block (c)：<br>paper-Figure1-1.png</p>
+<p>SED block 的设计思想：通过特征下采样缩短远距离特征的空间间隔，再通过多尺度融合恢复下采样丢失的细节。<br>具体流程（以两尺度为例，对照上图 c）：<br>下采样后，底层特征图里空间上不相连的 valid 特征，被合并进中层特征图里相邻的 valid 特征——这一步实现了远距离信息交换。<br>在中层特征图上再作用一个 SSR block，促进 valid 特征间的交互。<br>最后把中层特征图上采样回输入分辨率。关键：上采样层（UP）只把特征恢复到输入特征图中 valid 特征覆盖的位置，因此 SED block 输入输出稀疏度严格一致，堆叠时不引入过量计算。<br>下图（论文 Figure 2a）是三尺度 SED block 的完整结构。 ～  是各级特征图名称，括号里数字是相对 block 输入的分辨率比。SED block 既能处理 3D 特征也能处理 2D 特征，取决于用 3D 还是 2D 稀疏卷积：<br>paper-Figure2-1.png</p>
+<p>SED block 采用类似 UNet 的非对称编解码结构：编码器提多尺度特征，解码器借助 skip 连接逐级融合。给定输入特征图 X，三尺度 SED block 的前向可写成：</p>
+<p>其中   是与输入 X 同分辨率的输出。  相对输入的分辨率比依次为  。  表示   个连续 SSR block（默认  ）。下采样层 Down 用 RS 卷积，上采样层 UP 用 sparse inverse convolution（稀疏逆卷积）。<br>下面是我按源码 SEDLayer.forward 重画的 SED block 数据流（注意 skip 连接与「上采样只恢复到原 valid 位置→稀疏度不变」这一关键设计）：<br>sed_block.png</p>
+<h3 id="33-ded-block稠密编解码块核心创新二">3.3 DED block：稠密编解码块（核心创新二）</h3>
+<p>动机：当前高性能 3D 检测器（CenterPoint、TransFusion、DSVT）大多依赖物体中心做检测。但纯稀疏 CNN 提取的特征图，在物体中心附近常有「空洞」——尤其大目标（车占很多体素，但中心可能没点）。中心没特征，center-based head 就难以定位。<br>DED block 的解法：把 SED 的编解码结构搬到 2D 稠密特征上，专门把稀疏特征向物体中心扩散，填补空洞。它与 SED 结构同构，只是把所有稀疏算子换成稠密算子：<br>SED 里的 SSR block → 换成 DR block（dense residual block，稠密残差块）（两个稠密 Conv2d）。<br>下采样的 RS 卷积 → 换成 stride=2 的 DR block。<br>上采样的 sparse inverse conv → 换成 dense deconvolution（稠密反卷积，ConvTranspose2d）。<br>因为是稠密卷积，特征自然向四周（含物体中心）扩散，刚好补上 center-based 检测所需的中心特征。下图是我按源码 DEDLayer.forward 重画的 DED block 结构：<br>ded_block.png</p>
+<h3 id="34-hednet-整体组装">3.4 HEDNet 整体组装</h3>
+<p>把 SED block 和 DED block 串起来就是 HEDNet：<br>3D 稀疏 backbone：dynamic VFE 体素化得到   → 一段 stem（subm 卷积 + 2 个 SSR block）→ 交替「SEDLayer + spconv 下采样」逐级降分辨率 → 末尾若干 SEDLayer。<br>压成 BEV：通过 transition 层沿 Z 轴用 stride 的 spconv 压扁，再 .dense() 把   reshape 成   的稠密 BEV。<br>2D 稠密 backbone：  个 DED block 串联（默认 Waymo 用 4 个、nuScenes 用 5 个），向中心扩散特征。<br>检测头：输出 spatial_features_2d 给 CenterHead / TransFusion-L head。<br>默认配置（Waymo）：SED/DED 都用三尺度、 ；voxel size  m。</p>
+<h2 id="4-数学公式与理论基础">4. 数学公式与理论基础</h2>
+<h3 id="41-稀疏度sparsity的定义">4.1 稀疏度（sparsity）的定义</h3>
+<p>稀疏度是理解 HEDNet 效率的核心量。定义为：</p>
+<p>SS 卷积：只在 valid 位置计算，输出稀疏度 = 输入稀疏度（不膨胀）→ 高效但阻断远距离信息。<br>RS 卷积：在 valid + expanded（邻域）位置计算，输出稀疏度   输入稀疏度（膨胀）→ 能捕获远距离上下文但越堆越稠密、越慢。</p>
+<h3 id="42-sed-block-为什么能既扩感受野又保稀疏度">4.2 SED block 为什么能既扩感受野又保稀疏度</h3>
+<p>关键在「下采样 + 选择性上采样」这对操作：<br>下采样（Down） 用 RS 卷积，把空间上间隔   的两个 valid 特征，在 1/2 分辨率下间隔缩到  ，在 1/4 分辨率下缩到  。下采样后特征更密集、相互可见，从而在低分辨率层用普通 SSR block 就能完成远距离特征交互——等效于在原分辨率上获得了远超 3×3 核的感受野。<br>上采样（UP） 用 sparse inverse convolution，且只把特征写回输入特征图原有的 valid 位置（靠共享的 indice_key 记住下采样前的稀疏拓扑）。因此输出特征图的 valid 位置集合与输入完全一致：</p>
+<p>这就是「堆叠多个 SED block 不会让稀疏度衰减、不引入过量计算」的理论根据，也是它相对 RSR block 的效率优势来源。</p>
+<h3 id="43-感受野的层级放大">4.3 感受野的层级放大</h3>
+<p>宏观上 HEDNet 又在 SED block 外层套了一圈下采样（stem 的 spconv1、spconv2、spconv3）。于是感受野是两级放大：block 内编解码 + block 间层级下采样。这让网络在保持稀疏高效的同时，等效感受野足以覆盖大目标和远距离目标所需的上下文范围。</p>
+<h2 id="5-详细流程图前向数据流逐级追踪">5. 详细流程图（前向数据流逐级追踪）</h2>
+<p>结合源码 HEDNet.forward，以 Waymo 默认配置走一遍完整前向，标注每级分辨率与通道：<br>构造稀疏张量：spconv.SparseConvTensor(features=voxel_features, indices=voxel_coords, spatial_shape=sparse_shape)。<br>stem（self.stem，全 3D 稀疏）：<br>subm 3×3×3：input_ch → 16ch，1× 分辨率（ →  前置）。<br>2 个 SparseBasicBlock3D(16)：残差提特征。<br>spconv stride2：16 → 32ch，降到 1/2×（ ）。<br>SEDLayer(32)：捕获长程依赖（不改分辨率/通道）。<br>spconv stride2：32 → 64ch，降到 1/4×（ ）。<br>SEDLayer(64)。<br>spconv stride(1,2,2)：64 → sed_dim(64)，XY 再降一半到 1/8×、Z 不变（ ）。<br>主 SED 段（self.sed_layers，默认 2 个 SEDLayer(64)）：在 1/8× 分辨率上继续捕获长程依赖。<br>transition + to_bev：2 个 spconv (3,1,1) stride(2,1,1) 沿 Z 轴压扁，.dense() 后 reshape  ，得到稠密 BEV。<br>DED 段（self.ded_layers，默认 4 个 DEDLayer(128)）：稠密编解码向中心扩散。<br>输出 batch_dict[&#x27;spatial_features_2d&#x27;] 给检测头。</p>
+<h3 id="51-sedlayer-的实现要点编码器列表--解码器列表">5.1 SEDLayer 的实现要点（编码器列表 + 解码器列表）</h3>
+<p>源码里 SEDLayer 用两个 nn.ModuleList 分别存编码器各级和解码器各级。前向时编码器逐级跑、把每级输出存进 feats；解码器从最低分辨率开始，每步 deconv 上采样后与对应编码器特征做 features 相加 + BN（即 skip 连接）。这正是公式 (4)(5) 的代码落点。</p>
+<h3 id="52-关键设计的代码体现indicekey-共享">5.2 关键设计的代码体现：indice_key 共享</h3>
+<p>SED block 能「上采样只恢复到原 valid 位置」，靠的是下采样 spconv 和上采样 inverseconv 共享同一个 indice_key（源码里下采样用 f&#x27;spconv_{indice_key}_{idx}&#x27;，上采样 inverseconv 复用同名 key）。spconv 通过这个 key 记住下采样时的稀疏索引映射，逆卷积时严格按原拓扑还原，从而保证输入输出稀疏度一致。这是整个高效性的工程支点。</p>
+<h2 id="6-核心创新点">6. 核心创新点</h2>
+<p>把 HEDNet 的创新点拆开看，本质是三个层次：</p>
+<h3 id="61-创新一sed-block--用编解码让稀疏-cnn-捕获-long-range-dependency">6.1 创新一：SED block —— 用编解码让稀疏 CNN 捕获 long-range dependency</h3>
+<p>新在哪：首次把 encoder-decoder 结构引入 3D 稀疏卷积 backbone 的积木设计。此前编解码只用于稠密预测（FPN、PSPNet、UNet）或 transformer backbone（SWFormer）。<br>解决什么：SS 卷积阻断远距离信息交换的根本矛盾。<br>代码落点：SEDLayer（hednet.py），下采样用 SparseConv3d、上采样用 SparseInverseConv3d、残差用 SparseBasicBlock3D。<br>效果（Table 3a）：SED block 比 SSR block 高 1.96% L2 mAPH；比 RSR block 又快又准（48ms vs 176ms）。</p>
+<h3 id="62-创新二ded-block--向物体中心扩散特征">6.2 创新二：DED block —— 向物体中心扩散特征</h3>
+<p>新在哪：把 SED 的编解码思路迁移到 2D 稠密域，专治大目标中心空洞。<br>解决什么：center-based 检测器（CenterPoint/TransFusion）依赖中心特征，而纯稀疏特征中心常缺失。<br>代码落点：DEDLayer + BasicBlock（稠密 Conv2d 残差，downsample=True 时 stride=2）。<br>效果（Table 3b）：加 DED block 后 L2 mAPH 从 69.89 提到 71.92（4 个最优，5 个过拟合）。</p>
+<h3 id="63-创新三hednet--宏观层级--微观编解码的统一-backbone">6.3 创新三：HEDNet —— 宏观层级 + 微观编解码的统一 backbone</h3>
+<p>新在哪：把 SED + DED 组织成一个层级网络，宏观像 SECOND、微观全是编解码。<br>效果：Waymo test 75.0% L2 mAPH、nuScenes test 72.0% NDS，且比 transformer 路线的 DSVT 快 50%。证明「纯卷积 + 编解码」可以同时拿下精度和效率，不必上 transformer。</p>
+<h3 id="64-泛化性不止检测">6.4 泛化性：不止检测</h3>
+<p>附录 B 把 SED block 接到 MinkUNet34 上做 SemanticKITTI 语义分割，mIoU 比基线 +2.0%（68.3→70.3），说明 SED block 是通用的稀疏特征提取积木，不局限于检测任务。</p>
+<h2 id="7-实验结果与分析">7. 实验结果与分析</h2>
+<h3 id="71-实验设置">7.1 实验设置</h3>
+<p>数据集：Waymo Open（160k/40k/30k train/val/test）、nuScenes（28k/6k/6k）。<br>指标：Waymo 用 mAP / mAPH（按朝向加权），分 L1（&gt;5 点）和 L2（≥1 点）两个难度；nuScenes 用 mAP 和 NDS。<br>检测头：Waymo 接 CenterPoint head（voxel  m），nuScenes 接 TransFusion-L head（voxel  m）。<br>训练：batch 16，8×RTX 3090，Adam + one-cycle。消融在 20% 子集训 30 epoch。</p>
+<h3 id="72-waymo-open-主榜table-1">7.2 Waymo Open 主榜（Table 1）</h3>
+<p>HEDNet 在 val 集 75.3/73.4 mAP/mAPH(L2)，比前 SOTA DSVT-Voxel（74.0/72.1）高 1.3% L2 mAPH；test 集 76.9/75.0。尤其 vehicle（大目标）类比 DSVT 高 1.7% L2 mAPH，印证「捕获长程依赖对大目标最关键」。同时超过两阶段方法 PV-RCNN++、FSD。<br>paper-Table1-1.png</p>
+<h3 id="73-nuscenes-主榜table-2">7.3 nuScenes 主榜（Table 2）</h3>
+<p>nuScenes test 集 72.0% NDS / 67.7% mAP，比同 head 的 TransFusion-L 高 1.8% NDS、2.2% mAP。在三个大目标类上优势更明显：bus +4.1%、trailer +4.7%、construction vehicle +5.4% mAP——再次印证 HEDNet 对大目标的增益。<br>paper-Table2-1.png</p>
+<h3 id="74-精度-vs-推理速度">7.4 精度 vs 推理速度</h3>
+<p>下图（论文 Figure 4）对比各方法在 Waymo val 上的 L2 mAPH 与 FPS（同一张 RTX 3090 测）。HEDNet 在精度上超过大核 CNN 路线的 LargeKernel3D 和 transformer 路线的 DSVT-Voxel，同时推理更快——这是「纯卷积 + 编解码」相对大核/transformer 的核心卖点。<br>paper-Figure4-1.png</p>
+<h3 id="75-消融实验table-3">7.5 消融实验（Table 3）</h3>
+<p>四组消融（Waymo 20% 子集）：<br>(a) SED block 有效性：RSR 块 68.30 L2 mAPH 但 176ms（最慢）；SSR 块 67.93 / 43ms；SED 块 69.89 / 48ms——比 SSR 高 1.96% 且几乎不增延迟。加 1 个 DED 块后同样规律（SED† 71.37 vs SSR† 70.49）。<br>(b) DED block 数量：0 个 69.89 → 1 个 71.37 → 3 个 71.64 → 4 个 71.92（最优） → 5 个 71.77（过拟合）。默认取 4。<br>(c) 2D 稀疏 backbone（HEDNet-2D）：8 个 SSR 块和 16 个 SSR 块性能相近（67.80 vs 67.82，说明硬堆 SSR 没用）；换 4 个 SED 块直接跳到 69.42（+1.6% 以上），证明 SED 的增益不是靠参数量。<br>(d) 编解码尺度数：1 尺度（=HEDNet-single）69.88 → 2 尺度 71.44 → 3 尺度 71.92（默认） → 4 尺度 72.02（延迟更高）。多尺度显著优于单尺度，3 尺度是精度/效率折中。<br>paper-Table3-1.png</p>
+<h3 id="76-从-voxelnet-到-hednet-的逐步消融table-5附录-c">7.6 从 VoxelNet 到 HEDNet 的逐步消融（Table 5，附录 C）</h3>
+<p>这张表把 VoxelNet → HEDNet 拆成 6 步，清楚显示每个组件的增益：<br>VoxelNet 基线：64.0 L2 mAPH / 40ms<br>DSVT 训练 tricks（IoU loss、class-specific NMS、faded 策略、weight decay 0.05）：69.1（+5.1，注意大部分增益其实来自训练技巧）<br>更小 voxel：70.2<br>SED block：71.3（+1.1）<br>DED block：71.9（+0.6）<br>全量数据训练：73.4（最终模型，比 DSVT +1.3% L2 mAPH 且快 50%）<br>提醒：第 2 步的训练 tricks 贡献了相当大一块涨点，读这类论文时要把「方法本身增益」和「训练配方增益」分开看。SED+DED 在已经很强的基线上仍能稳定 +1.7%。<br>paper-Table5-1.png</p>
+<h3 id="77-hednet-vs-hednet-single长程依赖到底帮了谁">7.7 HEDNet vs HEDNet-single：长程依赖到底帮了谁</h3>
+<p>HEDNet-single 是把所有 SED/DED 换成单尺度块（只保留前   个 SSR/DR）。两者对比揭示长程依赖的真实作用：<br>按距离分解（下图 Figure 5）：HEDNet 在所有距离段都比 single 强，且距离越远增益越大——远处目标点少，更依赖上下文。vehicle 类的增益最显著（车尺度是行人/骑车人的约 10 倍）。这两点共同说明：长程依赖对「大目标」和「远距离目标」最关键。<br>paper-Figure5-1.png</p>
+<p>定性对比（下图 Figure 6）：红框是人工标注，蓝框是 HEDNet 预测，绿框是 HEDNet-single 预测。HEDNet-single 对大目标常只框住一部分（上排），对点稀少的目标朝向估计不准（下排）；HEDNet 在两种情形下都给出更精确的框。<br>paper-Figure6-1.png</p>
+<h3 id="78-泛化到语义分割table-4附录-b">7.8 泛化到语义分割（Table 4，附录 B）</h3>
+<p>把 SED block 接进 MinkUNet34 风格的 UNet 结构做 SemanticKITTI 语义分割：先用 MinkUNet34 前两层提特征（下采样 4 倍），接 4 个 SED layer 变换特征，再用两个对称层恢复高分辨率。结果 mIoU 70.3% vs MinkUNet34 的 68.3%（+2.0%），说明 SED block 作为通用稀疏特征积木的普适性。<br>paper-Table4-1.png</p>
+<h2 id="8-技术发展时间线">8. 技术发展时间线</h2>
+<p>2018 SECOND：首次把 submanifold 稀疏卷积引入体素 3D 检测，确立「SSR block 堆叠 + RS 卷积下采样」的稀疏 backbone 范式。HEDNet 宏观结构沿用它。<br>2018 VoxelNet / 2019 PointPillars：体素/柱体编码奠基。<br>2021 CenterPoint：center-based 检测头成为主流，催生了「物体中心特征很重要」这一前提——这正是 DED block 要解决的问题。<br>2022 SST / 2022 SWFormer / 2023 DSVT：transformer 路线尝试捕获长程依赖；SWFormer 首次在稀疏 backbone 加 top-down 通路（编解码雏形）。DSVT 是 HEDNet 之前的 SOTA。<br>2022 LargeKernel3D / 2023 LinK：大核稀疏卷积路线，靠大核扩感受野但低效。<br>2023 HEDNet（本篇，NeurIPS）：用编解码积木（SED/DED）让纯稀疏 CNN 高效捕获长程依赖，同时超越大核与 transformer 路线。<br>2024 SAFDNet（CVPR，同作者续作）：在 HEDNet 基础上做全稀疏（fully sparse）检测——HEDNet 末段仍要转稠密 BEV，SAFDNet 用 adaptive feature diffusion（AFD）在稀疏域直接向中心扩散，省掉稠密 backbone，更适合大范围场景（如 Argoverse2）。同仓库已含其实现（SparseHEDNet 类）。</p>
+<h2 id="9-代码实现技巧">9. 代码实现技巧</h2>
+<p>源码已 clone：pcdet/models/backbones_3d/hednet.py + pcdet/models/model_utils/hednet_utils.py，基于 OpenPCDet。下面是真读源码的拆解。</p>
+<h3 id="91-代码结构模块--文件--类对应表">9.1 代码结构：模块 → 文件 → 类对应表</h3>
+<p>论文模块</p>
+<p>文件</p>
+<p>类 / 函数</p>
+<p>SED block（稀疏编解码）</p>
+<p>backbones_3d/hednet.py</p>
+<p>SEDLayer</p>
+<p>DED block（稠密编解码）</p>
+<p>backbones_3d/hednet.py</p>
+<p>DEDLayer</p>
+<p>HEDNet 整体 backbone</p>
+<p>backbones_3d/hednet.py</p>
+<p>HEDNet（3D 版）/ HEDNet2D（2D 版）</p>
+<p>SAFDNet（续作，全稀疏）</p>
+<p>backbones_3d/hednet.py</p>
+<p>SparseHEDNet / SparseHEDNet2D</p>
+<p>SSR block（子流形稀疏残差）</p>
+<p>model_utils/hednet_utils.py</p>
+<p>SparseBasicBlock3D / SparseBasicBlock2D</p>
+<p>DR block（稠密残差）</p>
+<p>model_utils/hednet_utils.py</p>
+<p>BasicBlock</p>
+<p>卷积工厂（subm/spconv/inverseconv/deconv）</p>
+<p>model_utils/hednet_utils.py</p>
+<p>post_act_block_sparse_3d/2d、post_act_block_dense_2d</p>
+<p>体素化 VFE</p>
+<p>backbones_3d/vfe/dynamic_mean_vfe.py</p>
+<p>DynamicVoxelVFE</p>
+<p>检测头</p>
+<p>dense_heads/</p>
+<p>CenterHead / TransFusionHead</p>
+<p>配置</p>
+<p>tools/cfgs/hednet_models/</p>
+<p>hednet_1f_2x_waymo.yaml 等</p>
+<h3 id="92-ssr-block--ss-卷积的代码落点">9.2 SSR block / SS 卷积的代码落点</h3>
+<pre><code>SparseBasicBlock3D 就是论文的 SSR block：两个 3×3×3 的 SubMConv3d（submanifold 稀疏卷积）+ BN + 残差。注意 replace_feature——spconv 张量的 features 是单独张量，BN/ReLU/相加都要通过它替换：
+class SparseBasicBlock3D(spconv.SparseModule):
+    def __init__(self, dim, indice_key, norm_fn=norm_fn_1d, bias=True):
+        super().__init__()
+        # 两个 submanifold 稀疏卷积，共享 indice_key → 输入输出稀疏拓扑一致
+        self.conv1 = spconv.SubMConv3d(dim, dim, 3, 1, 1, bias=bias, indice_key=indice_key)
+        self.bn1 = norm_fn(dim)
+        self.conv2 = spconv.SubMConv3d(dim, dim, 3, 1, 1, bias=bias, indice_key=indice_key)
+        self.bn2 = norm_fn(dim)
+        self.relu = nn.ReLU()</code></pre>
+<pre><code>    def forward(self, x):
+        out = self.conv1(x)                                   # SS 卷积只在 valid 位置算
+        out = out.replace_feature(self.bn1(out.features))
+        out = out.replace_feature(self.relu(out.features))
+        out = self.conv2(out)
+        out = out.replace_feature(self.bn2(out.features))
+        out = out.replace_feature(self.relu(out.features + x.features))  # 残差
+        return out</code></pre>
+<h3 id="93-sedlayer-源码逐段拆解核心">9.3 SEDLayer 源码逐段拆解（核心）</h3>
+<pre><code>SEDLayer 把编码器、解码器各存成一个 ModuleList，xy_only 开关决定用 2D 还是 3D 稀疏卷积（这是同一套代码同时支持 3D backbone 和 2D 单步长 backbone 的关键）：
+class SEDLayer(spconv.SparseModule):
+    def __init__(self, dim, down_kernel_size, down_stride, num_SBB, indice_key, xy_only=False):
+        super().__init__()
+        # xy_only=True → 2D 稀疏卷积（用于 nuScenes 单步长版 / SAFDNet 的 AFD 层）
+        block = SparseBasicBlock2D if xy_only else SparseBasicBlock3D
+        post_act_block = post_act_block_sparse_2d if xy_only else post_act_block_sparse_3d</code></pre>
+<pre><code>        # ---- 编码器 ----
+        # 第 0 级：num_SBB[0] 个 SSR block（不下采样），对应公式 F1 = SSR^m(X)
+        self.encoder = nn.ModuleList([
+            spconv.SparseSequential(
+                *[block(dim, indice_key=f&quot;{indice_key}_0&quot;) for _ in range(num_SBB[0])])
+        ])
+        num_levels = len(down_stride)
+        for idx in range(1, num_levels):
+            cur_layers = [
+                # 下采样：stride 的 spconv，indice_key 命名 spconv_{key}_{idx}（关键！上采样要复用）
+                post_act_block(dim, dim, down_kernel_size[idx], down_stride[idx],
+                               down_kernel_size[idx] // 2,
+                               conv_type=&#x27;spconv&#x27;, indice_key=f&#x27;spconv_{indice_key}_{idx}&#x27;),
+                # 下采样后再跑 num_SBB[idx] 个 SSR block（在更密集的低分辨率上做特征交互）
+                *[block(dim, indice_key=f&quot;{indice_key}_{idx}&quot;) for _ in range(num_SBB[idx])]
+            ]
+            self.encoder.append(spconv.SparseSequential(*cur_layers))</code></pre>
+<pre><code>        # ---- 解码器 ----
+        # 从最低分辨率往回走，每级一个 inverseconv（复用编码器同名 indice_key → 只还原到原 valid 位置）
+        self.decoder = nn.ModuleList()
+        self.decoder_norm = nn.ModuleList()
+        for idx in range(num_levels - 1, 0, -1):
+            self.decoder.append(
+                post_act_block(dim, dim, down_kernel_size[idx],
+                               conv_type=&#x27;inverseconv&#x27;, indice_key=f&#x27;spconv_{indice_key}_{idx}&#x27;))
+            self.decoder_norm.append(norm_fn_1d(dim))</code></pre>
+<pre><code>    def forward(self, x):
+        feats = []
+        for conv in self.encoder:          # 编码器逐级前向，保存每级特征
+            x = conv(x)
+            feats.append(x)                # feats = [F1, F2, F3]（三尺度时）</code></pre>
+<pre><code>        x = feats[-1]                      # 从最低分辨率 F3 开始解码
+        # zip: 解码器 / norm / 编码器特征逆序(去掉最后一个)，即 [F2, F1]
+        for deconv, norm, up_x in zip(self.decoder, self.decoder_norm, feats[:-1][::-1]):
+            x = deconv(x)                                       # 上采样（只到原 valid 位置）
+            x = replace_feature(x, norm(x.features + up_x.features))  # skip 相加 + BN → F4, F5
+        return x
+逐段对照公式：
+编码器第 0 级 →  
+编码器第 1、2 级（含 Down）→  
+解码器第 1 步 →  
+解码器第 2 步 →  
+张量稀疏度（3D，dim=64 时）：输入   是 SparseConvTensor，features 形状  。下采样后   减少（特征更密集）；上采样靠 indice_key=&#x27;spconv_sedlayerX_idx&#x27; 还原回下采样前的 indices，所以输出的  、indices 与输入完全一致——这就是「稀疏度不变」在代码里的保证。
+默认超参（Waymo cfg）：SED_NUM_SBB=[2,1,1]（三级各 2/1/1 个 SSR block）、SED_DOWN_STRIDE=[1,2,2]（第 0 级不降，后两级各降 2 倍）、SED_DOWN_KERNEL_SIZE=[3,3,3]、SED_FEATURE_DIM=64、SED_NUM_LAYERS=2（主段 2 个 SEDLayer）。down_stride[0]==1 有 assert 保证第 0 级不下采样。</code></pre>
+<h3 id="94-dedlayer-源码与-sed-同构但全稠密">9.4 DEDLayer 源码：与 SED 同构但全稠密</h3>
+<pre><code>DEDLayer 结构与 SEDLayer 一一对应，只是把稀疏算子换成稠密算子，不再需要 indice_key（稠密卷积没有稀疏拓扑问题）：
+class DEDLayer(nn.Module):
+    def __init__(self, dim, down_stride, num_SBB):
+        super().__init__()
+        # 编码器第 0 级：num_SBB[0] 个稠密残差块 BasicBlock（= DR block）
+        self.encoder = nn.ModuleList(
+            nn.Sequential(*[BasicBlock(dim) for _ in range(num_SBB[0])]))
+        num_levels = len(down_stride)
+        for idx in range(1, num_levels):
+            # 下采样用 stride=2 的 DR block（BasicBlock(downsample=True)）
+            cur_layers = [BasicBlock(dim, downsample=True)]
+            cur_layers.extend([BasicBlock(dim) for _ in range(num_SBB[idx])])
+            self.encoder.append(nn.Sequential(*cur_layers))</code></pre>
+<pre><code>        self.decoder = nn.ModuleList()
+        self.decoder_norm = nn.ModuleList()
+        for idx in range(num_levels - 1, 0, -1):
+            # 上采样用稠密反卷积 ConvTranspose2d
+            self.decoder.append(
+                post_act_block_dense_2d(dim, dim, down_stride[idx], down_stride[idx], 0, conv_type=&#x27;deconv&#x27;))
+            self.decoder_norm.append(norm_fn_2d(dim))</code></pre>
+<pre><code>    def forward(self, x):
+        feats = []
+        for conv in self.encoder:
+            x = conv(x); feats.append(x)
+        for deconv, norm, up_x in zip(self.decoder, self.decoder_norm, feats[:-1][::-1]):
+            x = norm(deconv(x) + up_x)   # 稠密相加 + BN（普通张量直接加，无需 replace_feature）
+        return x
+其中 BasicBlock（DR block）的下采样靠 conv1 的 stride=1+int(downsample)，并配一条 1×1 stride2 的 downsample_layer 对齐残差维度——标准 ResNet 残差块写法。</code></pre>
+<h3 id="95-hednetforward3d-稀疏--bev--2d-稠密-全链路">9.5 HEDNet.forward：3D 稀疏 → BEV → 2D 稠密 全链路</h3>
+<pre><code>def forward(self, batch_dict):
+    x = spconv.SparseConvTensor(                 # 用 VFE 输出构造稀疏张量
+        features=batch_dict[&#x27;voxel_features&#x27;],
+        indices=batch_dict[&#x27;voxel_coords&#x27;].int(),
+        spatial_shape=self.sparse_shape,         # grid_size[::-1] + [1,0,0]
+        batch_size=batch_dict[&#x27;batch_size&#x27;])</code></pre>
+<pre><code>    x = self.stem(x)                             # 3D: subm + 2×SSR + 交替(SEDLayer + spconv 下采样)
+    for layer in self.sed_layers:                # 主 SED 段（默认 2 个）
+        x = layer(x)</code></pre>
+<pre><code>    x = self.to_bev(x)                           # transition 沿 Z 压扁 + .dense() + reshape 成 BEV
+    for layer in self.ded_layers:                # 2D DED 段（默认 4 个）
+        x = layer(x)</code></pre>
+<pre><code>    batch_dict.update({&#x27;spatial_features_2d&#x27;: x})
+    return batch_dict</code></pre>
+<pre><code>def to_bev(self, x):
+    x = self.transition(x).dense()               # (N, C, D, H, W)
+    N, C, D, H, W = x.shape
+    x = x.view(N, C * D, H, W)                    # 把 Z 维并入通道 → BEV (N, C*D, H, W)
+    return x
+stem 里 SED block 与下采样 spconv 是交错写死在 SparseSequential 里的（见 §3.1 数据流），这是「层级（hierarchical）」的宏观体现；to_bev 的 transition 用两个 (3,1,1) stride (2,1,1) 的 spconv 专门压 Z 轴高度。</code></pre>
+<h3 id="96-续作-safdnet-的-afd顺带理解全稀疏方向">9.6 续作 SAFDNet 的 AFD（顺带，理解全稀疏方向）</h3>
+<p>同文件的 SparseHEDNet 实现了 CVPR 2024 续作。它把 HEDNet 的「转稠密 BEV + DED 稠密 backbone」换成全稀疏：用 feature_diffusion（adaptive feature diffusion，AFD）在稀疏域预测每个体素是否落在某类物体框内（cls_conv + focal loss 监督），只对前景体素做 max_pool 式扩散填补中心空洞，再用 xy_only=True 的 SEDLayer（afd_layers）继续提特征。这避免了大范围场景（Argoverse2 等）转稠密的显存/算力爆炸——是 HEDNet 在「全稀疏」方向的自然延伸。马爷若关注大范围 occ，这条线值得留意。</p>
+<h2 id="10-局限性与未来方向">10. 局限性与未来方向</h2>
+<p>仅面向室外自动驾驶场景：论文明确指出 HEDNet 主要针对室外点云检测，在室内场景的适用性仍是开放问题（室内点云密度分布与室外差异大）。<br>末段仍需转稠密 BEV：HEDNet 的 DED 段在稠密域运行，大范围场景下稠密 backbone 的显存/算力会显著上升。续作 SAFDNet 用全稀疏 AFD 缓解了这点。<br>训练增益与方法增益耦合：Table 5 显示很大一块涨点来自 DSVT 的训练 tricks（IoU loss、faded、class-specific NMS）。复现时若不带这些 tricks，SED/DED 的净增益会被低估。<br>超参敏感：DED block 数量过多（5 个）会过拟合；尺度数增加精度边际递减但延迟线性上升。需按场景调。<br>未来方向：全稀疏化（已由 SAFDNet 推进）、跨任务通用稀疏积木（已在分割上验证）、与多模态/时序融合结合。</p>
+<h2 id="11-总结">11. 总结</h2>
+<p>HEDNet 的核心贡献，是把成熟的 encoder-decoder 思想重新带回 3D 稀疏卷积 backbone 的积木级设计，用两个简单而有效的积木解决了点云检测的两个老问题：<br>SED block 用「下采样拉近远距离特征 + 选择性上采样保稀疏度」让纯稀疏 CNN 高效捕获 long-range dependency，效率远超 RSR/大核，精度超过 transformer。<br>DED block 用稠密编解码向物体中心扩散特征，补上 center-based 检测器最需要的中心特征。<br>二者组装成 HEDNet，在 Waymo（75.0 L2 mAPH）和 nuScenes（72.0 NDS）双双刷新 SOTA，且比 DSVT 快 50%；SED block 还能泛化到语义分割。<br>一句话：不靠 transformer、不靠大核，纯卷积 + 编解码，把稀疏 backbone 的精度和效率同时拉满。</p>
+<h3 id="111-对马爷-e2e-occupancy-项目-lidar-分支的工程启发-">11.1 对马爷 E2E Occupancy 项目 LiDAR 分支的工程启发 ⭐</h3>
+<p>这篇是收官论文里和马爷 occ 项目工程最贴近的一篇（LiDAR 分支通常就是 SECOND + 稀疏卷积 backbone）。可落地的启发：<br>直接升级 LiDAR backbone：occ 项目若用 SECOND/SSR 堆叠的稀疏 backbone，可把若干 SSR 段替换成 SEDLayer。代码改动小（OpenPCDet 风格，SEDLayer 即插即用），实测在检测上 +1.6%~2% L2 mAPH，对大目标和远距离 voxel 增益最大——而 occ 恰恰最难的就是远处和大物体的占据预测。<br>占据预测天然受益于「向中心扩散」：DED block 填补大目标中心空洞的思路，对 occ 的「物体内部体素该不该占据」判断直接相关。可借鉴 DED 的稠密编解码做 occ decoder 的特征致密化。<br>稀疏度守恒 = 工程可控的算力：SED 的「上采样只回原 valid 位置」保证堆叠不爆算力，这对 occ 这种本就稠密、算力紧张的任务尤其重要——可在不显著增加 latency 的前提下扩感受野。<br>全稀疏方向（SAFDNet/AFD）：若 occ 走大范围（如 Argoverse2 尺度或更大 BEV 范围），可参考续作的 AFD 在稀疏域扩散、避免转稠密，省显存。<br>复现注意：迁移时要连带 DSVT 训练配方（IoU loss、faded、class-specific NMS、weight decay 0.05）一起上，否则净增益会被埋没（Table 5 教训）。<br>感受野是 occ 的隐形瓶颈：HEDNet 用「block 内编解码 + block 间层级下采样」两级放大感受野的做法，比单纯加深或加大核更划算，值得在 occ backbone 设计里直接套用。</p>
+<h2 id="12-参考文献精选">12. 参考文献（精选）</h2>
+<p>SECOND [18] Yan et al., Sensors 2018 —— 稀疏卷积 3D 检测奠基，HEDNet 宏观结构基准。<br>CenterPoint [27] Yin et al., CVPR 2021 —— center-based 检测头，DED block 的设计前提。<br>TransFusion [28] Bai et al., CVPR 2022 —— nuScenes 上 HEDNet 用的检测头。<br>DSVT [15] Wang et al., CVPR 2023 —— transformer 路线前 SOTA，HEDNet 的主要对比对象。<br>LargeKernel3D [12]/[33]、LinK [16] —— 大核稀疏卷积路线对比。<br>SST [14]、SWFormer [13] —— transformer / 编解码雏形相关工作。<br>UNet [38] Ronneberger et al., MICCAI 2015 —— SED/DED 编解码结构的直接灵感。<br>spconv [40] —— 稀疏卷积库，SubMConv/SparseConv/SparseInverseConv 的实现基础。<br>OpenPCDet [49] —— HEDNet 的实现框架。<br>Waymo Open [29]、nuScenes [30]、SemanticKITTI [59] —— 评测数据集。<br>（完整 60 篇参考文献见原论文 References 章节）</p></main><aside class="toc"><strong>目录</strong><a href="#1-研究背景与动机" class="l2">1. 研究背景与动机</a>
+<a href="#11-点云-3d-检测的三条技术路线" class="l3">1.1 点云 3D 检测的三条技术路线</a>
+<a href="#12-核心痛点submanifold-稀疏卷积阻断了信息交换" class="l3">1.2 核心痛点：submanifold 稀疏卷积阻断了信息交换</a>
+<a href="#13-已有补救方案及其局限" class="l3">1.3 已有补救方案及其局限</a>
+<a href="#14-灵感来源编解码结构" class="l3">1.4 灵感来源：编解码结构</a>
+<a href="#2-核心问题分析" class="l2">2. 核心问题分析</a>
+<a href="#21-一句话概括贡献" class="l3">2.1 一句话概括贡献</a>
+<a href="#22-与既有路线的本质区别" class="l3">2.2 与既有路线的本质区别</a>
+<a href="#3-技术架构详解" class="l2">3. 技术架构详解</a>
+<a href="#31-整体架构总览" class="l3">3.1 整体架构总览</a>
+<a href="#32-sed-block稀疏编解码块核心创新一" class="l3">3.2 SED block：稀疏编解码块（核心创新一）</a>
+<a href="#33-ded-block稠密编解码块核心创新二" class="l3">3.3 DED block：稠密编解码块（核心创新二）</a>
+<a href="#34-hednet-整体组装" class="l3">3.4 HEDNet 整体组装</a>
+<a href="#4-数学公式与理论基础" class="l2">4. 数学公式与理论基础</a>
+<a href="#41-稀疏度sparsity的定义" class="l3">4.1 稀疏度（sparsity）的定义</a>
+<a href="#42-sed-block-为什么能既扩感受野又保稀疏度" class="l3">4.2 SED block 为什么能既扩感受野又保稀疏度</a>
+<a href="#43-感受野的层级放大" class="l3">4.3 感受野的层级放大</a>
+<a href="#5-详细流程图前向数据流逐级追踪" class="l2">5. 详细流程图（前向数据流逐级追踪）</a>
+<a href="#51-sedlayer-的实现要点编码器列表--解码器列表" class="l3">5.1 SEDLayer 的实现要点（编码器列表 + 解码器列表）</a>
+<a href="#52-关键设计的代码体现indicekey-共享" class="l3">5.2 关键设计的代码体现：indice_key 共享</a>
+<a href="#6-核心创新点" class="l2">6. 核心创新点</a>
+<a href="#61-创新一sed-block--用编解码让稀疏-cnn-捕获-long-range-dependency" class="l3">6.1 创新一：SED block —— 用编解码让稀疏 CNN 捕获 long-range dependency</a>
+<a href="#62-创新二ded-block--向物体中心扩散特征" class="l3">6.2 创新二：DED block —— 向物体中心扩散特征</a>
+<a href="#63-创新三hednet--宏观层级--微观编解码的统一-backbone" class="l3">6.3 创新三：HEDNet —— 宏观层级 + 微观编解码的统一 backbone</a>
+<a href="#64-泛化性不止检测" class="l3">6.4 泛化性：不止检测</a>
+<a href="#7-实验结果与分析" class="l2">7. 实验结果与分析</a>
+<a href="#71-实验设置" class="l3">7.1 实验设置</a>
+<a href="#72-waymo-open-主榜table-1" class="l3">7.2 Waymo Open 主榜（Table 1）</a>
+<a href="#73-nuscenes-主榜table-2" class="l3">7.3 nuScenes 主榜（Table 2）</a>
+<a href="#74-精度-vs-推理速度" class="l3">7.4 精度 vs 推理速度</a>
+<a href="#75-消融实验table-3" class="l3">7.5 消融实验（Table 3）</a>
+<a href="#76-从-voxelnet-到-hednet-的逐步消融table-5附录-c" class="l3">7.6 从 VoxelNet 到 HEDNet 的逐步消融（Table 5，附录 C）</a>
+<a href="#77-hednet-vs-hednet-single长程依赖到底帮了谁" class="l3">7.7 HEDNet vs HEDNet-single：长程依赖到底帮了谁</a>
+<a href="#78-泛化到语义分割table-4附录-b" class="l3">7.8 泛化到语义分割（Table 4，附录 B）</a>
+<a href="#8-技术发展时间线" class="l2">8. 技术发展时间线</a>
+<a href="#9-代码实现技巧" class="l2">9. 代码实现技巧</a>
+<a href="#91-代码结构模块--文件--类对应表" class="l3">9.1 代码结构：模块 → 文件 → 类对应表</a>
+<a href="#92-ssr-block--ss-卷积的代码落点" class="l3">9.2 SSR block / SS 卷积的代码落点</a>
+<a href="#93-sedlayer-源码逐段拆解核心" class="l3">9.3 SEDLayer 源码逐段拆解（核心）</a>
+<a href="#94-dedlayer-源码与-sed-同构但全稠密" class="l3">9.4 DEDLayer 源码：与 SED 同构但全稠密</a>
+<a href="#95-hednetforward3d-稀疏--bev--2d-稠密-全链路" class="l3">9.5 HEDNet.forward：3D 稀疏 → BEV → 2D 稠密 全链路</a>
+<a href="#96-续作-safdnet-的-afd顺带理解全稀疏方向" class="l3">9.6 续作 SAFDNet 的 AFD（顺带，理解全稀疏方向）</a>
+<a href="#10-局限性与未来方向" class="l2">10. 局限性与未来方向</a>
+<a href="#11-总结" class="l2">11. 总结</a>
+<a href="#111-对马爷-e2e-occupancy-项目-lidar-分支的工程启发-" class="l3">11.1 对马爷 E2E Occupancy 项目 LiDAR 分支的工程启发 ⭐</a>
+<a href="#12-参考文献精选" class="l2">12. 参考文献（精选）</a></aside></div>
+<nav class="nav"><a href="../sparsebev/">← 上一篇：SparseBEV：多相机视频高性能稀疏 3D 目标检测（ICCV 2023） </a><span></span></nav></div></body></html>

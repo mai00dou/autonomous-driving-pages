@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Far3D：用2D先验扩展环视3D检测的远距离感知（PETR谱系·第10篇） | 3D 目标检测</title><style>:root{--bg:#0b1020;--panel:#121a2f;--panel2:#17223d;--text:#e8edf7;--muted:#9fb0cc;--line:#263653;--brand:#8bd3ff;--accent:#ffd166;--green:#74d99f;--code:#0a0f1d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,#19274a 0,#0b1020 38%,#070b14 100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;line-height:1.72}.wrap{max-width:1120px;margin:0 auto;padding:36px 20px 64px}.topbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:24px}.crumb,.pill{font-size:13px;color:var(--muted)}.crumb a,.meta a,.card a,.nav a{color:var(--brand);text-decoration:none}.hero{padding:34px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,rgba(18,26,47,.96),rgba(16,31,59,.86));box-shadow:0 24px 80px rgba(0,0,0,.28)}h1{font-size:clamp(28px,4vw,46px);line-height:1.18;margin:0 0 16px}h2{font-size:26px;margin:42px 0 14px;padding-top:8px;border-top:1px solid var(--line)}h3{font-size:20px;margin:28px 0 10px;color:#d9e8ff}p{margin:12px 0}.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.pill{border:1px solid var(--line);background:rgba(255,255,255,.04);padding:6px 10px;border-radius:999px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;margin-top:24px}.content{background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:22px;padding:28px}.toc{position:sticky;top:18px;align-self:start;background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:18px;padding:18px;max-height:calc(100vh - 36px);overflow:auto}.toc strong{display:block;margin-bottom:10px}.toc a{display:block;color:var(--muted);text-decoration:none;font-size:13px;padding:4px 0}.toc a:hover{color:var(--brand)}pre{background:var(--code);border:1px solid var(--line);border-radius:14px;padding:16px;overflow:auto;white-space:pre-wrap;word-break:break-word}code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;color:#d6e8ff}.figure{border:1px dashed #3a4d73;background:rgba(139,211,255,.06);border-radius:14px;padding:14px;margin:16px 0;color:#b9c9e6}.tableish{border-left:3px solid var(--accent);padding:8px 14px;background:rgba(255,209,102,.06);border-radius:10px}.nav{display:flex;justify-content:space-between;gap:14px;margin-top:24px}.nav a{flex:1;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.04)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:22px}.card{border:1px solid var(--line);border-radius:18px;background:rgba(18,26,47,.76);padding:18px;min-height:150px}.card h3{margin-top:0}.card p{color:var(--muted);font-size:14px}.badge{display:inline-block;color:#06101d;background:var(--green);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700}.warn{border:1px solid rgba(255,209,102,.35);background:rgba(255,209,102,.08);border-radius:14px;padding:12px 14px;color:#ffe8a3}@media(max-width:900px){.layout{grid-template-columns:1fr}.toc{position:relative;top:auto}.hero{padding:24px}.content{padding:20px}}</style></head>
+<body><div class="wrap"><div class="topbar"><span class="crumb"><a href="../../../index.html">首页</a> / <a href="../../index.html">自动驾驶</a> / <a href="../index.html">3D 目标检测</a></span></div>
+<section class="hero"><h1>Far3D：用2D先验扩展环视3D检测的远距离感知（PETR谱系·第10篇）</h1><p>从飞书知识库导出的静态 HTML 首版。正文保留原文结构、代码片段与图表文件名；复杂飞书表格/图片以占位形式展示，并提供原文回跳。</p><div class="meta"><span class="pill">来源：飞书知识库纯文本导出</span><span class="pill">更新：2026-06-02</span><span class="pill"><a href="https://tzscglpsd7.feishu.cn/wiki/IaQ3wZMkPipO7qkev1pcxA4Tnkr" target="_blank" rel="noopener">飞书原文</a></span></div></section>
+<nav class="nav"><a href="../sparse4dv2/">← 上一篇：Sparse4D v2：Recurrent Temporal Fusion 递归时序融合稀疏检测 </a><a href="../sparsebev/">下一篇：SparseBEV：多相机视频高性能稀疏 3D 目标检测（ICCV 2023） →</a></nav>
+<div class="layout"><main class="content"><p>Far3D：用2D先验扩展环视3D检测的远距离感知（PETR谱系·第10篇）<br>Far3D：用 2D 先验扩展环视 3D 检测的远距离感知<br>论文：Far3D: Expanding the Horizon for Surround-view 3D Object Detection<br>作者：Xiaohui Jiang, Shuailin Li, Yingfei Liu, Shihao Wang, Fan Jia, Tiancai Wang, Lijin Han, Xiangyu Zhang<br>机构：北京理工大学（Beijing Institute of Technology）+ 旷视科技（MEGVII Technology）<br>会议：AAAI 2024<br>arXiv：2308.09616v2（v2: 2023-12-17）<br>Code：https://github.com/megvii-research/Far3D<br>解读对象：PDF 主体 12 页 + Supplementary + 官方仓库 projects/mmdet3d_plugin</p>
+<p>谱系定位：本篇是 PETR 谱系战役第 10 篇。脉络：DETR → DETR3D → PETR → BEVFormer → BEVDet4D → PETRv2 → BEVFusion → StreamPETR → Sparse4D / Sparse4D v2 →【Far3D】。前面的稀疏 query 方法（StreamPETR、Sparse4D 系）都聚焦近距离（~50m）；Far3D 的核心贡献是把稀疏 query 3D 检测扩展到 远距离（150m），用 2D 检测的高召回先验来弥补固定 query 在远处的召回短板。</p>
+<h2 id="1-研究背景与动机">1. 研究背景与动机</h2>
+<p>环视（surround-view）相机 3D 目标检测因为部署成本低、语义信息丰富，近年进展显著。但绝大多数方法只关注近距离感知（如 nuScenes 上约 50m），远距离检测（long-range）这个方向几乎没人碰。而真实驾驶里，高速行驶或复杂路况下保持安全距离，恰恰需要看得远——检测 100m、150m 外的目标。<br>现有环视方法按中间表征分两类：<br>稠密 BEV 方法（BEVDet、BEVFormer、BEVDepth 等）：用 view transformer 把透视特征转成 BEV 特征，再接 3D 检测头。问题是稠密 BEV 特征计算量大，即便近距离也很重，扩到远距离时计算量平方级膨胀，难以承受。<br>稀疏 query 方法（DETR3D、PETR 系、Sparse4D、StreamPETR）：沿用 DETR 范式，用可学习的全局 query 表示 3D 目标，和环视图像特征交互更新 query。稀疏设计避免了 query 数量平方增长，但固定的全局 query 无法适应动态场景，在远距离检测中经常漏检目标。<br>Far3D 选择稀疏 query 路线来保持效率，并引入 3D 自适应 query 来解决固定 query 不灵活的问题。<br>关键观察（下图）：在 Argoverse 2 上对比 StreamPETR（3D 检测）和 YOLOX（2D 检测）的召回，3D 检测召回明显偏低，而 2D 检测召回高得多。2D 检测器对远处小目标更鲁棒，可以作为「桥梁」来提升 3D 检测质量。这正是 Far3D 的出发点——用高质量 2D 先验生成 3D query。<br>paper-Figure1-1.png</p>
+<p>图 1：Argoverse 2 上 3D 检测与 2D 检测的对比。(a) StreamPETR 的 3D 预测框，(b) YOLOX 的 2D 预测框，(c) 2D 召回明显高于 3D 召回，可作为提升 3D 检测的桥梁。</p>
+<h2 id="2-核心问题分析">2. 核心问题分析</h2>
+<p>要把稀疏 query 范式用到远距离检测，首要难题是召回太差。<br>问题一：3D 空间 query 稀疏导致召回低。 由于 3D 空间里 query 稀疏，预测与真值之间的匹配受影响，只有少量 query 能匹配成正样本。如图 1 所示，3D 检测召回很低，而 2D 检测召回高得多——两者存在显著差距。用高质量 2D 先验改进 3D proposal 是个很自然的思路。<br>之前 SimMOD、MV2D 也探索过用 2D 预测来初始化 3D proposal，但它们只关注近距离任务，而且丢掉了可学习的 object query。<br>问题二：2D 先验直接转 3D 在远距离会引入噪声。 如下图所示，直接把 2D proposal 反投影成 3D query，在远距离任务上会碰到两个麻烦：<br>沿目标射线的深度分布不确定，导致冗余且深度错误的预测（图 2a，黄色框就是深度错的冗余预测）；<br>frustum 变换的偏差随距离增大而放大——同样的 2D 误差，投影到远处会被放得很大（图 2b，误差随 range 增大被放大）。<br>这些噪声 query 会影响训练稳定性，需要有效的去噪手段。此外，训练过程中模型还有个倾向：过拟合密集的近处目标，而忽视稀疏分布的远处目标（range 级别的样本不均衡）。<br>针对以上问题，Far3D 设计了三个关键模块：自适应 query 生成、perspective-aware aggregation、range-modulated 3D denoising。<br>paper-Figure2-1.png</p>
+<p>图 2：2D 点转 3D 空间的不同情形。蓝点是图像中 3D 目标的中心。(a) 深度估计错误导致的冗余预测（黄色）；(b) 不同 range 主导的误差传播问题。</p>
+<h2 id="3-技术架构详解">3. 技术架构详解</h2>
+<h3 id="31-整体流程">3.1 整体流程</h3>
+<p>Far3D 以 StreamPETR 为 baseline，整体是一个稀疏 query 框架，由四部分组成：backbone、FPN neck、2D proposal 头、3D 检测头。<br>整体流程（对应论文 Figure 3 Overview）：<br>环视图像 I = {I1, ..., In} 送入 backbone（ResNet / VoVNet / ViT）和 FPN neck，得到多级图像特征 F = {F1, ..., Fn}（默认 4 级，尺寸 1/8、1/16、1/32、1/64）。<br>用 2D 检测头 + 深度网络 生成可靠的 2D box proposal 和对应深度，过滤低质量的，再变换到 3D 空间，生成 3D 自适应 query。这样 2D 检测的目标先验信息就被编码进了 3D query。<br>在 3D 检测头里，拼接 3D 自适应 query 和 3D 全局 query，一起送入 transformer decoder。decoder 包含 query 间的 self-attention 和 query 与特征间的 perspective-aware aggregation。<br>同时引入 range-modulated 3D denoising，在训练长距离、分布不均衡的目标时缓解 query 误差传播、稳定收敛。<br>时序建模沿用 StreamPETR 的 object-centric 长序列 query 传播（memory queue 递归）。<br>下图是论文给出的 Far3D 整体架构（Overview）：<br>paper-Figure3-1.png</p>
+<div class="tableish">图 3：Far3D 整体架构。环视图像经 backbone + FPN 得到 2D 图像特征，结合相机参数做 perspective-aware 变换；用 2D 检测器和 DepthNet 生成可靠的 2D box proposal 及对应深度，拼接后投影到 3D 空间；生成的 3D 自适应 query 与初始 3D 全局 query 一起，由 decoder 逐层 refine 预测 3D 框；时序建模通过长期 query 传播实现。<br>下面是结合源码梳理的 Far3D 数据流（自绘，标注了各模块的实际配置取值）：<br>arch_overall.png</div>
+<h3 id="32-自适应-query-生成adaptive-query-generation">3.2 自适应 Query 生成（Adaptive Query Generation）</h3>
+<p>这是 Far3D 的第一个核心。直接把现有 3D 检测器从近距离（~50m）扩到远距离（~150m）会遇到三个问题：计算量重、收敛慢、定位能力下降。比如要覆盖更大范围，query 数至少要平方级增长，这在实际场景里无法接受；而且远处稀疏小目标既拖慢收敛，还会伤害近处目标的定位。<br>Far3D 的做法：受 2D proposal 高性能启发，用 2D 检测结果作为目标先验，自适应地生成 3D query，弥补固定全局 query 的不足，让检测器能在不同图像里、在真值框附近生成自适应 query。<br>步骤 1：2D 检测 + 深度估计。 FPN neck 后的图像特征送入 YOLOX 的 anchor-free 检测头和一个轻量深度估计网络，输出 2D 框坐标、得分、深度图。深度估计被当成分类任务——把深度离散化成 bins（LID 离散，沿用 CaDDN / MonoDETR 思路）。然后配对 2D 框和对应深度，用得分阈值 τ（如 0.1）过滤掉低质量 proposal。<br>步骤 2：反投影到 3D。 对每个视图 i，2D 预测框中心 (cw, ch) 和深度图采样得到的深度 dwh 组合，投影成 3D proposal 中心 c3d：</p>
+<p>其中 Ki、Ii 分别是相机外参和内参矩阵。<br>步骤 3：编码成 3D 自适应 query。</p>
+<p>其中 Qpos、Qsem 分别是位置嵌入和语义嵌入；z2d 是从特征 F 在位置 (cw, ch) 采样得到的 2D 语义 context，s2d 是 2D 框置信度。PosEmbed 由 sinusoidal 变换加 MLP 组成，SemEmbed 是另一个 MLP。<br>步骤 4：拼接。 自适应 query 与初始化的全局 query 拼接，一起送入后续 decoder 层。<br>下面是自适应 query 生成的数据流（自绘）：<br>adaptive_query.png</p>
+<pre><code>代码落点（FarHead.build_query2d_proposal，farhead.py）。 这是自适应 query 生成的核心实现，关键是「2D 框中心采深度 → frustum lift → img2lidar 反投影 → 归一化 3D 参考点」：
+@torch.no_grad()
+def build_query2d_proposal(self, pred_bbox_list, pred_depth, data, bn, padHW, ...):
+    B, N = bn
+    pad_h, pad_w = padHW
+    depth_downsample = int(pad_h / pred_depth.shape[1])   # 深度图相对原图的下采样倍数</code></pre>
+<pre><code>    bbox_nums = [len(bbox) for bbox in pred_bbox_list]    # 每个视图的 2D 框数 Mi
+    bboxes = torch.cat(pred_bbox_list, dim=0).float()     # (sum(Mi), 4): cw,ch,w,h
+    if sum(bbox_nums) == 0:                               # 没有有效 2D proposal
+        return None, None</code></pre>
+<pre><code>    # —— 在深度图上按 2D 框中心位置采样对应深度 ——
+    for ith, pred_bbox in enumerate(pred_bbox_list):
+        cur_depthmap = pred_depth[ith].flatten(0, 1)      # (H*W, 1) 或 (H*W, D)
+        cur_center2d = (pred_bbox[:, :2] / depth_downsample).round().long()  # 框中心映射到深度图网格
+        # clamp 到深度图边界内...
+        cur_center2d = cur_center2d.flip(dims=(-1,))      # (w,h) → (h,w)
+        cur_center2d_ = cur_center2d[:, 0]*(pad_w/depth_downsample) + cur_center2d[:, 1]  # 展平索引
+        cur_depth = torch.gather(cur_depthmap, 0, cur_center2d_.long().unsqueeze(1))      # (Mi, 1)
+        depth_list.append(cur_depth)
+    depths = torch.cat(depth_list, dim=0)                 # (M, 1) 或 (M, D)
+接着是多深度候选（缓解远处深度不确定，对应 config 的 add_multi_depth_proposal + multi_depth_config={&#x27;topk&#x27;:1,&#x27;range_min&#x27;:30}）——一个 2D 框可生成多个 3D 候选，并把 2D 得分转成 log-odds 拼进语义 context：
+    if self.add_multi_depth_proposal:
+        if input_depth_logits and topk != -1:
+            topk_values, topk_indices = torch.topk(depths, topk, dim=1)  # 取 topk 个深度 bin
+            valid_indices = topk_indices[:, 0] &gt;= range_min_bin          # 只对 &gt;range_min 的远处目标加候选
+            bboxes = torch.cat([bboxes, bboxes_extra[...]], dim=0)       # 框复制, 配多个深度
+            depths = torch.cat([topk_indices[:, 0:1], depths_extra], 0)
+        if bbox2d_scores is not None:
+            thr = torch.tensor([0.1])                                    # 得分阈值 τ=0.1
+            log_odds = torch.log(bbox2d_scores/(1-bbox2d_scores)) - torch.log(thr/(1-thr))
+            context2d_feat = torch.cat([context2d_feat, log_odds], dim=-1)  # 2D 置信度并入语义</code></pre>
+<pre><code>    depths = self._convert_bin_depth_to_specific(depths)  # LID: bin 索引 → 具体深度值(米)
+最后是 frustum lift + img2lidar 反投影（对应公式 1），把图像坐标 + 深度变换到 lidar/ego 3D 空间并归一化：
+    # (u,v,d) -&gt; 齐次 (u*d, v*d, d, 1)
+    coords = torch.cat([bboxes[:, :2], depths], dim=1)        # (M, 3): w,h,d
+    coords = torch.cat((coords, torch.ones_like(coords[..., :1])), -1)  # (M, 4)
+    coords[..., :2] = coords[..., :2] * coords[..., 2:3]      # 乘深度
+    coords = coords.unsqueeze(-1)                             # (M, 4, 1)</code></pre>
+<pre><code>    img2lidars = data[&#x27;lidar2img&#x27;].inverse()                 # 关键: lidar2img 求逆得到反投影矩阵
+    img2lidars_ = ...                                         # 按每框所属视图取对应矩阵 (M, 4, 4)</code></pre>
+<pre><code>    coords3d = torch.matmul(img2lidars_, coords).squeeze(-1)[..., :3]   # (M, 3) lidar 系 3D 坐标
+    # 归一化到 pc_range [-152.4,-152.4,-5, 152.4,152.4,5]
+    coords3d[..., 0:1] = (coords3d[..., 0:1] - pc_range[0]) / (pc_range[3] - pc_range[0])
+    coords3d[..., 1:2] = (coords3d[..., 1:2] - pc_range[1]) / (pc_range[4] - pc_range[1])
+    coords3d[..., 2:3] = (coords3d[..., 2:3] - pc_range[2]) / (pc_range[5] - pc_range[2])
+    new_reference_points = coords3d.unsqueeze(0)             # (B=1, M, 3) → 自适应 query 参考点
+    return new_reference_points, context2d_feat
+在 forward 里，自适应 query 的参考点和全局 query 的参考点直接拼接，再分别过 query embedding，组成完整的 decoder 输入：
+reference_points2d, context_feat = self.build_query2d_proposal(...)
+query_embeds2d = self.query_embedding(pos2posemb3d(reference_points2d))
+query_pos = torch.cat([query_pos, query_embeds2d], dim=1)          # 拼位置嵌入
+reference_points = torch.cat([reference_points, reference_points2d], dim=1)  # 拼参考点
+tgt[:, -pro2d_num:, :] = self.context_embed(context_feat)         # 2D 语义注入自适应 query 的 tgt
+注意 build_query2d_proposal 带 @torch.no_grad()——2D→3D 的几何反投影本身不回传梯度，自适应 query 的可学习性体现在后续 decoder 的 refine 与 embedding 上。</code></pre>
+<h3 id="33-perspective-aware-aggregation透视感知聚合">3.3 Perspective-aware Aggregation（透视感知聚合）</h3>
+<p>这是 Far3D 的第二个核心。现有稀疏 query 方法（如 StreamPETR）为了计算效率，通常只用单一层级的特征图。但单一特征层对不同 range 的 query 都不是最优：远处小目标需要大分辨率特征做精确定位，近处大目标更适合高层特征。<br>Far3D 提出 perspective-aware aggregation，在不同尺度和视图上做高效特征交互。受 deformable attention 启发，它用 3D 空间可变形注意力——由 3D 偏移采样 + 视图变换组成：<br>先用相机内外参（内参 I、外参 K）给图像特征 F 装配相机信息，再用一个 squeeze-and-excitation（SE）block 显式增强特征，得到增强特征 F′。<br>对每个 3D 空间的 query 参考点，模型学习 M 个采样偏移，把这些参考点投影到不同的 2D 尺度和视图：</p>
+<p>其中 P3d_q、ΔP3d_q 是 query q 的 3D 参考点和学习到的偏移，P2d_q 是投影到不同尺度/视图的 2D 参考点。<br>3D query 根据这些 2D 参考点，与多尺度采样特征交互，按相对重要性把各视图、各尺度的特征聚合到 3D query 上。<br>补充材料里进一步说明：query 在多尺度特征（p2–p5）上用可变形注意力迭代更新，网络能自适应匹配不同距离的目标、有效利用多尺度特征——作者对比了「按目标距离手工选层」的方案，发现网络自己学到的结果与之非常接近，说明不需要手工规则。<br>下图是 perspective-aware aggregation 的细节（自绘）：<br>perspective_agg.png</p>
+<pre><code>代码落点（DeformableFeatureAggregationCuda，sparse_blocks.py）。 config 里 cross-attn 用的就是这个模块（num_groups=8, num_levels=4, num_cams=7, num_pts=13）。forward 三步走：生成 3D 关键点 → 算采样权重 → 多尺度可变形采样：
+def forward(self, instance_feature, reference_points, anchor_embed,
+            feat_flatten, spatial_flatten, level_start_index, img_metas, lidar2img_mat):
+    key_points = self.kps_generator(reference_points, instance_feature)   # (B, Q, 13, 3) 3D 采样点
+    weights = self._get_weights(instance_feature, anchor_embed)           # 注意力权重
+    features = self.feature_sampling(feat_flatten, spatial_flatten,       # 多尺度多视图采样聚合
+                  level_start_index, key_points, weights, lidar2img_mat, img_metas)
+    output = self.output_proj(features)
+    return self.drop(output) + instance_feature                           # 残差
+3D 关键点生成（SparseBox3DKeyPointsGenerator）是 perspective 采样的关键——7 个固定尺度点 + 6 个可学习点 = 13 个采样点，随框尺度 exp 缩放并按 yaw 旋转：
+def forward(self, anchor, instance_feature):
+    fix_scale = anchor.new_tensor(self.fix_scale)        # 7 个固定点: 中心 + 6 个 ±0.45 轴向点
+    scale = fix_scale[None, None].repeat(bs, num_anchor, 1, 1)
+    if self.num_learnable_points &gt; 0:                    # 6 个可学习偏移点
+        learnable_scale = self.learnable_fc(instance_feature).reshape(
+            bs, num_anchor, self.num_learnable_points, 3).sigmoid() - 0.5
+        scale = torch.cat([scale, learnable_scale], dim=2)   # 共 13 点
+    key_points = scale * anchor[..., None, 3:6].exp()    # 按框尺寸 (w,l,h) 缩放
+    # 按 yaw (anchor[...,6:7]=sin, [...,7:8]=cos) 构造旋转矩阵并旋转
+    key_points = torch.matmul(rotation_mat[:, :, None], key_points[..., None]).squeeze(-1)
+    key_points = key_points + anchor[..., None, :3]      # 平移到参考点中心
+    return key_points
+特征采样（feature_sampling）：3D 关键点用 lidar2img 投影到各视图各尺度，归一化后调用 CUDA 的 MultiScaleDeformableAttn 核做高效采样，再按 group 加权融合：
+def feature_sampling(self, feat_flatten, spatial_flatten, level_start_index,
+                     key_points, weights, lidar2img_mat, img_metas):
+    pts_extand = torch.cat([key_points, torch.ones_like(key_points[..., :1])], dim=-1)
+    points_2d = torch.matmul(lidar2img_mat[:, :, None, None], pts_extand[:, None, ..., None]).squeeze(-1)
+    points_2d = points_2d[..., :2] / torch.clamp(points_2d[..., 2:3], min=1e-5)  # 透视除法
+    points_2d[..., 0:1] /= img_metas[0][&#x27;pad_shape&#x27;][0][1]   # 归一化到图像宽
+    points_2d[..., 1:2] /= img_metas[0][&#x27;pad_shape&#x27;][0][0]   # 归一化到图像高
+    points_2d = points_2d.flatten(end_dim=1)[:, :, None, None, :, :].repeat(
+        1, 1, self.num_groups, self.num_levels, 1, 1)        # 扩展到 groups × levels
+    output = MultiScaleDeformableAttnFunction.apply(         # CUDA 多尺度可变形采样
+        feat_flatten, spatial_flatten, level_start_index, points_2d, weights, self.im2col_step)
+    output = output.reshape(bs, self.num_cams, num_anchor, -1)
+    return output.sum(1)                                     # 跨 7 视图求和
+权重 _get_weights 对 cams×levels×pts 维度做 softmax——这正是「按透视/距离自适应选尺度选视图」的落点：远处小目标的 query 会把权重集中到大分辨率低层特征，近处大目标偏向高层特征，全部由网络学习。这套 deformable aggregation 框架直接沿用自 Sparse4D 系（稀疏 query + 3D 关键点可变形采样），是 Far3D 与 StreamPETR（全局注意力 + 单层特征）最大的工程区别。</code></pre>
+<h3 id="34-时序建模与三类-query">3.4 时序建模与三类 Query</h3>
+<p>Far3D 沿用 StreamPETR 的 object-centric 时序机制：用上一帧的高分 query 作为传播 query（propagated query），递归地把时序特征带到当前帧（memory queue，config 中 memory_len=1024、num_propagated=256）。<br>所以 Far3D 里一共有三类 query（论文 Figure 6）：<br>全局 query（global query）：从数据学到的固定 query，config 中 num_query=644。<br>自适应 query（adaptive query）：由当前帧 2D proposal 生成，数量动态（AV2 平均 92 个/帧）。<br>传播 query（propagated query）：来自前一帧的高分 query，承载时序信息——选择只看 query 得分，与 query 原本属于哪类无关。<br>paper-Figure6-1.png</p>
+<p>图 6：Far3D 中的三类 query——全局 query、自适应 query、传播 query。时序建模上，传播 query 来自前一帧的高分 query（与 StreamPETR 一致）。</p>
+<h2 id="4-数学公式与理论基础">4. 数学公式与理论基础</h2>
+<p>2D 框中心 + 深度 → 3D proposal 中心（frustum 反投影，公式 1）：</p>
+<p>Ki、Ii 是第 i 个视图的相机外参、内参矩阵；(cw, ch) 是 2D 框中心，dwh 是该位置深度。<br>3D 自适应 query 编码（公式 2-4）：</p>
+<p>Perspective-aware 3D 可变形采样（公式 5）：</p>
+<p>range-modulated 3D 去噪的噪声 query 构造（公式 6）：</p>
+<p>其中   分别对应负、正 query 的生成；  是真值的 3D 中心 (x,y,z) 和框尺度 (w,l,h)，  是加噪后的坐标。 、  分别为正、负样本编码 position-aware 噪声。<br>正样本：  设为 3D 框尺度的线性函数（带随机变量），并把偏移约束在 GT 框内，引导模型从正 query 准确重建 GT，同时与相邻框区分开。<br>负样本：偏移要与位置 range 相关，作者尝试了  、 、  等形式（实验表明   最优）。<br>每个 GT 生成多组样本，每组含 1 个正样本 + K 个负样本，模拟训练中的噪声正候选和假正候选。<br>补充：代码里深度用 LID（linear-increasing discretization） 离散化，bin 与具体深度的换算（_convert_bin_depth_to_specific）：</p>
+<p>config 中 num_depth_bins=50, depth_min=0.1, depth_max=110。LID 让近处深度 bin 更密、远处更疏，符合「近处需要更精细深度」的直觉。</p>
+<h2 id="5-详细流程图range-modulated-3d-denoising范围调制去噪">5. 详细流程图：Range-modulated 3D Denoising（范围调制去噪）</h2>
+<pre><code>这是 Far3D 的第三个核心。不同距离的 3D query 回归难度不同——这点和 2D 去噪（如 DN-DETR 对所有 query 一视同仁）很不一样。难度差异来自两方面：
+query 密度：远处目标对应的 query 比近处少、更难匹配；
+误差传播：2D proposal 的小误差，引入到 3D 自适应 query 时会被放大（图 2），而且距离越远效果越严重。
+所以 GT 框附近的某些 query proposal 可以当作噪声正候选，另一些偏差大的应当当负样本。Far3D 的目标：召回潜在正样本、直接拒绝确定的负样本——这就是 range-modulated 3D denoising。
+做法：基于 GT 同时构造正、负两组噪声 query（公式 6），按目标位置和尺寸加随机噪声。正样本噪声受框尺度约束在框内；负样本噪声与位置 range 相关（  形式最优）。每个 GT 多组样本，每组 1 正 + K 负。这样既缓解了 2D 先验误差传播，又缓解了 range 级别的样本不均衡。
+代码落点（FarHead.prepare_for_dn，farhead.py）。 核心是正/负样本用不同噪声策略，且负样本噪声按坐标绝对值取对数（range-modulated 的字面落点）：
+# 正样本噪声: 与框尺度成线性, 约束在框内 (offset_p, bbox_noise_trans)
+diff_p = known_bbox_scale / 2 + self.bbox_noise_trans
+diff_p = torch.mul(torch.rand_like(known_bbox_center) + self.offset_p, diff_p) * self.bbox_noise_scale
+rand_sign = torch.randint_like(known_bbox_center, 0, 2) * 2.0 - 1.0
+known_bbox_center_p = known_bbox_center + torch.mul(rand_sign, diff_p)   # 正样本中心</code></pre>
+<pre><code># 负样本噪声: range-modulated —— 按中心坐标绝对值取 log, 距离越远噪声越大
+diff_n = (known_bbox_center_ori.abs() + 1).log()                        # &lt;&lt;&lt; log 形式 (论文最优)
+diff_n = torch.mul(torch.rand_like(...) + self.offset, diff_n)
+rand_sign_n = torch.randint_like(...) * 2.0 - 1.0
+known_bbox_center_n = known_bbox_center_ori + torch.mul(rand_sign_n, diff_n)  # 负样本中心
+config 对应超参：scalar=10（噪声组数）、num_smp_per_gt=3（每 GT 1 正 2 负）、split=0.75（正样本率）、offset=0.5、noise_scale=1.0、dn_weight=1.0。去噪 query 在 decoder 里通过 attn_mask 与正常匹配 query 隔离（匹配 query 看不到去噪组，去噪组之间也互不可见），与 DN-DETR 一致。
+prepare_for_dn 还用 torch.cdist + linear_sum_assignment 给每组噪声样本做匹配（因为一个 GT 对应多个候选，需要匈牙利分配确定哪个是该恢复的正样本）。这是相比标准 DN-DETR（噪声样本与 GT 一一对应、无需匹配）的改动。</code></pre>
+<h2 id="6-核心创新点">6. 核心创新点</h2>
+<p>Far3D 强调它的主要贡献是面向远距离 3D 检测的统一框架，而不是孤立的组件。三个创新点协同解决远距离的「召回差、计算重、误差传播」三大痛点：<br>创新 1：用 2D 先验生成 3D 自适应 query（核心）。 这是 Far3D 与所有纯固定 query 方法（StreamPETR、Sparse4D）最本质的区别。2D 检测器召回高、对远处小目标鲁棒，把 2D box + 深度反投影成 3D query，相当于给固定全局 query「补充」了一批落在真值附近、随场景动态变化的 query。论文统计：AV2 上自适应 query 平均每帧 92 个（最多 236，最少 11），只占总 query 的小部分，但贡献显著——把这 92 个换成额外的固定 query，mAP 掉 1.5%、CDS 掉 1.3%。<br>创新 2：perspective-aware aggregation。 用 3D 可变形采样在多尺度（p2–p5）多视图上自适应聚合特征。远处小目标偏向大分辨率低层特征，近处大目标偏向高层特征，权重全由网络学习。相比 StreamPETR 的单层全局注意力，既省算力又提精度。<br>创新 3：range-modulated 3D denoising。 针对远距离误差传播和样本不均衡，正样本约束在框内、负样本噪声按距离 log 调制，召回潜在正候选、拒绝假正。它同时缓解了 range 级别的不均衡分布问题。<br>下图（论文 Figure 5）可视化了 AV2 上的检测结果，蓝色框来自 3D 自适应 query，绿色框来自 3D 全局 query，橙色为 GT（仅 BEV）。可以看到自适应 query 预测的框覆盖范围更大（更多落在远处），证明了它不可替代的作用：<br>paper-Figure5-1.png</p>
+<p>图 5：Argoverse 2 上的可视化。3D 框同时画在多相机图像和 BEV 上。前视中心相机与其它六个视图分辨率不同。蓝色 = 自适应 query 预测，绿色 = 全局 query 预测，橙色 = GT（仅 BEV）。<br>自适应 query 让框架对全局 query 数量极其鲁棒。 下表（论文 Table 6）对比了不同全局 query 数下 StreamPETR 与 Far3D 的表现：StreamPETR 在 query 少时（如 100）出现收敛问题，几乎崩溃（1.5 mAP）；而 Far3D 即便只有 100 个全局 query 仍有 23.5 mAP，因为自适应 query 兜底。这说明两类 query 共存、互相补偿。<br>paper-Table6-1.png</p>
+<p>表 6：全局 query 数量的影响。StreamPETR 在 query 少时收敛失败，Far3D 即便只用少量全局 query 也表现稳健。</p>
+<h2 id="7-实验结果与分析">7. 实验结果与分析</h2>
+<h3 id="71-数据集与指标">7.1 数据集与指标</h3>
+<p>Argoverse 2（AV2）：长距离自动驾驶数据集，1000 个场景，每场景 15 秒、10Hz 标注，700/150/150 划分 train/val/test。7 路高分辨率 ring 相机，360° 视野。评测 26 个类别、150m 范围——这正是远距离任务。指标：mAP、CDS（Composite Detection Score，AV2 主指标）、ATE/ASE/AOE。<br>nuScenes：1000 个驾驶场景，10 类，~50m 近距离。用来验证泛化能力。指标：mAP、NDS。<br>实现细节：以 StreamPETR 为 baseline，VoVNet-99（FCOS3D 预训练）做主实验，ViT-L（Objects365 + COCO 预训练）做 scale-up。FPN 给 4 级特征（1/8、1/16、1/32、1/64）。感知范围 152.4m × 152.4m。AdamW，weight decay 0.01，total batch size 8，lr 2e-4，训 6 epoch。</p>
+<h3 id="72-主榜结果">7.2 主榜结果</h3>
+<p>Argoverse 2（下表 Table 1）：VoV-99 + 960×640 输入下，Far3D 达到 24.4 mAP / 18.1 CDS，比 StreamPETR（20.3 / 14.6）高出 4.1% mAP、3.5% CDS，大幅超越其它环视方法。换 ViT-L + 1536×1536，Far3D 达 31.6 mAP / 23.9 CDS，甚至超过了若干 LiDAR 方法（CenterPoint 27.4、FSD 29.1、VoxelNeXt 30.7 mAP）。细节上 LiDAR 方法定位误差（ATE）更低（深度准），而环视方法朝向估计（AOE）更好。<br>paper-Table1-1.png</p>
+<p>表 1：Argoverse 2 val 集对比（26 类、150m 范围）。Far3D 大幅领先环视方法，并超过若干 SoTA LiDAR 方法。除 PETR 外环视方法均含时序建模。<br>nuScenes（下表 Table 2）：验证泛化能力。Far3D 在 val 上达 51.0 mAP / 59.4 NDS，test 上达 63.5 mAP / 68.7 NDS，超过 StreamPETR、Sparse4Dv2 等前作。说明这套远距离框架在近距离数据集上同样能打。<br>paper-Table2-1.png</p>
+<p>表 2：nuScenes val/test 对比。Far3D 取得最高性能，验证泛化能力。∗ 表示得益于透视预训练。</p>
+<h3 id="73-消融实验">7.3 消融实验</h3>
+<p>组件消融（下表 Table 3）：以 StreamPETR 为 baseline（20.3 mAP / 14.6 CDS），依次加入三个模块：<br>自适应 query：22.4 / 16.1（+2.1 mAP）<br>perspective-aware aggregation：23.4 / 17.3（+1.0 mAP）<br>range-modulated 3D denoising：24.4 / 18.1（+1.0 mAP）<br>三个模块累计 +4.1% mAP / +3.5% CDS，每个都有正贡献。<br>paper-Table3-1.png</p>
+<p>表 3：Argoverse 2 val 上的组件消融。以 StreamPETR 为 baseline，依次加入自适应 query、PA、3D 去噪。<br>2D proposal 得分阈值 τ（下表 Table 4）：τ=0.1 时最优（24.4 mAP / 18.1 CDS）。太低引入噪声 proposal，太高漏掉目标。<br>paper-Table4-1.png</p>
+<div class="tableish">表 4：不同 2D proposal 得分阈值 τ 的消融。<br>负样本去噪设计（下表 Table 5）：对比负样本噪声函数形式与数量。log(·) 形式 + 2 个负样本最优（24.4 mAP / 18.1 CDS），优于 linear、sqrt、fixed。印证了「负样本噪声按距离 log 调制」的设计。<br>paper-Table5-1.png</div>
+<div class="tableish">表 5：不同设计、不同数量负样本的去噪对比。log(·) + 2 负样本最优。<br>不同距离的召回与 AP（下图 Figure 4）：在 0-150m 和 50-150m 两个范围、不同距离阈值（0.5/1/2/4m）下，Far3D 全面优于 StreamPETR、Sparse4Dv2、PETR。对远处目标，Far3D 在 2m、4m 阈值上的召回和 mAP 提升尤其明显。<br>paper-Figure4-1.png</div>
+<p>图 4：各方法在不同距离阈值下的 3D 召回与 AP。Far3D 在各 range 都更优。<br>不同感知范围训练（下表 Table 7，补充材料）：分别用 50m 和 150m 范围训练 StreamPETR 和 Far3D，在 0-50m 和 50-150m 上评测。关键发现：从近距离训练切到远距离训练时，近处目标性能往往会掉——StreamPETR 近处 mAP 掉 2.5%；而 Far3D 借助自适应 query 和 3D 去噪，近处只掉 1.0%，远处反而大涨（50-150m mAP +8.0、recall +15.9）。即 Far3D 既提升远处、又缓解了近处退化。<br>paper-Table7-1.png</p>
+<p>表 7：不同感知范围下的性能对比（50m vs 150m 训练）。Far3D 缓解近处退化的同时大幅提升远处。</p>
+<h2 id="8-技术发展时间线">8. 技术发展时间线</h2>
+<p>Far3D 站在 PETR/Sparse4D 谱系肩膀上，整合了多条技术线：<br>DETR (2020)：query + 二分匹配的端到端检测范式。<br>Deformable DETR (2020)：可变形注意力，稀疏采样降复杂度——Far3D 的 perspective-aware aggregation 直接继承。<br>DETR3D (2021)：3D query 投影回 2D 采样特征，开启稀疏 query 3D 检测。<br>PETR / PETRv2 (2022)：3D 位置编码 + 时序对齐。<br>DN-DETR (2022)：query 去噪加速收敛——Far3D 的 3D denoising 的来源，但改成 range-modulated。<br>CaDDN / MonoDETR：深度分类（bin 离散化）——Far3D 的 DepthNet 思路。<br>StreamPETR (2023)：object-centric 长时序 query 传播——Far3D 的 baseline 与时序机制。<br>Sparse4D / Sparse4D v2 (2023)：稀疏 query + 3D 关键点可变形聚合 + 递归时序——Far3D 的 deformable aggregation 框架来源。<br>SimMOD / MV2D / BEVFormerV2：用 2D proposal/监督辅助 3D——Far3D 的自适应 query 思想前身，但 Far3D 保留了可学习全局 query 并专攻远距离。<br>Far3D (AAAI 2024)：首个把稀疏 query 3D 检测系统性扩展到 150m 远距离的框架。</p>
+<h2 id="9-代码实现技巧">9. 代码实现技巧</h2>
+<h3 id="91-代码结构关键文件树">9.1 代码结构（关键文件树）</h3>
+<p>projects/mmdet3d_plugin/<br>├── models/<br>│   ├── detectors/far3d.py          # Far3D 主检测器 (extract_feat / forward_train / simple_test)<br>│   ├── dense_heads/<br>│   │   ├── farhead.py              # ★ 3D 检测头: 自适应query生成 + 3D去噪 + 时序 + loss<br>│   │   └── yolox_head.py           # YOLOXHeadCustom: 2D检测 + 深度预测头<br>│   ├── depth_predictor/<br>│   │   ├── depth_predictor.py      # DepthNet: 深度分类 (50 bins)<br>│   │   └── ddn_loss/ddn_loss.py    # 深度分类 focal loss<br>│   ├── utils/<br>│   │   ├── sparse_blocks.py        # ★ DeformableFeatureAggregationCuda + 3D关键点生成<br>│   │   ├── deformable_aggregation.py  # CUDA 多尺度可变形采样算子封装<br>│   │   ├── detr3d_transformer.py   # Detr3DTransformerDecoder / 解码层<br>│   │   └── misc.py                 # MLN, SELayer_Linear, 位置编码工具<br>│   ├── necks/cp_fpn.py             # FPN (4 级输出)<br>│   └── backbones/vovnetcp.py       # VoVNet-99 backbone<br>├── core/bbox/                      # 匹配 (hungarian 2d/3d) + coder (NMSFree)<br>├── datasets/argoverse2_dataset_t.py  # AV2 时序数据集<br>└── configs/far3d.py                # ★ 全部超参</p>
+<h3 id="92-模块--文件--类对应表">9.2 模块 → 文件 → 类对应表</h3>
+<p>模块</p>
+<p>文件</p>
+<p>类 / 方法</p>
+<p>主检测器</p>
+<p>detectors/far3d.py</p>
+<p>Far3D（extract_img_feat、forward_train、simple_test_pts）</p>
+<p>2D proposal + 深度</p>
+<p>dense_heads/yolox_head.py</p>
+<p>YOLOXHeadCustom（含 DepthPredictor）</p>
+<p>深度网络</p>
+<p>depth_predictor/depth_predictor.py</p>
+<p>DepthPredictor（50 bins 分类）</p>
+<p>自适应 3D query 生成</p>
+<p>dense_heads/farhead.py</p>
+<p>FarHead.build_query2d_proposal</p>
+<p>range-modulated 3D 去噪</p>
+<p>dense_heads/farhead.py</p>
+<p>FarHead.prepare_for_dn</p>
+<p>时序 query 传播</p>
+<p>dense_heads/farhead.py</p>
+<p>FarHead.temporal_alignment、pre/post_update_memory</p>
+<p>perspective-aware 聚合</p>
+<p>utils/sparse_blocks.py</p>
+<p>DeformableFeatureAggregationCuda</p>
+<p>3D 关键点生成</p>
+<p>utils/sparse_blocks.py</p>
+<p>SparseBox3DKeyPointsGenerator（7 fix + 6 learnable）</p>
+<p>可变形采样 CUDA 算子</p>
+<p>utils/deformable_aggregation.py</p>
+<p>DeformableAggregationFunction</p>
+<p>decoder</p>
+<p>utils/detr3d_transformer.py</p>
+<p>Detr3DTransformerDecoder / Detr3DTemporalDecoderLayer</p>
+<h3 id="93-关键超参取值含义configfar3dpy">9.3 关键超参取值含义（config/far3d.py）</h3>
+<pre><code>point_cloud_range = [-152.4, -152.4, -5.0, 152.4, 152.4, 5.0]：150m 感知范围的字面落点（±152.4m）。
+num_query=644：3D 全局固定 query 数。
+memory_len=1024、num_propagated=256、topk_proposals=256：时序 memory 队列长度、每帧传播 query 数、入队 topk。
+depthnet_config={&#x27;num_depth_bins&#x27;:50, &#x27;depth_min&#x27;:0.1, &#x27;depth_max&#x27;:110, &#x27;stride&#x27;:8}：深度分类 50 个 bin，范围 0.1~110m，在 p3（stride 8）上预测。
+add_multi_depth_proposal=True、multi_depth_config={&#x27;topk&#x27;:1, &#x27;range_min&#x27;:30}：远处（&gt;30m）允许多深度候选。
+去噪：scalar=10（噪声组数）、num_smp_per_gt=3（每 GT 1 正 2 负）、split=0.75（正样本率）、noise_scale=1.0、dn_weight=1.0、offset=0.5。
+聚合：num_groups=8、num_levels=4、num_cams=7（AV2 七路相机）、num_pts=13（7 固定 + 6 可学习采样点）。
+训练：num_epochs=6、batch size 8、lr 2e-4、backbone lr_mult=0.1、AdamW、Fp16，6.4 img/s 推理。
+custom_hooks=[UseGtDepthHook(stop_gt_depth_iter=22000)]：训练早期用 GT 深度生成自适应 query，22000 iter 后切换为预测深度——稳定早期训练的关键 trick（见 forward 里 flag_use_gt_depth、train_use_gt_depth=True）。</code></pre>
+<h3 id="94-几个实现要点">9.4 几个实现要点</h3>
+<p>自适应 query 生成不回梯度：build_query2d_proposal 带 @torch.no_grad()，纯几何反投影。可学习性在 decoder refine 和各 embedding。<br>早期 GT 深度热身：训练前期用 GT 深度生成自适应 query 保证 query 质量，待网络稳定后切预测深度（UseGtDepthHook）。这缓解了「2D 误差传播」对早期训练的冲击。<br>2D 得分注入语义：2D 框置信度转成 log-odds（log(s/(1-s)) - log(τ/(1-τ))）拼进 query 的语义特征，让高分 proposal 的 query 权重更大。<br>去噪 query 需匈牙利匹配：因一个 GT 配多个候选样本，用 linear_sum_assignment 在 cost 矩阵上分配，区别于标准 DN-DETR 的一一对应。<br>B=1 限制：build_query2d_proposal 里 if B == 1 才支持，else: raise NotImplementedError——官方实现只测了 batch size 1（config 里 batch_size=1）。</p>
+<h2 id="10-局限性与未来方向">10. 局限性与未来方向</h2>
+<p>作者指出两点局限：<br>长尾类别表现差：现有方法在长尾类别上性能仍弱，拉低了 AV2 的平均精度（AV2 有 26 类，远多于其它数据集）。<br>统一指标不合理：用同一套指标评测远距离和近距离目标可能不合适，需要更实用、动态、面向多样真实场景的评测标准。<br>此外补充材料里给了一个有意思的对比（下图 Figure 7）：Far3D vs SOLOFusion（典型 BEV 方法）的可视化。SOLOFusion 即使用了 NMS 仍产生大量重复预测，作者推测这源于检测头在大感知范围下感受野受限。相比之下 Far3D 的稀疏 query 设计在大范围下更干净。<br>paper-Figure7-1.png</p>
+<p>图 7：Far3D 与 SOLOFusion 的可视化对比。SOLOFusion（BEV 方法）即使用 NMS 仍有大量重复预测，Far3D 的稀疏 query 在大范围下更干净。</p>
+<h2 id="11-总结">11. 总结</h2>
+<p>Far3D 是首个把**稀疏 query 3D 检测系统性扩展到远距离（150m）**的框架。核心思路：纯固定 query 方法（StreamPETR、Sparse4D）在远处召回低，于是用 2D 检测的高召回先验生成 3D 自适应 query 来补充固定全局 query；再用 perspective-aware aggregation 在多尺度多视图上自适应聚合特征，缓解远处特征采样误差；最后用 range-modulated 3D denoising 应对 2D→3D 的误差传播和样本不均衡、稳定收敛。<br>成绩：Argoverse 2（150m、26 类）上大幅超越环视方法，ViT-L 下甚至超过若干 LiDAR 方法；nuScenes 上验证了泛化性（63.5 mAP / 68.7 NDS test）。<br>与 StreamPETR / Sparse4D 的本质区别：<br>StreamPETR/Sparse4D = 固定数量全局 query + 时序传播，近距离强但远处召回不足；<br>Far3D = 固定全局 query + 动态自适应 query（2D 先验生成） + perspective 多尺度可变形聚合 + 3D 去噪，专门补齐远距离/小目标召回。<br>工程框架上，Far3D 的可变形聚合沿用 Sparse4D 系（3D 关键点采样），时序沿用 StreamPETR（object-centric memory queue），是两条线的融合 + 2D 先验创新。</p>
+<h2 id="12-参考文献精选">12. 参考文献（精选）</h2>
+<p>Jiang et al. Far3D: Expanding the Horizon for Surround-view 3D Object Detection. AAAI 2024. arXiv:2308.09616.<br>Wang et al. StreamPETR: Exploring Object-Centric Temporal Modeling for Efficient Multi-View 3D Object Detection. 2023.（baseline + 时序）<br>Lin et al. Sparse4D / Sparse4D v2: Multi-view 3D Object Detection with Sparse Spatial-Temporal Fusion. 2022/2023.（可变形聚合框架）<br>Liu et al. PETR / PETRv2: Position Embedding Transformation for Multi-view 3D Object Detection. ECCV 2022 / 2022.<br>Wang et al. DETR3D: 3D Object Detection from Multi-view Images via 3D-to-2D Queries. CoRL 2021.<br>Carion et al. DETR: End-to-End Object Detection with Transformers. ECCV 2020.<br>Zhu et al. Deformable DETR. ICLR 2021.<br>Li et al. DN-DETR: Accelerate DETR Training by Introducing Query Denoising. CVPR 2022.<br>Ge et al. YOLOX: Exceeding YOLO Series in 2021.（2D 检测头）<br>Reading et al. CaDDN: Categorical Depth Distribution Network. CVPR 2021.（深度分类）<br>Wang et al. MV2D: Object as Query. 2023；Zhang et al. SimMOD. AAAI 2023；Yang et al. BEVFormerV2. CVPR 2023.（2D 辅助 3D 的相关工作）<br>Wilson et al. Argoverse 2. 2023；Caesar et al. nuScenes. CVPR 2020.（数据集）</p>
+<p>解读完成。本文档由 Kiro 基于论文 PDF（12 页 + 补充材料）与官方仓库 megvii-research/Far3D 源码逐模块整理，公式走 KaTeX，架构图为自绘 Graphviz。PETR 谱系战役第 10 篇。</p></main><aside class="toc"><strong>目录</strong><a href="#1-研究背景与动机" class="l2">1. 研究背景与动机</a>
+<a href="#2-核心问题分析" class="l2">2. 核心问题分析</a>
+<a href="#3-技术架构详解" class="l2">3. 技术架构详解</a>
+<a href="#31-整体流程" class="l3">3.1 整体流程</a>
+<a href="#32-自适应-query-生成adaptive-query-generation" class="l3">3.2 自适应 Query 生成（Adaptive Query Generation）</a>
+<a href="#33-perspective-aware-aggregation透视感知聚合" class="l3">3.3 Perspective-aware Aggregation（透视感知聚合）</a>
+<a href="#34-时序建模与三类-query" class="l3">3.4 时序建模与三类 Query</a>
+<a href="#4-数学公式与理论基础" class="l2">4. 数学公式与理论基础</a>
+<a href="#5-详细流程图range-modulated-3d-denoising范围调制去噪" class="l2">5. 详细流程图：Range-modulated 3D Denoising（范围调制去噪）</a>
+<a href="#6-核心创新点" class="l2">6. 核心创新点</a>
+<a href="#7-实验结果与分析" class="l2">7. 实验结果与分析</a>
+<a href="#71-数据集与指标" class="l3">7.1 数据集与指标</a>
+<a href="#72-主榜结果" class="l3">7.2 主榜结果</a>
+<a href="#73-消融实验" class="l3">7.3 消融实验</a>
+<a href="#8-技术发展时间线" class="l2">8. 技术发展时间线</a>
+<a href="#9-代码实现技巧" class="l2">9. 代码实现技巧</a>
+<a href="#91-代码结构关键文件树" class="l3">9.1 代码结构（关键文件树）</a>
+<a href="#92-模块--文件--类对应表" class="l3">9.2 模块 → 文件 → 类对应表</a>
+<a href="#93-关键超参取值含义configfar3dpy" class="l3">9.3 关键超参取值含义（config/far3d.py）</a>
+<a href="#94-几个实现要点" class="l3">9.4 几个实现要点</a>
+<a href="#10-局限性与未来方向" class="l2">10. 局限性与未来方向</a>
+<a href="#11-总结" class="l2">11. 总结</a>
+<a href="#12-参考文献精选" class="l2">12. 参考文献（精选）</a></aside></div>
+<nav class="nav"><a href="../sparse4dv2/">← 上一篇：Sparse4D v2：Recurrent Temporal Fusion 递归时序融合稀疏检测 </a><a href="../sparsebev/">下一篇：SparseBEV：多相机视频高性能稀疏 3D 目标检测（ICCV 2023） →</a></nav></div></body></html>

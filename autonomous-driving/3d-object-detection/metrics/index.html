@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>3D目标检测评估指标体系 | 3D 目标检测</title><style>:root{--bg:#0b1020;--panel:#121a2f;--panel2:#17223d;--text:#e8edf7;--muted:#9fb0cc;--line:#263653;--brand:#8bd3ff;--accent:#ffd166;--green:#74d99f;--code:#0a0f1d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,#19274a 0,#0b1020 38%,#070b14 100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;line-height:1.72}.wrap{max-width:1120px;margin:0 auto;padding:36px 20px 64px}.topbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:24px}.crumb,.pill{font-size:13px;color:var(--muted)}.crumb a,.meta a,.card a,.nav a{color:var(--brand);text-decoration:none}.hero{padding:34px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,rgba(18,26,47,.96),rgba(16,31,59,.86));box-shadow:0 24px 80px rgba(0,0,0,.28)}h1{font-size:clamp(28px,4vw,46px);line-height:1.18;margin:0 0 16px}h2{font-size:26px;margin:42px 0 14px;padding-top:8px;border-top:1px solid var(--line)}h3{font-size:20px;margin:28px 0 10px;color:#d9e8ff}p{margin:12px 0}.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.pill{border:1px solid var(--line);background:rgba(255,255,255,.04);padding:6px 10px;border-radius:999px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;margin-top:24px}.content{background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:22px;padding:28px}.toc{position:sticky;top:18px;align-self:start;background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:18px;padding:18px;max-height:calc(100vh - 36px);overflow:auto}.toc strong{display:block;margin-bottom:10px}.toc a{display:block;color:var(--muted);text-decoration:none;font-size:13px;padding:4px 0}.toc a:hover{color:var(--brand)}pre{background:var(--code);border:1px solid var(--line);border-radius:14px;padding:16px;overflow:auto;white-space:pre-wrap;word-break:break-word}code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;color:#d6e8ff}.figure{border:1px dashed #3a4d73;background:rgba(139,211,255,.06);border-radius:14px;padding:14px;margin:16px 0;color:#b9c9e6}.tableish{border-left:3px solid var(--accent);padding:8px 14px;background:rgba(255,209,102,.06);border-radius:10px}.nav{display:flex;justify-content:space-between;gap:14px;margin-top:24px}.nav a{flex:1;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.04)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:22px}.card{border:1px solid var(--line);border-radius:18px;background:rgba(18,26,47,.76);padding:18px;min-height:150px}.card h3{margin-top:0}.card p{color:var(--muted);font-size:14px}.badge{display:inline-block;color:#06101d;background:var(--green);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700}.warn{border:1px solid rgba(255,209,102,.35);background:rgba(255,209,102,.08);border-radius:14px;padding:12px 14px;color:#ffe8a3}@media(max-width:900px){.layout{grid-template-columns:1fr}.toc{position:relative;top:auto}.hero{padding:24px}.content{padding:20px}}</style></head>
+<body><div class="wrap"><div class="topbar"><span class="crumb"><a href="../../../index.html">首页</a> / <a href="../../index.html">自动驾驶</a> / <a href="../index.html">3D 目标检测</a></span></div>
+<section class="hero"><h1>3D目标检测评估指标体系</h1><p>从飞书知识库导出的静态 HTML 首版。正文保留原文结构、代码片段与图表文件名；复杂飞书表格/图片以占位形式展示，并提供原文回跳。</p><div class="meta"><span class="pill">来源：飞书知识库纯文本导出</span><span class="pill">更新：2026-06-02</span><span class="pill"><a href="https://tzscglpsd7.feishu.cn/wiki/RMMEwrfYUiWxj4kp6aWcXKFonje" target="_blank" rel="noopener">飞书原文</a></span></div></section>
+<nav class="nav"><a href="../sassd/">← 上一篇：SASSD (Structure Aware Single-Stage 3D Object Detection) 详解 </a><a href="../centerpoint/">下一篇：CenterPoint 论文与代码详细解读：原理、公式、尺寸变化、两阶段精修与技术演进 →</a></nav>
+<div class="layout"><main class="content"><p>3D目标检测评估指标体系</p>
+<h2 id="1-map-mean-average-precision---平均精度均值">1. mAP (mean Average Precision) - 平均精度均值</h2>
+<p>定义: 衡量检测器在不同类别上的整体检测准确率<br>公式:</p>
+<p>AP = ∫₀¹ P(R) dR</p>
+<div class="tableish">mAP = (1/C) ∑ᶜᵢ₌₁ APᵢ<br>其中:<br>P(R): Precision-Recall曲线<br>C: 类别数量<br>APᵢ: 第i个类别的AP值<br>nuScenes特殊计算:<br>使用中心距离阈值: [0.5m, 1m, 2m, 4m]<br>对每个阈值计算AP，然后平均<br>只考虑2D中心距离匹配（不考虑高度）<br>侧重点:<br>检测召回率: 能找到多少真实目标<br>检测精确率: 检测结果中有多少是正确的<br>类别平衡性: 各类别检测性能是否均衡<br>您的结果: mAP = 0.2828 (28.28%)<br>说明检测召回率较低，可能存在漏检问题<br>建议检查小目标检测和远距离目标检测能力</div>
+<h2 id="2-mate-mean-average-translation-error---平均位置误差">2. mATE (mean Average Translation Error) - 平均位置误差</h2>
+<p>定义: 预测框中心与真实框中心的欧氏距离误差<br>公式:</p>
+<p>ATE = √[(x_pred - x_gt)² + (y_pred - y_gt)² + (z_pred - z_gt)²]</p>
+<div class="tableish">mATE = (1/N) ∑ᴺᵢ₌₁ ATEᵢ<br>其中:<br>(x_pred, y_pred, z_pred): 预测中心坐标<br>(x_gt, y_gt, z_gt): 真实中心坐标<br>N: 匹配的检测框数量<br>侧重点:<br>定位精度: 3D空间中的位置估计准确性<br>深度估计: 特别是z轴（高度）的准确性<br>BEV定位: xy平面的定位能力<br>您的结果: mATE = 0.7734m<br>平均位置误差约77cm，属于中等水平<br>对于自动驾驶场景，建议优化到0.5m以下<br>可能需要改进深度估计网络或BEV特征提取</div>
+<h2 id="3-mase-mean-average-scale-error---平均尺寸误差">3. mASE (mean Average Scale Error) - 平均尺寸误差</h2>
+<p>定义: 预测框尺寸与真实框尺寸的相对误差<br>公式:</p>
+<p>ASE = (1/3) ∑ᵈ∈{w,l,h} (1 - IoU₁ᴰ(d_pred, d_gt))</p>
+<p>IoU₁ᴰ(a, b) = min(a,b) / max(a,b)</p>
+<div class="tableish">mASE = (1/N) ∑ᴺᵢ₌₁ ASEᵢ<br>其中:<br>w, l, h: 宽度、长度、高度<br>IoU₁ᴰ: 一维IoU（重叠比例）<br>侧重点:<br>尺寸估计: 目标长宽高的准确性<br>类别特征: 不同类别的尺寸先验是否合理<br>尺度不变性: 对不同大小目标的适应能力<br>您的结果: mASE = 0.2884<br>尺寸误差约29%，表现较好<br>说明模型对目标尺寸的估计相对准确<br>可能使用了有效的尺寸先验或回归策略</div>
+<h2 id="4-maoe-mean-average-orientation-error---平均朝向误差">4. mAOE (mean Average Orientation Error) - 平均朝向误差</h2>
+<p>定义: 预测朝向角与真实朝向角的最小夹角误差<br>公式:</p>
+<p>AOE = min(|θ_pred - θ_gt|, 2π - |θ_pred - θ_gt|)</p>
+<div class="tableish">mAOE = (1/N) ∑ᴺᵢ₌₁ AOEᵢ<br>其中:<br>θ_pred: 预测朝向角（弧度）<br>θ_gt: 真实朝向角（弧度）<br>取最小角度差（考虑周期性）<br>侧重点:<br>朝向估计: 目标行驶方向的准确性<br>角度回归: 处理角度周期性的能力<br>运动预测: 对后续轨迹预测的影响<br>您的结果: mAOE = 0.6976 rad (约40°)<br>朝向误差较大，需要重点优化<br>建议使用多bin分类+残差回归<br>或采用向量表示法（sin/cos编码）</div>
+<h2 id="5-mave-mean-average-velocity-error---平均速度误差">5. mAVE (mean Average Velocity Error) - 平均速度误差</h2>
+<p>定义: 预测速度与真实速度的L2范数误差<br>公式:</p>
+<p>AVE = √[(vx_pred - vx_gt)² + (vy_pred - vy_gt)²]</p>
+<div class="tableish">mAVE = (1/N) ∑ᴺᵢ₌₁ AVEᵢ<br>其中:<br>(vx_pred, vy_pred): 预测速度（m/s）<br>(vx_gt, vy_gt): 真实速度（m/s）<br>只考虑水平面速度（不含vz）<br>侧重点:<br>运动估计: 目标运动状态的准确性<br>时序建模: 利用多帧信息的能力<br>轨迹预测: 对规划模块的输入质量<br>您的结果: mAVE = 0.8637 m/s<br>速度误差约0.86m/s，偏高<br>建议引入时序模块（LSTM/Transformer）<br>或使用多帧融合提升运动估计</div>
+<h2 id="6-maae-mean-average-attribute-error---平均属性误差">6. mAAE (mean Average Attribute Error) - 平均属性误差</h2>
+<p>定义: 属性分类错误率（1 - 准确率）<br>公式:</p>
+<p>AAE = 1 - Accuracy_attr</p>
+<p>Accuracy_attr = (正确分类的属性数) / (总属性数)</p>
+<div class="tableish">mAAE = (1/N) ∑ᴺᵢ₌₁ AAEᵢ<br>属性类别（nuScenes）:<br>车辆: vehicle.moving, vehicle.stopped, vehicle.parked<br>行人: pedestrian.moving, pedestrian.standing, pedestrian.sitting_lying_down<br>自行车: cycle.with_rider, cycle.without_rider<br>侧重点:<br>状态识别: 目标运动/静止状态判断<br>细粒度分类: 更精细的语义理解<br>场景理解: 对交通场景的深层理解<br>您的结果: mAAE = 0.2908<br>属性错误率约29%，中等水平<br>说明状态识别能力有待提升<br>建议增强时序特征或引入上下文信息</div>
+<h2 id="7-nds-nuscenes-detection-score---nuscenes综合检测分数">7. NDS (nuScenes Detection Score) - nuScenes综合检测分数</h2>
+<p>定义: 综合所有指标的加权评分<br>公式:</p>
+<p>NDS = (1/10) × [5×mAP + ∑ᵀₚ₌₁ min(1, mTPₚ)]</p>
+<div class="tableish">其中 TP (True Positive) 指标包括:<br>- mATE: 转换为 1 - min(1, mATE)<br>- mASE: 转换为 1 - min(1, mASE)  <br>- mAOE: 转换为 1 - min(1, mAOE/π)<br>- mAVE: 转换为 1 - min(1, mAVE)<br>- mAAE: 转换为 1 - min(1, mAAE)<br>完整计算:</div>
+<pre><code>NDS = (1/10) × [
+    5 × mAP +
+    (1 - min(1, mATE)) +
+    (1 - min(1, mASE)) +
+    (1 - min(1, mAOE/π)) +
+    (1 - min(1, mAVE)) +
+    (1 - min(1, mAAE))
+]
+权重分析:
+mAP占50%权重（最重要）
+其他5个指标各占10%权重
+侧重点:
+综合性能: 平衡检测和回归质量
+实用性: 更接近实际应用需求
+鲁棒性: 避免单一指标过拟合
+您的结果: NDS = 0.3500
+综合得分35%，有较大提升空间
+主要受mAP和mAVE拖累
+建议优先优化检测召回率和速度估计</code></pre>
+<p>您的模型性能诊断<br>📊 指标分析表</p>
+<div class="tableish">🎯 优化建议（按优先级）<br>提升mAP（最高优先级）<br>增强小目标检测能力<br>优化NMS阈值和后处理策略<br>增加数据增强（尤其是远距离目标）<br>考虑使用Focal Loss处理类别不平衡<br>改进mAOE（朝向估计）</div>
+<pre><code># 建议使用多bin分类 + 残差回归
+class OrientationHead(nn.Module):
+    def __init__(self, num_bins=12):
+        self.bin_cls = nn.Linear(feat_dim, num_bins)
+        self.bin_reg = nn.Linear(feat_dim, num_bins)</code></pre>
+<div class="tableish">    def forward(self, x):<br>        bin_logits = self.bin_cls(x)<br>        bin_residuals = self.bin_reg(x)<br>        return bin_logits, bin_residuals<br>优化mAVE（速度估计）<br>引入时序模块处理多帧信息<br>使用光流或运动补偿<br>添加速度监督损失<br>降低mATE（定位误差）<br>改进深度估计网络<br>优化BEV特征分辨率<br>使用更精确的相机标定<br>📈 性能对比（nuScenes排行榜参考）</div>
+<p>您的模型目前处于中等偏下水平，有较大提升空间。</p></main><aside class="toc"><strong>目录</strong><a href="#1-map-mean-average-precision---平均精度均值" class="l2">1. mAP (mean Average Precision) - 平均精度均值</a>
+<a href="#2-mate-mean-average-translation-error---平均位置误差" class="l2">2. mATE (mean Average Translation Error) - 平均位置误差</a>
+<a href="#3-mase-mean-average-scale-error---平均尺寸误差" class="l2">3. mASE (mean Average Scale Error) - 平均尺寸误差</a>
+<a href="#4-maoe-mean-average-orientation-error---平均朝向误差" class="l2">4. mAOE (mean Average Orientation Error) - 平均朝向误差</a>
+<a href="#5-mave-mean-average-velocity-error---平均速度误差" class="l2">5. mAVE (mean Average Velocity Error) - 平均速度误差</a>
+<a href="#6-maae-mean-average-attribute-error---平均属性误差" class="l2">6. mAAE (mean Average Attribute Error) - 平均属性误差</a>
+<a href="#7-nds-nuscenes-detection-score---nuscenes综合检测分数" class="l2">7. NDS (nuScenes Detection Score) - nuScenes综合检测分数</a></aside></div>
+<nav class="nav"><a href="../sassd/">← 上一篇：SASSD (Structure Aware Single-Stage 3D Object Detection) 详解 </a><a href="../centerpoint/">下一篇：CenterPoint 论文与代码详细解读：原理、公式、尺寸变化、两阶段精修与技术演进 →</a></nav></div></body></html>

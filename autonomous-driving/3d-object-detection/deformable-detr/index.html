@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Deformable DETR 论文解读：稀疏可变形注意力（ICLR 2021） | 3D 目标检测</title><style>:root{--bg:#0b1020;--panel:#121a2f;--panel2:#17223d;--text:#e8edf7;--muted:#9fb0cc;--line:#263653;--brand:#8bd3ff;--accent:#ffd166;--green:#74d99f;--code:#0a0f1d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,#19274a 0,#0b1020 38%,#070b14 100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;line-height:1.72}.wrap{max-width:1120px;margin:0 auto;padding:36px 20px 64px}.topbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:24px}.crumb,.pill{font-size:13px;color:var(--muted)}.crumb a,.meta a,.card a,.nav a{color:var(--brand);text-decoration:none}.hero{padding:34px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,rgba(18,26,47,.96),rgba(16,31,59,.86));box-shadow:0 24px 80px rgba(0,0,0,.28)}h1{font-size:clamp(28px,4vw,46px);line-height:1.18;margin:0 0 16px}h2{font-size:26px;margin:42px 0 14px;padding-top:8px;border-top:1px solid var(--line)}h3{font-size:20px;margin:28px 0 10px;color:#d9e8ff}p{margin:12px 0}.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.pill{border:1px solid var(--line);background:rgba(255,255,255,.04);padding:6px 10px;border-radius:999px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;margin-top:24px}.content{background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:22px;padding:28px}.toc{position:sticky;top:18px;align-self:start;background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:18px;padding:18px;max-height:calc(100vh - 36px);overflow:auto}.toc strong{display:block;margin-bottom:10px}.toc a{display:block;color:var(--muted);text-decoration:none;font-size:13px;padding:4px 0}.toc a:hover{color:var(--brand)}pre{background:var(--code);border:1px solid var(--line);border-radius:14px;padding:16px;overflow:auto;white-space:pre-wrap;word-break:break-word}code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;color:#d6e8ff}.figure{border:1px dashed #3a4d73;background:rgba(139,211,255,.06);border-radius:14px;padding:14px;margin:16px 0;color:#b9c9e6}.tableish{border-left:3px solid var(--accent);padding:8px 14px;background:rgba(255,209,102,.06);border-radius:10px}.nav{display:flex;justify-content:space-between;gap:14px;margin-top:24px}.nav a{flex:1;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.04)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:22px}.card{border:1px solid var(--line);border-radius:18px;background:rgba(18,26,47,.76);padding:18px;min-height:150px}.card h3{margin-top:0}.card p{color:var(--muted);font-size:14px}.badge{display:inline-block;color:#06101d;background:var(--green);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700}.warn{border:1px solid rgba(255,209,102,.35);background:rgba(255,209,102,.08);border-radius:14px;padding:12px 14px;color:#ffe8a3}@media(max-width:900px){.layout{grid-template-columns:1fr}.toc{position:relative;top:auto}.hero{padding:24px}.content{padding:20px}}</style></head>
+<body><div class="wrap"><div class="topbar"><span class="crumb"><a href="../../../index.html">首页</a> / <a href="../../index.html">自动驾驶</a> / <a href="../index.html">3D 目标检测</a></span></div>
+<section class="hero"><h1>Deformable DETR 论文解读：稀疏可变形注意力（ICLR 2021）</h1><p>从飞书知识库导出的静态 HTML 首版。正文保留原文结构、代码片段与图表文件名；复杂飞书表格/图片以占位形式展示，并提供原文回跳。</p><div class="meta"><span class="pill">来源：飞书知识库纯文本导出</span><span class="pill">更新：2026-06-02</span><span class="pill"><a href="https://tzscglpsd7.feishu.cn/wiki/UUu3wVz00ic9YUk3cUkcgHzLnyc" target="_blank" rel="noopener">飞书原文</a></span></div></section>
+<nav class="nav"><a href="../detr/">← 上一篇：DETR：End-to-End 集合预测检测（DETR→PETR 谱系总源头） </a><a href="../detr3d/">下一篇：DETR3D：3D-to-2D Queries 多视角 3D 检测（PETR 系起点） →</a></nav>
+<div class="layout"><main class="content"><p>Deformable DETR 论文解读：稀疏可变形注意力（ICLR 2021）<br>论文：Deformable DETR: Deformable Transformers for End-to-End Object Detection<br>作者：Xizhou Zhu, Weijie Su, Lewei Lu, Bin Li, Xiaogang Wang, Jifeng Dai<br>机构：SenseTime Research + 中科大 (USTC) + 香港中文大学 (CUHK)<br>会议：ICLR 2021（Oral）<br>arXiv：2010.04159v4（v4：2021-03-18）<br>Code：https://github.com/fundamentalvision/Deformable-DETR<br>解读对象：PDF 主体 §1–§6 + Appendix A.1–A.7 + 仓库 models/ops、models/deformable_transformer.py、models/deformable_detr.py</p>
+<h2 id="1-研究背景与动机">1. 研究背景与动机</h2>
+<h3 id="11-detr-是个革命性的设计">1.1 DETR 是个革命性的设计</h3>
+<p>2020 年 ECCV 上 Carion 等人提出 DETR，第一次把目标检测做成纯端到端的范式：<br>去掉了 anchor、NMS、人工分配规则这些「手工部件」<br>用 Transformer 编解码器 + 一组可学习的 object query，靠 Hungarian Match 直接学到 set-to-set 的预测<br>训练目标干净，推理也无需任何后处理<br>但 DETR 上线之后业界发现两个致命问题：</p>
+<p>问题</p>
+<p>表现</p>
+<p>收敛极慢</p>
+<p>COCO 上要 500 epoch 才能收敛，是 Faster R-CNN 的 10–20 倍</p>
+<p>小目标差</p>
+<p>  只有 20.5，比 Faster R-CNN+FPN 的 26.6 低一截<br>Deformable DETR 这篇就是奔着解决这两个问题来的。</p>
+<h3 id="12-detr-慢和差的根源全局-attention-用错了地方">1.2 DETR 慢和差的根源：全局 attention 用错了地方</h3>
+<p>把 Transformer 直接套到图像 feature map 上，会撞上两个本质问题：<br>(1) Attention 初始化时几乎是均匀的。<br>对一个 query，初始化时 attention weight 接近  （  是 key 数量）。要让模型学会聚焦到稀疏的有用位置，需要长时间 epoch 去把这些权重「挤」到几个关键 token 上。这就是 500 epoch 的来源。<br>(2) Encoder 的全图 self-attention 复杂度是  。<br>对一张   feature map 来说，token 数 =  ，每个 query 都要 attend 所有   个 key。这导致：<br>高分辨率特征用不起 → 小目标的细节没了<br>直接接 FPN 多尺度也不行：把   拼起来 token 数翻几倍，显存直接爆</p>
+<h3 id="13-deformable-conv-的启发">1.3 Deformable Conv 的启发</h3>
+<p>DETR 的两个痛点，2017 年的 Deformable Convolution（DCN，Dai et al.）其实给了答案——稀疏采样：每个输出位置只看   个学出来的偏移点，不看全图。它的优点：<br>对前景敏感（采样点会自动聚到目标边缘和内部）<br>复杂度跟   线性相关，跟   无关<br>可学的 offset 让它比固定卷积感受野灵活得多<br>DCN 唯一缺的就是 element-pair 关系建模能力（self-attention 的核心优势）。<br>Deformable DETR 的思路就是：把这两个东西揉一起——让 attention 不再看全图，只看每个 query 周围学出来的   个采样点。既保留了 Transformer 的 set 关系建模，又拿到 DCN 的稀疏 + 多尺度自由组合优势。<br>paper-Figure3-1.png</p>
+<p>Figure 3：Deformable DETR vs DETR-DC5 在 COCO val 上的收敛曲线 —— Deformable DETR 大约 50 epoch 左右就追平甚至超过 DETR 跑 500 epoch 的 AP，10× 加速写在脸上。</p>
+<h2 id="2-核心问题分析">2. 核心问题分析</h2>
+<p>把 DETR 的痛点摊开来讲，其实是三件事：</p>
+<h3 id="21-收敛慢的本质attention-是学出来的稀疏不是设计出来的稀疏">2.1 收敛慢的本质：attention 是「学出来」的稀疏，不是「设计出来」的稀疏</h3>
+<p>对一张   的 feature map，初始化时 query   对所有 key 的 attention 几乎是均匀分布：</p>
+<p>模型要先学会把这堆几乎相等的权重「挤」到几个有用的位置上，再学怎么组合它们。500 epoch 主要消耗在前面这个「学稀疏」上。<br>Deformable Conv 给出的反例：直接设计上就是只看   个点（ ），不需要先用 attention 把全图过滤一遍，省了一大段优化路径。</p>
+<h3 id="22-小目标差的本质高分辨率特征用不起">2.2 小目标差的本质：高分辨率特征用不起</h3>
+<p>小目标天然要在高分辨率（小 stride）feature map 上检测——比如 stride=8 的  。但 DETR 的全图 self-attention 复杂度是：</p>
+<p>stride 减半 → token 数 4 倍 → 显存和算力 16 倍。所以 DETR 没办法接 FPN，只用 stride=32 的  ，小目标就废了。DETR-DC5 用空洞卷积把 stride 从 32 降到 16，AP_S 从 20.5 涨到 22.5，但 GPU hours 直接从 2000 飙到 7000，性价比极差。</p>
+<h3 id="23-多尺度集成困难">2.3 多尺度集成困难</h3>
+<p>主流检测器（FPN/PAN/BiFPN）都靠多尺度融合提点，但 DETR 用全局 attention 把所有 level 拼起来：<br>token 数  （4 个 level）<br>每个 query 都要看完所有 level 所有 token<br>显存代价不可接受<br>业界其实试过把 FPN 套到 DETR 上，性能反而没明显提升（见 §7 Table 2 BiFPN 一行）—— 这暗示 DETR 的瓶颈不在「特征不够多尺度」，而在 attention 本身没办法稀疏 + 多尺度联合工作。</p>
+<h3 id="24-总结要换的是-attention-模块本身">2.4 总结：要换的是 attention 模块本身</h3>
+<p>DETR 的整体范式（CNN backbone + Transformer + object query + Hungarian Match + set 预测）是没问题的。要改的是「Transformer attention 在 feature map 上的工作方式」——这是 Deformable DETR 选定的切入点：attention 模块从全图改成稀疏可学采样。</p>
+<h2 id="3-技术架构详解">3. 技术架构详解</h2>
+<h3 id="31-整体架构总览">3.1 整体架构总览</h3>
+<p>Deformable DETR 沿用 DETR 的「CNN backbone + Transformer encoder-decoder + object query + Hungarian set prediction」骨架，只换掉了 attention 模块：encoder 的 self-attention、decoder 的 cross-attention 全部改成 multi-scale deformable attention。decoder 的 self-attention（query 之间）保持原版 nn.MultiheadAttention 不变。<br>整体数据流：<br>ResNet 输出   三层多尺度特征<br>每层   conv 投影到   通道，再用   stride=2 conv 在   上叠一个  ，凑成   个 level<br>4 个 level flatten + concat 成一长串 token，加 sinusoidal 位置编码 + 可学的 scale-level embedding  <br>进 6 层 Deformable Encoder：每层 self-attention（每个像素作为 query 自己）+ FFN<br>6 层 Deformable Decoder 消费 encoder memory：每层 standard self-attn 对 object query 做交互 + multi-scale deformable cross-attn 从 memory 取信息 + FFN<br>每层 decoder 输出都过 class head + bbox head，与 GT 做 Hungarian Match，所有层都加 aux loss<br>paper-Figure1-1.png</p>
+<div class="tableish">Figure 1：Deformable DETR 整体示意 —— 多尺度特征进 encoder（multi-scale deformable self-attention ×4）→ decoder（standard self-attention + multi-scale deformable cross-attention ×4）→ object query 输出 box。注意 encoder/decoder 都堆 6 层（图里画了 ×4 是示意），所有 attention 都换成稀疏采样版本。<br>下面这张 Graphviz 图把数据流 + 张量形状画清楚：<br>overall_arch.png</div>
+<h3 id="32-multi-scale-feature-construction">3.2 Multi-Scale Feature Construction</h3>
+<p>主流 detection 头都吃多尺度特征，Deformable DETR 也不例外。但它不用 FPN——理由很关键：multi-scale deformable attention 自己就能跨 level 交换信息（一个 attention head 同时在 4 个 level 上采样、加权）。Table 2 直接验证了这一点：加 FPN 或 BiFPN 不仅没涨点，AP 还基本持平甚至略降。<br>具体做法（对应论文 Figure 4）：</p>
+<p>Level</p>
+<p>来源</p>
+<p>分辨率</p>
+<p>通道</p>
+<p>  +   conv</p>
+<p>256</p>
+<p>  +   conv</p>
+<p>256</p>
+<p>  +   conv</p>
+<p>256</p>
+<p>  →   stride=2 conv</p>
+<div class="tableish">256<br>四层加在一起 token 数  ，比单尺度只多 33%——这是 deformable attention 才能扛得住的开销。<br>paper-Figure4-1.png</div>
+<p>Figure 4：构造 4 级 multi-scale 特征 —— 三层 ResNet backbone 输出 + 一层 stride=2 卷积扩展，全部投到  。</p>
+<h3 id="33-multi-scale-deformable-attention-module核心">3.3 Multi-Scale Deformable Attention Module（核心）</h3>
+<p>这是整篇文章的灵魂。先看单尺度版本：</p>
+<p>每个符号都关键：<br> ：query 的 content feature<br> ：query 的 2-d reference point（encoder 是像素自身坐标，decoder 是从 query embedding 学出来的）<br> ：attention head（论文默认  ）<br> ：每个 head/level 在 ref 周围采的第   个 key（默认  ）<br> ：学出来的 sampling offset，从   经过 Linear 投出来，无范围约束<br> ：scalar attention weight，softmax 归一化（ ）<br>  和  ：value projection 和 output projection<br> ：因 offset 是分数，bilinear interpolation 取值<br>把它扩展到多尺度（论文公式 3）：</p>
+<p>关键变化：<br> ：归一化坐标，与具体 level 分辨率无关<br> ：把归一化坐标 rescale 到   层 feature map 的实际像素坐标<br>一个 attention head 在 4 个 level 上各采 4 个点，归一化跨所有   个 sample（ ）<br>这一个 attention 操作就把多尺度信息融了，FPN 完全没必要<br>为什么 deformable attention = 稀疏的 attention 而非 deformable conv？<br>论文有句精炼的总结：当   = identity 时 → deformable conv；当 sampling 点遍历所有像素 → 标准 Transformer attention。Deformable attention 就是这两者中间的一个甜点：既稀疏，又有 attention 的 query-conditioned weight 机制。<br>paper-Figure2-1.png</p>
+<div class="tableish">Figure 2：Deformable Attention Module 结构 —— query feature   同时分两路：① 经 Linear 出   个 sampling offset，② 经 Linear+softmax 出   个 attention weight；同时 input feature 经   投影；最后 ref-point + offset 处 bilinear 采样、weight 加权、  投影输出。<br>下面这张 Graphviz 图把张量形状和操作链路画得更明确：<br>msdeform_attn.png</div>
+<h3 id="34-deformable-encoder">3.4 Deformable Encoder</h3>
+<pre><code>把 DETR 的 vanilla self-attention 直接换成 multi-scale deformable self-attention，其余结构（FFN、residual、LayerNorm）不变：
+输入和输出都是同分辨率的 4 级特征：encoder 不下采样，只做 token 间信息交换
+每个 query 像素的 reference point = 它自己（在 4 个 level 上的对应归一化坐标）
+scale-level embedding  ：和 sinusoidal 位置编码一起加到 token 上，让模型分得清「这个 token 来自哪个 level」。  是可学的，初始化为 normal
+encoder 参数在 4 个 level 间共享（一组   矩阵，所有 level 都用）
+每层 encoder layer 的计算：
+src2 = MSDeformAttn(query=src+pos, ref=每像素自身, value=src, ...)
+src  = LN(src + Dropout(src2))     # 残差 + LN
+src  = src + Dropout(FFN(src))     # FFN: Linear(256→1024) → ReLU → Linear(1024→256)
+src  = LN(src)</code></pre>
+<h3 id="35-deformable-decoder">3.5 Deformable Decoder</h3>
+<pre><code>decoder layer 比 encoder 多一个 standard self-attention（让 object query 之间互相 talk），cross-attention 才是 deformable 的：
+# 1. self-attention：标准的 nn.MultiheadAttention（query 之间）
+q = k = tgt + query_pos
+tgt = LN(tgt + self_attn(q, k, tgt))</code></pre>
+<pre><code># 2. cross-attention：MSDeformAttn 从 encoder memory 取信息
+tgt2 = MSDeformAttn(
+    query        = tgt + query_pos,
+    ref_points   = sigmoid(MLP(query_pos))    # 学出来的 2-d 坐标
+    value        = encoder_memory,
+    ...)
+tgt = LN(tgt + Dropout(tgt2))</code></pre>
+<pre><code># 3. FFN
+tgt = LN(tgt + Dropout(FFN(tgt)))
+为什么 self-attention 不用 deformable？
+deformable attention 是 query→feature map 上的 key 设计的（key 必须有空间位置）；object query 之间没有空间结构，标准 attention 更合适。
+每个 object query 的 reference point   由 query embedding 经一层 Linear + sigmoid 学出来——这等于让每个 query 提前选定自己感兴趣的图像位置，DETR 里每个 query 是一个抽象的「slot」，没有显式空间锚定，这是慢收敛的另一个原因。Deformable 给了它一个具体的「我先盯着哪儿」。</code></pre>
+<h3 id="36-iterative-bounding-box-refinement">3.6 Iterative Bounding Box Refinement</h3>
+<p>DETR 让每个 decoder 层独立预测 box；Deformable DETR 改成 每层修正上一层的预测，思路类似光流估计里的 RAFT iterative refinement：</p>
+<p>实现要点：<br>每层 decoder 有独立的 bbox_embed（不共享参数）<br>第   层 cross-attention 用第   层预测的 box 中心   作为新 reference point；sampling offset 还按 box 大小   缩放，让采样点贴着上一层预测的框<br>训练稳定性技巧：梯度只反传  ，不反传  （detach），防止链式累积导致的训练崩塌<br>初始 box:  ，作者实验过 0.05 / 0.2 / 0.5 都差不多<br>带 refinement 后 AP 从 43.8 → 45.4（+1.6），是个白送的提升。</p>
+<h3 id="37-two-stage-deformable-detr">3.7 Two-Stage Deformable DETR</h3>
+<p>DETR 原版的 object query 跟当前图像无关——纯随机初始化的 embedding。Deformable DETR 利用 deformable attention 的高效性，干脆把 encoder 当 RPN 用：<br>Stage 1（encoder-only RPN）：<br>encoder 输出后，每个像素都作 anchor（论文里说 &quot;each pixel is assigned as an object query&quot;）<br>加一个 3-layer FFN 预测  <br>加一个 Linear 预测 binary class（前景/背景）<br>初始 box 大小用  （ ）—— 不同 level 给不同初始尺度<br>top-K 个高分的预测当作 region proposal（K = 300，等于 num_queries），不做 NMS<br>Stage 2（decoder + iterative refine）：<br>把 stage-1 的 top-300 proposal 当作 decoder 的初始 reference points（4-d box 而不是 2-d 中心）<br>proposal 坐标过 sinusoidal pos embed + Linear 得到 query_embed 和 tgt<br>后面就是普通的 6 层 decoder + iterative box refinement<br>带 two-stage 后 AP 从 45.4 → 46.2（+0.8）。<br>下面这张 Graphviz 图把整个 two-stage 流程画清楚：<br>two_stage.png</p>
+<h2 id="4-数学公式与理论基础">4. 数学公式与理论基础</h2>
+<h3 id="41-单尺度-deformable-attention">4.1 单尺度 Deformable Attention</h3>
+<p>约束：</p>
+<p>其中  （论文用  ）。</p>
+<h3 id="42-多尺度版本">4.2 多尺度版本</h3>
+<p>归一化：</p>
+<p>注意 softmax 是跨 level 一起做的（一个 head 内   个权重相加为 1），这意味着模型可以在多个 level 之间分配注意力——一个大目标更多 attend 到 low-resolution level，小目标更多 attend 到 high-resolution level，全自动。</p>
+<h3 id="43-复杂度对比">4.3 复杂度对比</h3>
+<p>设 query 数  ，feature map 大小  ，通道  。<br>Vanilla Transformer attention：</p>
+<p>encoder 里  ，复杂度  ，关于 spatial size 平方增长。<br>Deformable attention（论文 Appendix A.1 推导）：</p>
+<p>两个场景：<br>encoder（ ）： ，线性 spatial size——这是能上多尺度的根本原因<br>decoder cross-attention（  object query）： ，与 spatial size 完全无关<br>直观感受：DETR 在 COCO 上 encoder self-attention 算   个 token 互相 attend，约   对；Deformable DETR 多尺度时 token 数变  ，但每个 query 只看   个 key，复杂度反而降下来。</p>
+<h3 id="44-reference-point-归一化坐标">4.4 Reference Point 归一化坐标</h3>
+<p>整个论文都用   这种归一化坐标系，  是图像左上、  是图像右下。换 level 时用   rescale 到该 level 的实际像素坐标。这套设计的好处：<br>一个 attention 模块能不用改地工作在任意分辨率<br>iterative refinement 时可以直接在 sigmoid 空间叠加  ，不用考虑 level 缩放</p>
+<h3 id="45-bounding-box-prediction">4.5 Bounding Box Prediction</h3>
+<p>Deformable DETR 不直接回归绝对坐标，而是相对 reference point 预测 offset：</p>
+<div class="tableish">  是 inverse sigmoid（logit）。这样设计的好处：<br>让 box 中心和 reference point 强相关，attention 学的 sampling pattern 自然就和 box 位置对齐<br>decoder 不需要从零学全局位置回归，直接学相对修正，收敛快</div>
+<h3 id="46-sampling-offset-的初始化关键工程技巧">4.6 Sampling Offset 的初始化（关键工程技巧）</h3>
+<pre><code>MSDeformAttn._reset_parameters() 里这段是收敛快的另一个秘密：
+constant_(self.sampling_offsets.weight.data, 0.)         # 权重置零
+thetas = torch.arange(M) * (2π / M)                        # M=8 个均匀角度
+grid_init = stack([cos(θ), sin(θ)], -1)                    # 8 个单位向量
+grid_init = grid_init / grid_init.abs().max(-1)            # 归一化到 ±1 方框
+grid_init = grid_init.view(M, 1, 1, 2).repeat(1, L, K, 1)
+for i in range(K):
+    grid_init[:, :, i, :] *= (i + 1)                       # K 个半径 1, 2, 3, 4
+self.sampling_offsets.bias = grid_init.view(-1)
+效果：初始化时，8 个 head × K=4 个采样点排成 8 个方向 × 4 圈半径的星形阵列，覆盖 ref-point 周围一圈区域。这相当于给模型一个合理的「先验感受野」，再在训练中学着微调，比从全零或 Xavier 随机初始化收敛快很多。</code></pre>
+<h3 id="47-notation-速查表table-4">4.7 Notation 速查表（Table 4）</h3>
+<div class="figure">图表占位：<code>paper-Table4-1.png</code><br><span>飞书原文中的图片/表格文件名已保留，静态首版未内嵌二进制资源。</span></div>
+<p>Table 4：论文符号速查表 —— 包含   等所有公式符号的精确含义。</p>
+<h2 id="5-详细流程图前向--反向">5. 详细流程图（前向 + 反向）</h2>
+<h3 id="51-前向-pipeline一次完整推理">5.1 前向 pipeline（一次完整推理）</h3>
+<pre><code>Input image  [B, 3, H, W]
+    │
+    ▼
+ResNet-50   ──→  C3 [B, 512,  H/8,  W/8]
+                  C4 [B, 1024, H/16, W/16]
+                  C5 [B, 2048, H/32, W/32]
+    │
+    ▼ 1×1 conv 投影 + GroupNorm
+4 个 multi-scale 特征 {x^ℓ}, ℓ=1..4
+  x^1: [B, 256, H/8,  W/8]      (来自 C3)
+  x^2: [B, 256, H/16, W/16]     (来自 C4)
+  x^3: [B, 256, H/32, W/32]     (来自 C5)
+  x^4: [B, 256, H/64, W/64]     (C5 经 3×3 stride=2 conv)
+    │
+    ▼ flatten + concat
+src_flatten     [B, ΣHℓWℓ, 256]
+mask_flatten    [B, ΣHℓWℓ]                # padding mask
+spatial_shapes  [4, 2]                     # 每 level 的 (H, W)
+level_start_idx [4]                        # 每 level 在 flatten 后的起始下标
+valid_ratios    [B, 4, 2]                  # 每 level 有效像素的 (w_ratio, h_ratio)
+pos_embed       [B, ΣHℓWℓ, 256]            # sinusoidal pos + scale-level emb e_ℓ
+    │
+    ▼
+Encoder × 6 层
+  reference_points = 每像素自身坐标 / valid_ratios   [B, ΣHℓWℓ, 4, 2]
+  for layer in [1..6]:
+      output = MSDeformAttn(query=output+pos, ref=ref_points, value=output) + 残差 + LN
+      output = FFN(output) + 残差 + LN
+encoder memory  [B, ΣHℓWℓ, 256]
+    │
+    ▼ ── 单阶段分支 ──
+query_embed = self.query_embed.weight  [N, 512]    # N=300
+分裂 → query_embed (位置), tgt (内容)：各 [N, 256]
+reference_points = sigmoid(Linear(query_embed))  [B, N, 2]   # 学出来的 ref-point</code></pre>
+<pre><code>    │
+    ▼
+Decoder × 6 层
+  for d in [1..6]:
+      tgt = SelfAttn(tgt + query_pos)  + 残差 + LN
+      tgt = MSDeformAttn(query=tgt+query_pos, ref=ref_points,
+                          value=encoder_memory) + 残差 + LN
+      tgt = FFN(tgt) + 残差 + LN</code></pre>
+<pre><code>      # iterative box refinement（开了 with_box_refine 才有）
+      Δb = bbox_embed[d](tgt)
+      ref_points = sigmoid(Δb + inverse_sigmoid(ref_points)).detach()</code></pre>
+<pre><code>      记录 intermediate output 和 ref-point
+hs              [6, B, N, 256]   # 6 层 decoder 输出（aux loss 用）
+inter_refs      [6, B, N, 2 or 4]
+    │
+    ▼ Detection Head（每层独立）
+for lvl in [1..6]:
+    class_logits = class_embed[lvl](hs[lvl])    # [B, N, num_classes]
+    Δb           = bbox_embed[lvl](hs[lvl])     # [B, N, 4]
+    box          = sigmoid(Δb + inverse_sigmoid(reference[lvl-1]))
+最后一层为最终输出，前 5 层用于 aux loss
+    │
+    ▼ 训练时
+Hungarian Match  + Focal Loss(class) + L1(box) + GIoU(box)
+（two-stage 时 enc_outputs 也算一份 binary 前景/背景 loss）</code></pre>
+<h3 id="52-反向-pipeline梯度链路">5.2 反向 pipeline（梯度链路）</h3>
+<p>deformable attention 的反向有 三个 grad 要从 CUDA kernel 显式手算：<br>loss<br> │<br> ▼ 反传到 output<br> ▼ output_proj 反传 → grad_value (attention 输出)<br> ▼ MSDeformAttnFunction.backward(ctx, grad_output)<br>   ↓ 调 CUDA col2im kernel ms_deformable_col2im_cuda<br>   ↓ 同时计算：<br>     grad_value          [B, ΣHℓWℓ, M, C/M]    ← 经 W&#x27;_m^T 投回 input feature<br>     grad_sampling_loc   [B, N_q, M, L, K, 2]  ← bilinear sample 对采样坐标的导数<br>     grad_attn_weight    [B, N_q, M, L, K]     ← 加权项对权重的导数<br> ▼<br> ▼ grad_sampling_loc 经 (reference_points + offset/normalizer) 链路反传<br>   → grad_offsets → sampling_offsets.weight 的梯度<br>   → grad_ref_points → 上层 reference_points（iterative refinement 时是 box_embed 输出）<br> ▼ grad_attn_weight 经 softmax 反传 → attention_weights.weight 的梯度<br> ▼ grad_value 反传到上层 input_flatten → encoder/backbone<br>注意 iterative refinement 里 reference_points = new_reference_points.detach() 这行——它把跨层的 box 修正梯度截断了，每层的 Δb 只通过自己那层的 head 反传，不会沿着 ref-point 链一路堆到 stage-1 的 box，避免了梯度爆炸。</p>
+<h2 id="6-核心创新点">6. 核心创新点</h2>
+<h3 id="61-创新点-1deformable-attention稀疏-k-采样替代全图-attention">6.1 创新点 1：Deformable Attention（稀疏 K 采样替代全图 attention）</h3>
+<p>这是文章的根基。把 attention 的 key 集合从   降到  ，复杂度从   降到  。代价：理论上有些重要的远程信息可能 miss，但靠 学出来的 offset 自动找重要点 弥补——本质是一个 query-conditioned sparse attention。</p>
+<h3 id="62-创新点-2multi-scale-feature-aggregation-不靠-fpn">6.2 创新点 2：Multi-Scale Feature Aggregation 不靠 FPN</h3>
+<p>Multi-scale deformable attention 在   个 level 上同时采样 + 加权，softmax 跨 level 归一化。一个 attention 就把跨 level 信息融了，FPN/BiFPN 都成了多余的（Table 2 实验验证）。<br>意义：<br>给 DETR 系列开启了多尺度特征的大门<br>大目标自动 attend low-resolution，小目标自动 attend high-resolution，学出来比手工 FPN 路径更灵活<br>节省了 FPN 的额外卷积成本</p>
+<h3 id="63-创新点-3iterative-bounding-box-refinement">6.3 创新点 3：Iterative Bounding Box Refinement</h3>
+<p>每层 decoder 修正上一层的 box 预测，类似光流估计的 RAFT。带来两个好处：<br>AP +1.6（从 43.8 → 45.4）几乎免费<br>decoder 每一层都是 box-aware 的，sampling 点直接贴着 box 取，而不是固定围着初始 ref-point<br>工程上用 detach() 切断跨层 box 梯度，是训练稳定性的关键。</p>
+<h3 id="64-创新点-4two-stage-deformable-detr">6.4 创新点 4：Two-Stage Deformable DETR</h3>
+<p>让 encoder 自己当 RPN，每个像素都作为 anchor 预测一个 box。top-K（K=300）当作 region proposal 喂 decoder——这等于让 object query 第一次有了「图像感知」的初始化，不再是抽象 slot。<br>带来 AP +0.8（45.4 → 46.2），更重要的是它启发了后面 DAB-DETR、DINO 的 anchor-based query 范式。</p>
+<h3 id="65-创新点-5box-aware-reference-point--sampling-offset-调制">6.5 创新点 5：Box-Aware Reference Point + Sampling Offset 调制</h3>
+<p>两个对应的工程 trick，让 attention 学出来跟 box 强耦合：<br>reference point 用归一化坐标，跨 level 自动 rescale<br>sampling offset 按 box 大小调制： ，让大目标采样范围大、小目标采样范围小<br>sampling offset 的星形初始化：8 head × 4 半径，给模型一个合理的「初始感受野先验」，不用从随机起步</p>
+<h3 id="66-attention-可视化效果">6.6 attention 可视化效果</h3>
+<div class="figure">图表占位：<code>paper-Figure6-1.png</code><br><span>飞书原文中的图片/表格文件名已保留，静态首版未内嵌二进制资源。</span></div>
+<p>Figure 6：multi-scale deformable attention 可视化<br>上半 (a)：encoder self-attention 已经把不同 instance 分离开（每个像素聚焦在自己所在物体上）<br>下半 (b)：decoder cross-attention 聚焦在整个物体（前景），不像 DETR 只看极值点<br>绿色十字是 ref-point，绿色矩形是预测 box，不同颜色的圆点表示不同强度的 attention weight<br>这张图直观说明：deformable attention 学出来的稀疏采样确实落在了语义有意义的区域，没有失去全局 attention 的关系建模能力。</p>
+<h2 id="7-实验结果与分析">7. 实验结果与分析</h2>
+<h3 id="71-主榜与-detr-的全面对比table-1">7.1 主榜：与 DETR 的全面对比（Table 1）</h3>
+<div class="figure">图表占位：<code>paper-Table1-1.png</code><br><span>飞书原文中的图片/表格文件名已保留，静态首版未内嵌二进制资源。</span></div>
+<p>Table 1：Deformable DETR vs DETR 在 COCO 2017 val 上的对比<br>关键结论：</p>
+<p>对比</p>
+<p>DETR</p>
+<p>Deformable DETR</p>
+<p>Δ</p>
+<p>训练 epochs</p>
+<p>500</p>
+<p>50</p>
+<p>10× 加速</p>
+<p>AP</p>
+<p>42.0</p>
+<p>43.8</p>
+<p>+1.8</p>
+<p>AP_S（小目标）</p>
+<p>20.5</p>
+<p>26.4</p>
+<p>+5.9 ⭐</p>
+<p>训练 GPU hours</p>
+<p>2000</p>
+<p>325</p>
+<p>6.2× 节省</p>
+<p>推理 FPS</p>
+<p>28</p>
+<p>19</p>
+<p>-32%（unordered memory access）</p>
+<p>参数量</p>
+<p>41M</p>
+<p>40M</p>
+<p>几乎持平<br>加 iterative refinement → 45.4，再加 two-stage → 46.2，参数量基本不变（173 GFLOPs）。<br>注意 small object 的 +5.9 AP 是真正的杀手——这正是 multi-scale deformable attention 的本意：能用上 stride=8 的高分辨率特征。</p>
+<h3 id="72-deformable-attention-消融table-2">7.2 Deformable Attention 消融（Table 2）</h3>
+<div class="figure">图表占位：<code>paper-Table2-1.png</code><br><span>飞书原文中的图片/表格文件名已保留，静态首版未内嵌二进制资源。</span></div>
+<p>Table 2：deformable attention 各设计选择的消融<br>关键观察：<br>MS inputs 单独加（K=1）：39.7 → 41.4 AP（+1.7），AP_S +2.9 —— 多尺度本身就是涨点的<br>K 从 1 → 4：41.4 → 42.3 AP（+0.9） —— 更多采样点更好但收益递减<br>加 MS attention（跨 level 加权）：42.3 → 43.8 AP（+1.5） —— 跨 level 的信息交换很重要<br>再加 FPN/BiFPN：43.8 → 43.8/43.9 —— 加 FPN 完全不涨点，证明 deformable attention 自己就够融合多尺度了<br>K=1 单尺度时本质退化为 deformable conv，39.7 AP 对照实验直接证明了 attention 比纯卷积有明显增益。</p>
+<h3 id="73-与-sota-对比table-3">7.3 与 SOTA 对比（Table 3）</h3>
+<div class="figure">图表占位：<code>paper-Table3-1.png</code><br><span>飞书原文中的图片/表格文件名已保留，静态首版未内嵌二进制资源。</span></div>
+<p>Table 3：Deformable DETR 与 SOTA 在 COCO test-dev 上的对比（带 iterative refinement + two-stage）</p>
+<p>Backbone</p>
+<p>TTA</p>
+<p>AP</p>
+<p>AP_S</p>
+<p>AP_L</p>
+<p>ResNet-50</p>
+<p>✗</p>
+<p>46.9</p>
+<p>27.7</p>
+<p>59.9</p>
+<p>ResNet-101</p>
+<p>✗</p>
+<p>48.7</p>
+<p>29.1</p>
+<p>62.0</p>
+<p>ResNeXt-101</p>
+<p>✗</p>
+<p>49.0</p>
+<p>29.7</p>
+<p>62.8</p>
+<p>ResNeXt-101 + DCN</p>
+<p>✗</p>
+<p>50.1</p>
+<p>30.6</p>
+<p>64.7</p>
+<p>ResNeXt-101 + DCN</p>
+<p>✓</p>
+<p>52.3</p>
+<p>34.4</p>
+<p>65.6<br>不带任何花活就 49.0 AP，加 DCN backbone 50.1，TTA 52.3。在 2020 年这是相当具竞争力的成绩——尤其考虑到它训练速度比 DETR 快 10×、参数量更少。</p>
+<h3 id="74-收敛速度对比figure-3-已贴-1">7.4 收敛速度对比（Figure 3 已贴 §1）</h3>
+<p>Figure 3 已经在 §1 贴过：Deformable DETR 在 50 epoch 时 AP=43.8，已经高于 DETR-DC5 跑 500 epoch 的 43.3。学习率衰减后还能继续涨到 ~45.5（更长 schedule）。</p>
+<h3 id="75-看-attention-看哪里figure-5gradient-norm">7.5 看 attention 看哪里（Figure 5，gradient norm）</h3>
+<div class="figure">图表占位：<code>paper-Figure5-1.png</code><br><span>飞书原文中的图片/表格文件名已保留，静态首版未内嵌二进制资源。</span></div>
+<div class="tableish">Figure 5：最终预测对每个像素的 gradient norm<br> ,  ：盯着物体左/右、上/下边界<br> ,  ：同样盯边界<br> ：盯物体内部（DETR 只看边界）<br>这说明 Deformable DETR 既看 box 边界（定位）又看物体内部（分类），比 DETR 更全面，证明它的 attention 学到了语义有意义的 sparse pattern。</div>
+<h2 id="8-技术发展时间线">8. 技术发展时间线</h2>
+<h3 id="202005-detr-carion-et-al-eccv">2020.05  DETR (Carion et al., ECCV)</h3>
+<pre><code>         ─ 首个端到端 detection
+         ─ 痛点：500 epoch、AP_S=20.5
+              │
+              ▼</code></pre>
+<h3 id="202010-deformable-detr-zhu-et-al-iclr-2021-oral--本文">2020.10  Deformable DETR (Zhu et al., ICLR 2021 Oral)  ← 本文</h3>
+<pre><code>         ─ 稀疏 deformable attention (K=4)
+         ─ multi-scale 不靠 FPN
+         ─ iterative box refinement
+         ─ two-stage encoder-as-RPN
+         ─ 50 epoch、AP_S=26.4 → 28.8
+              │
+              ▼</code></pre>
+<h3 id="202201-conditional-detr">2022.01  Conditional DETR</h3>
+<pre><code>         ─ query 分成 content + spatial 两部分，加快收敛
+              │
+              ▼</code></pre>
+<h3 id="202202-dab-detr">2022.02  DAB-DETR</h3>
+<pre><code>         ─ object query = anchor box (4-d)
+         ─ 把 deformable DETR 的 4-d ref-point 思路推到极致
+              │
+              ▼</code></pre>
+<h3 id="202203-dn-detr">2022.03  DN-DETR</h3>
+<pre><code>         ─ denoising training，注入 GT box + 噪声当 query
+              │
+              ▼</code></pre>
+<h3 id="202206-bevformer-cvpr-2022--自动驾驶">2022.06  BEVFormer (CVPR 2022) ← 自动驾驶</h3>
+<pre><code>         ─ 直接复用 multi-scale deformable attention
+         ─ 把 ref-point 升到 3D，做 BEV 多视角 cross-attention
+         ─ 时间维度 deformable attn 串多帧 BEV
+              │
+              ▼</code></pre>
+<h3 id="202207-dino-iclr-2023">2022.07  DINO (ICLR 2023)</h3>
+<pre><code>         ─ Deformable DETR + DAB + DN + mixed query selection
+         ─ 在 COCO 上 63.3 AP，DETR 系列登顶 SOTA
+              │
+              ▼
+2023+    UniAD / VAD / OccFormer 等 E2E 自动驾驶
+         ─ 全栈使用 deformable attention
+         ─ deformable cross-attn 串感知 → 预测 → 规划
+可以看出 Deformable DETR 的影响：
+DETR 系列：成为后续 DAB-DETR / DN-DETR / DINO 的 base
+3D 检测 / BEV / 自驾：deformable attention 直接外推到 3D，成为 BEVFormer 等的核心基建
+OCC / 端到端自动驾驶：UniAD、VAD、OccFormer 全套用 deformable attention 做模块间通讯
+可以说 deformable attention 是 2020 之后最高复用率的注意力变体。</code></pre>
+<h2 id="9-代码实现技巧">9. 代码实现技巧</h2>
+<h3 id="91-仓库结构">9.1 仓库结构</h3>
+<p>Deformable-DETR/<br>├── models/<br>│   ├── ops/<br>│   │   ├── modules/ms_deform_attn.py         # MSDeformAttn nn.Module<br>│   │   ├── functions/ms_deform_attn_func.py  # PyTorch autograd Function<br>│   │   └── src/<br>│   │       ├── ms_deform_attn.h<br>│   │       ├── vision.cpp                    # pybind11 接口<br>│   │       ├── cpu/ms_deform_attn_cpu.cpp    # CPU 实现 = AT_ERROR(&quot;Not implement on cpu&quot;)<br>│   │       └── cuda/<br>│   │           ├── ms_deform_attn_cuda.cu    # forward / backward 入口<br>│   │           └── ms_deform_im2col_cuda.cuh # 真正的 CUDA kernel<br>│   ├── backbone.py                # ResNet + position encoding<br>│   ├── deformable_transformer.py  # encoder/decoder 整体<br>│   ├── deformable_detr.py         # detection head + SetCriterion<br>│   ├── matcher.py                 # Hungarian matching loss<br>│   ├── position_encoding.py<br>│   └── segmentation.py            # 全景分割 head<br>├── configs/<br>│   ├── r50_deformable_detr.sh<br>│   ├── r50_deformable_detr_plus_iterative_bbox_refinement.sh<br>│   └── r50_deformable_detr_plus_iterative_bbox_refinement_plus_plus_two_stage.sh<br>└── main.py</p>
+<h3 id="92-msdeformattn-模块modelsopsmodulesmsdeformattnpy">9.2 MSDeformAttn 模块（models/ops/modules/ms_deform_attn.py）</h3>
+<pre><code>class MSDeformAttn(nn.Module):
+    def __init__(self, d_model=256, n_levels=4, n_heads=8, n_points=4):
+        # 4 个 Linear 是核心
+        self.sampling_offsets = nn.Linear(d_model, n_heads * n_levels * n_points * 2)  # 256→256
+        self.attention_weights = nn.Linear(d_model, n_heads * n_levels * n_points)     # 256→128
+        self.value_proj = nn.Linear(d_model, d_model)
+        self.output_proj = nn.Linear(d_model, d_model)
+        self.im2col_step = 64                                                          # CUDA 分块大小</code></pre>
+<pre><code>    def _reset_parameters(self):
+        # 关键：sampling_offsets 的 bias 初始化成 8 head × K 半径的星形
+        constant_(self.sampling_offsets.weight.data, 0.)
+        thetas = torch.arange(self.n_heads) * (2π / self.n_heads)   # 8 个角度
+        grid_init = stack([cos(θ), sin(θ)], -1)
+        grid_init = grid_init / grid_init.abs().max(-1)              # 归一化到 ±1
+        grid_init = grid_init.view(M, 1, 1, 2).repeat(1, L, K, 1)
+        for i in range(K):
+            grid_init[:, :, i, :] *= (i + 1)                         # 半径 1, 2, 3, 4
+        self.sampling_offsets.bias = nn.Parameter(grid_init.view(-1))</code></pre>
+<pre><code>        # attention_weights 全零（softmax 后均匀）
+        constant_(self.attention_weights.weight.data, 0.)
+        constant_(self.attention_weights.bias.data, 0.)
+        # value_proj、output_proj 用 Xavier</code></pre>
+<h3 id="93-forward-关键步骤">9.3 forward 关键步骤</h3>
+<pre><code>def forward(self, query, reference_points, input_flatten, spatial_shapes,
+            level_start_index, padding_mask=None):
+    # 1. value 投影 + 切 head
+    value = self.value_proj(input_flatten)
+    value = value.masked_fill(padding_mask[..., None], 0)
+    value = value.view(N, Len_in, self.n_heads, self.d_model // self.n_heads)
+        # [B, ΣHℓWℓ, M=8, C/M=32]</code></pre>
+<pre><code>    # 2. 从 query 出 offset 和 weight
+    sampling_offsets = self.sampling_offsets(query).view(
+        N, Len_q, M, L, K, 2)                                # [B, Nq, 8, 4, 4, 2]
+    attention_weights = self.attention_weights(query).view(
+        N, Len_q, M, L * K)                                  # [B, Nq, 8, 16]
+    attention_weights = F.softmax(attention_weights, -1).view(N, Len_q, M, L, K)
+        # softmax 跨 (L, K) 一起做</code></pre>
+<pre><code>    # 3. 把 ref-point + offset 转成具体采样坐标
+    if reference_points.shape[-1] == 2:
+        # 单层情形：normalize offset 到归一化坐标
+        offset_normalizer = stack([spatial_shapes[..., 1], spatial_shapes[..., 0]], -1)
+        sampling_locations = reference_points[:, :, None, :, None, :] \
+                           + sampling_offsets / offset_normalizer[None, None, None, :, None, :]
+    elif reference_points.shape[-1] == 4:
+        # iterative refinement / two-stage 情形：用 box w/h 调制 offset
+        sampling_locations = reference_points[:, :, None, :, None, :2] \
+                           + sampling_offsets / self.n_points * reference_points[:, :, None, :, None, 2:] * 0.5</code></pre>
+<pre><code>    # 4. 调 CUDA kernel 一把把 bilinear+加权融合做完
+    output = MSDeformAttnFunction.apply(
+        value, spatial_shapes, level_start_index,
+        sampling_locations, attention_weights, self.im2col_step)
+    return self.output_proj(output)</code></pre>
+<h3 id="94-pytorch-autograd-functionmodelsopsfunctionsmsdeformattnfuncpy">9.4 PyTorch autograd Function（models/ops/functions/ms_deform_attn_func.py）</h3>
+<pre><code>class MSDeformAttnFunction(Function):
+    @staticmethod
+    def forward(ctx, value, spatial_shapes, level_start_index,
+                sampling_locations, attention_weights, im2col_step):
+        ctx.im2col_step = im2col_step
+        output = MSDA.ms_deform_attn_forward(...)              # 调 CUDA
+        ctx.save_for_backward(value, spatial_shapes, level_start_index,
+                              sampling_locations, attention_weights)
+        return output</code></pre>
+<pre><code>    @staticmethod
+    @once_differentiable
+    def backward(ctx, grad_output):
+        # 一次性反传 3 个梯度（value, sampling_loc, attn_weight）
+        grad_value, grad_sampling_loc, grad_attn_weight = MSDA.ms_deform_attn_backward(...)
+        return grad_value, None, None, grad_sampling_loc, grad_attn_weight, None
+@once_differentiable 表示这个 backward 不允许二阶求导（节省内存，detection 任务用不上 Hessian）。</code></pre>
+<h3 id="95-cuda-kernel-设计msdeformattncudacu--msdeformim2colcudacuh">9.5 CUDA kernel 设计（ms_deform_attn_cuda.cu + ms_deform_im2col_cuda.cuh）</h3>
+<pre><code>forward 入口签名：
+at::Tensor ms_deform_attn_cuda_forward(
+    const at::Tensor &amp;value,                 // [B, ΣHℓWℓ, M, C/M]
+    const at::Tensor &amp;spatial_shapes,        // [L, 2]
+    const at::Tensor &amp;level_start_index,     // [L]
+    const at::Tensor &amp;sampling_loc,          // [B, Nq, M, L, K, 2]
+    const at::Tensor &amp;attn_weight,           // [B, Nq, M, L, K]
+    const int im2col_step                    // 默认 64
+);
+实现要点：
+im2col 思路：把 sample + 加权当成一个 &quot;im2col&quot; 操作，每个 query × head × level × point 取一次值再加权累加
+batch 切块：im2col_step = min(batch, 64)，避免一次开太大显存
+bilinear 内联：在 CUDA kernel 内手写 4 个 corner 的双线性插值，不调用 grid_sample
+backward 同样手写 col2im：grad_value、grad_sampling_loc、grad_attn_weight 一次 kernel 全算出来
+CPU 实现直接 AT_ERROR(&quot;Not implement on cpu&quot;)——这模块基本上只能 GPU 跑。</code></pre>
+<h3 id="96-pytorch-fallbackdebug-用">9.6 PyTorch fallback（debug 用）</h3>
+<pre><code>models/ops/functions/ms_deform_attn_func.py::ms_deform_attn_core_pytorch：
+def ms_deform_attn_core_pytorch(value, value_spatial_shapes, sampling_locations, attention_weights):
+    # for debug and test only, need to use cuda version instead
+    value_list = value.split([H * W for H, W in value_spatial_shapes], dim=1)
+    sampling_grids = 2 * sampling_locations - 1
+    sampling_value_list = []
+    for lid_, (H_, W_) in enumerate(value_spatial_shapes):
+        value_l_ = value_list[lid_].flatten(2).transpose(1, 2).reshape(N*M, C/M, H_, W_)
+        sampling_grid_l_ = sampling_grids[:, :, :, lid_].transpose(1, 2).flatten(0, 1)
+        sampling_value_l_ = F.grid_sample(value_l_, sampling_grid_l_,
+                                          mode=&#x27;bilinear&#x27;, padding_mode=&#x27;zeros&#x27;,
+                                          align_corners=False)
+        sampling_value_list.append(sampling_value_l_)
+    attention_weights = attention_weights.transpose(1, 2).reshape(N*M, 1, Lq, L*P)
+    output = (stack(sampling_value_list, dim=-2).flatten(-2) * attention_weights).sum(-1)
+    return output.view(N, M*C/M, Lq).transpose(1, 2).contiguous()
+这个版本完全用标准 PyTorch ops（F.grid_sample），任何后端都能跑，但慢约 10×。马爷如果要在自己项目里复用 deformable attention 但不想编译 CUDA，可以直接用这个版本起步。</code></pre>
+<h3 id="97-iterative-box-refinement-的工程实现deformabletransformerpy">9.7 Iterative Box Refinement 的工程实现（deformable_transformer.py）</h3>
+<pre><code>class DeformableTransformerDecoder(nn.Module):
+    def forward(self, tgt, reference_points, src, ...):
+        for lid, layer in enumerate(self.layers):
+            # 关键：reference_points 是 4-d 还是 2-d 决定不同的处理
+            if reference_points.shape[-1] == 4:
+                reference_points_input = reference_points[:, :, None] \
+                    * torch.cat([src_valid_ratios, src_valid_ratios], -1)[:, None]
+            else:
+                reference_points_input = reference_points[:, :, None] * src_valid_ratios[:, None]</code></pre>
+<p>            output = layer(output, query_pos, reference_points_input, src, ...)</p>
+<pre><code>            # iterative bounding box refinement
+            if self.bbox_embed is not None:
+                tmp = self.bbox_embed[lid](output)
+                if reference_points.shape[-1] == 4:
+                    new_reference_points = tmp + inverse_sigmoid(reference_points)
+                    new_reference_points = new_reference_points.sigmoid()
+                else:
+                    new_reference_points = tmp
+                    new_reference_points[..., :2] = tmp[..., :2] + inverse_sigmoid(reference_points)
+                    new_reference_points = new_reference_points.sigmoid()
+                reference_points = new_reference_points.detach()  # 关键：截断梯度</code></pre>
+<h3 id="98-two-stage-实现关键代码">9.8 Two-Stage 实现关键代码</h3>
+<pre><code>if self.two_stage:
+    # 1. encoder 输出做 proposal
+    output_memory, output_proposals = self.gen_encoder_output_proposals(
+        memory, mask_flatten, spatial_shapes)</code></pre>
+<pre><code>    # 2. 用 decoder 最后一个 head 当 RPN head（hack：第 num_layers 个）
+    enc_outputs_class = self.decoder.class_embed[self.decoder.num_layers](output_memory)
+    enc_outputs_coord_unact = self.decoder.bbox_embed[self.decoder.num_layers](output_memory) \
+                            + output_proposals</code></pre>
+<pre><code>    # 3. top-K
+    topk = self.two_stage_num_proposals     # 300
+    topk_proposals = torch.topk(enc_outputs_class[..., 0], topk, dim=1)[1]
+    topk_coords_unact = torch.gather(enc_outputs_coord_unact, 1,
+                                     topk_proposals.unsqueeze(-1).repeat(1, 1, 4))
+    topk_coords_unact = topk_coords_unact.detach()         # 关键：截断梯度</code></pre>
+<pre><code>    reference_points = topk_coords_unact.sigmoid()
+    pos_trans_out = self.pos_trans_norm(self.pos_trans(
+        self.get_proposal_pos_embed(topk_coords_unact)))
+    query_embed, tgt = torch.split(pos_trans_out, c, dim=2)
+get_proposal_pos_embed 用 sinusoidal 把 4-d box 转成 2C 维 pos embed，再 split 成 query_embed (256) + tgt (256)。</code></pre>
+<h3 id="99-配置脚本">9.9 配置脚本</h3>
+<p>脚本</p>
+<p>含义</p>
+<p>r50_deformable_detr.sh</p>
+<p>基础版（无 refinement、无 two-stage）</p>
+<p>r50_deformable_detr_plus_iterative_bbox_refinement.sh</p>
+<p>+ --with_box_refine</p>
+<p>r50_deformable_detr_plus_iterative_bbox_refinement_plus_plus_two_stage.sh</p>
+<p>+ --with_box_refine --two_stage</p>
+<p>r50_deformable_detr_single_scale.sh</p>
+<pre><code>单尺度对照
+最强配置（46.2 AP）的脚本只多两个 flag：
+python -u main.py --output_dir exps/... \
+    --with_box_refine \
+    --two_stage \
+    ${PY_ARGS}</code></pre>
+<h3 id="910-注意事项">9.10 注意事项</h3>
+<p>d_model 必须是 head 数 ×2 的幂：每 head 维度 = 256/8 = 32 是 2 的幂，CUDA kernel 用了 unrolling 优化<br>num_levels 默认 4：设其他值仓库能跑，但 CUDA 没特别优化<br>im2col_step：默认 64，太小会增加 kernel 调用次数，太大会爆显存。如果 batch 小 &lt; 64 自动用 batch<br>第一次跑前要 cd models/ops &amp;&amp; sh make.sh 编译 CUDA 扩展，否则 import MSDeformAttn 会失败</p>
+<h2 id="10-局限性与未来方向">10. 局限性与未来方向</h2>
+<h3 id="101-局限性">10.1 局限性</h3>
+<p>(1) K 是固定数，不能 query-adaptive<br>每个 query 不管图像内容怎样，永远采   个点。理想情况下应该让 query 自己决定要采几个点（小目标少、大目标多），目前是固定值。<br>(2) decoder cross-attention 本质是 1-to-LK 而不是 1-to-N<br>每个 object query 只看   个采样位置，远没有覆盖全图。这意味着：<br>如果某个真正重要的 token 不在 ref-point 周围，模型就 miss 了<br>训练初期 ref-point 还没学好的时候，可能采到错误位置导致难以修正<br>拥挤场景下两个目标的 ref-point 太接近，sampling 会重叠<br>(3) Reference point 是显式预测的，不像 anchor box 那么稳<br>DETR 的 query 抽象，Deformable DETR 的 query 用 ref-point 锚定，但 ref-point 只是 2-d 中心点，没有 size 信息。DAB-DETR 后来直接把 query 升级成 4-d anchor box 是这个的自然延伸。<br>(4) Two-stage 的 stage-1 没法精细分类<br>stage-1 RPN 只做 binary 前景/背景，stage-2 才做多类别。对类别多的场景（COCO 80 类）没问题，但对 1000+ 类长尾场景效率不够。<br>(5) 推理慢于纯卷积<br>Deformable DETR 的 19 FPS 比 Faster R-CNN+FPN 的 26 FPS 慢 27%——主要是 unordered memory access（每个 query 采的位置都不一样，cache 不友好）。这是稀疏 attention 共有的代价。<br>(6) 端到端但不真正&quot;无 NMS&quot;<br>虽然不用 NMS，但 Hungarian Match 的代价是训练每个 batch 都要解一个 LSAP（线性指派），CPU 开销不小，大 batch 时是个瓶颈。</p>
+<h3 id="102-未来方向论文之后已实现的">10.2 未来方向（论文之后已实现的）</h3>
+<p>(1) 更结构化的 query → DAB-DETR / DN-DETR / DINO<br>把 query 升成 4-d anchor box（DAB），加 GT 噪声去噪训练（DN），混合 query selection（DINO）—— 这条线最终把 DETR 系列推到了 SOTA。<br>(2) 把 deformable attention 推到 3D<br>BEVFormer / UniAD / OccFormer 等自动驾驶工作直接复用：reference point 升到 3D（BEV 网格点），sampling offset 也成 3D，bilinear → trilinear。<br>(3) 时空 deformable attention<br>BEVFormer 的 temporal self-attention 在时间维度也用 deformable，串联多帧 BEV 特征。马爷的 OCC 项目里 5 帧 1500ms 的 temporal fusion 跟这个思路一脉相承。<br>(4) 跨模态 deformable cross-attention<br>PETR 系列、UniAD 把 deformable attention 用作多视角图像 → 3D query 的 cross-attention，把多视角特征聚合到 BEV/3D query 上。<br>(5) 更高效的 sparse attention 变体<br>Sparse4D、StreamPETR 等进一步把采样点数压到 K=8 或 K=4 搞 streaming inference。</p>
+<h2 id="11-总结">11. 总结</h2>
+<p>Deformable DETR 是一篇用一个简单想法解决一个根本问题的好工作：<br>观察：DETR 慢、小目标差，本质是「全图 attention 不适合 image feature map」<br>想法：从 deformable conv 借稀疏采样，从 transformer 留 query-conditioned weighted sum，揉成一个新 attention<br>结果：10× 收敛加速、AP_S 从 20.5 → 28.8、46.2 AP（vs DETR 42.0）<br>影响：成为后续 DAB-DETR / DN-DETR / DINO 系列的 base，更外推到 BEVFormer / UniAD / OccFormer 等 3D 自动驾驶基建<br>它的技术核心可以一句话概括：<br>每个 query 不再 attend 全图，而是 attend ref-point 周围学出来的 K 个稀疏点，跨多尺度统一加权。<br>工程上有几个关键 trick 是落地的关键：<br>CUDA im2col kernel 把 sample + 加权融合，避免显存爆炸<br>sampling offset 的星形初始化给模型合理的初始感受野<br>iterative box refinement 用 detach() 截断跨层梯度，训练稳定<br>two-stage 让 encoder 自己当 RPN，给 query 注入图像感知初始化<br>对马爷的 E2E Occupancy 项目，这篇的启发主要是 §4 的复杂度设计哲学（稀疏 K 采样 vs 全图 attention 的取舍），以及 §3.6 的 iterative refinement 思路（每层 decoder 修正 ref-point）—— 这两个直接关系到 OCC head 设计。</p>
+<h2 id="12-参考文献">12. 参考文献</h2>
+<p>主要引用（按论文中出现顺序）：<br>Carion et al. End-to-End Object Detection with Transformers (DETR). ECCV 2020. （Deformable DETR 改造的对象）<br>Vaswani et al. Attention Is All You Need. NeurIPS 2017. （Transformer 原版）<br>Dai et al. Deformable Convolutional Networks (DCN v1). ICCV 2017.<br>Zhu et al. Deformable ConvNets v2: More Deformable, Better Results. CVPR 2019.<br>Ren et al. Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks. NeurIPS 2015.<br>He et al. Deep Residual Learning for Image Recognition (ResNet). CVPR 2016.<br>Lin et al. Feature Pyramid Networks for Object Detection (FPN). CVPR 2017.<br>Lin et al. Focal Loss for Dense Object Detection. ICCV 2017.<br>Tan et al. EfficientDet: Scalable and Efficient Object Detection (BiFPN). CVPR 2020.<br>Lin et al. Microsoft COCO: Common Objects in Context. ECCV 2014.<br>Tian et al. FCOS: Fully Convolutional One-Stage Object Detection. ICCV 2019.<br>Zhang et al. Bridging the Gap Between Anchor-Based and Anchor-Free Detection (ATSS). CVPR 2020.<br>Teed &amp; Deng. RAFT: Recurrent All-Pairs Field Transforms for Optical Flow. ECCV 2020. （iterative refinement 的思路来源）<br>Kingma &amp; Ba. Adam: A Method for Stochastic Optimization. ICLR 2015.<br>后续相关论文（不在本文引用，但形成了完整的技术线）：<br>Conditional DETR (Meng et al., ICCV 2021)<br>DAB-DETR (Liu et al., ICLR 2022)<br>DN-DETR (Li et al., CVPR 2022)<br>DINO (Zhang et al., ICLR 2023)<br>BEVFormer (Li et al., ECCV 2022)<br>UniAD (Hu et al., CVPR 2023 Best Paper)<br>完整文献列表请参见原论文 PDF（第 9–11 页 References 部分）。</p></main><aside class="toc"><strong>目录</strong><a href="#1-研究背景与动机" class="l2">1. 研究背景与动机</a>
+<a href="#11-detr-是个革命性的设计" class="l3">1.1 DETR 是个革命性的设计</a>
+<a href="#12-detr-慢和差的根源全局-attention-用错了地方" class="l3">1.2 DETR 慢和差的根源：全局 attention 用错了地方</a>
+<a href="#13-deformable-conv-的启发" class="l3">1.3 Deformable Conv 的启发</a>
+<a href="#2-核心问题分析" class="l2">2. 核心问题分析</a>
+<a href="#21-收敛慢的本质attention-是学出来的稀疏不是设计出来的稀疏" class="l3">2.1 收敛慢的本质：attention 是「学出来」的稀疏，不是「设计出来」的稀疏</a>
+<a href="#22-小目标差的本质高分辨率特征用不起" class="l3">2.2 小目标差的本质：高分辨率特征用不起</a>
+<a href="#23-多尺度集成困难" class="l3">2.3 多尺度集成困难</a>
+<a href="#24-总结要换的是-attention-模块本身" class="l3">2.4 总结：要换的是 attention 模块本身</a>
+<a href="#3-技术架构详解" class="l2">3. 技术架构详解</a>
+<a href="#31-整体架构总览" class="l3">3.1 整体架构总览</a>
+<a href="#32-multi-scale-feature-construction" class="l3">3.2 Multi-Scale Feature Construction</a>
+<a href="#33-multi-scale-deformable-attention-module核心" class="l3">3.3 Multi-Scale Deformable Attention Module（核心）</a>
+<a href="#34-deformable-encoder" class="l3">3.4 Deformable Encoder</a>
+<a href="#35-deformable-decoder" class="l3">3.5 Deformable Decoder</a>
+<a href="#36-iterative-bounding-box-refinement" class="l3">3.6 Iterative Bounding Box Refinement</a>
+<a href="#37-two-stage-deformable-detr" class="l3">3.7 Two-Stage Deformable DETR</a>
+<a href="#4-数学公式与理论基础" class="l2">4. 数学公式与理论基础</a>
+<a href="#41-单尺度-deformable-attention" class="l3">4.1 单尺度 Deformable Attention</a>
+<a href="#42-多尺度版本" class="l3">4.2 多尺度版本</a>
+<a href="#43-复杂度对比" class="l3">4.3 复杂度对比</a>
+<a href="#44-reference-point-归一化坐标" class="l3">4.4 Reference Point 归一化坐标</a>
+<a href="#45-bounding-box-prediction" class="l3">4.5 Bounding Box Prediction</a>
+<a href="#46-sampling-offset-的初始化关键工程技巧" class="l3">4.6 Sampling Offset 的初始化（关键工程技巧）</a>
+<a href="#47-notation-速查表table-4" class="l3">4.7 Notation 速查表（Table 4）</a>
+<a href="#5-详细流程图前向--反向" class="l2">5. 详细流程图（前向 + 反向）</a>
+<a href="#51-前向-pipeline一次完整推理" class="l3">5.1 前向 pipeline（一次完整推理）</a>
+<a href="#52-反向-pipeline梯度链路" class="l3">5.2 反向 pipeline（梯度链路）</a>
+<a href="#6-核心创新点" class="l2">6. 核心创新点</a>
+<a href="#61-创新点-1deformable-attention稀疏-k-采样替代全图-attention" class="l3">6.1 创新点 1：Deformable Attention（稀疏 K 采样替代全图 attention）</a>
+<a href="#62-创新点-2multi-scale-feature-aggregation-不靠-fpn" class="l3">6.2 创新点 2：Multi-Scale Feature Aggregation 不靠 FPN</a>
+<a href="#63-创新点-3iterative-bounding-box-refinement" class="l3">6.3 创新点 3：Iterative Bounding Box Refinement</a>
+<a href="#64-创新点-4two-stage-deformable-detr" class="l3">6.4 创新点 4：Two-Stage Deformable DETR</a>
+<a href="#65-创新点-5box-aware-reference-point--sampling-offset-调制" class="l3">6.5 创新点 5：Box-Aware Reference Point + Sampling Offset 调制</a>
+<a href="#66-attention-可视化效果" class="l3">6.6 attention 可视化效果</a>
+<a href="#7-实验结果与分析" class="l2">7. 实验结果与分析</a>
+<a href="#71-主榜与-detr-的全面对比table-1" class="l3">7.1 主榜：与 DETR 的全面对比（Table 1）</a>
+<a href="#72-deformable-attention-消融table-2" class="l3">7.2 Deformable Attention 消融（Table 2）</a>
+<a href="#73-与-sota-对比table-3" class="l3">7.3 与 SOTA 对比（Table 3）</a>
+<a href="#74-收敛速度对比figure-3-已贴-1" class="l3">7.4 收敛速度对比（Figure 3 已贴 §1）</a>
+<a href="#75-看-attention-看哪里figure-5gradient-norm" class="l3">7.5 看 attention 看哪里（Figure 5，gradient norm）</a>
+<a href="#8-技术发展时间线" class="l2">8. 技术发展时间线</a>
+<a href="#202005-detr-carion-et-al-eccv" class="l3">2020.05  DETR (Carion et al., ECCV)</a>
+<a href="#202010-deformable-detr-zhu-et-al-iclr-2021-oral--本文" class="l3">2020.10  Deformable DETR (Zhu et al., ICLR 2021 Oral)  ← 本文</a>
+<a href="#202201-conditional-detr" class="l3">2022.01  Conditional DETR</a>
+<a href="#202202-dab-detr" class="l3">2022.02  DAB-DETR</a>
+<a href="#202203-dn-detr" class="l3">2022.03  DN-DETR</a>
+<a href="#202206-bevformer-cvpr-2022--自动驾驶" class="l3">2022.06  BEVFormer (CVPR 2022) ← 自动驾驶</a>
+<a href="#202207-dino-iclr-2023" class="l3">2022.07  DINO (ICLR 2023)</a>
+<a href="#9-代码实现技巧" class="l2">9. 代码实现技巧</a>
+<a href="#91-仓库结构" class="l3">9.1 仓库结构</a>
+<a href="#92-msdeformattn-模块modelsopsmodulesmsdeformattnpy" class="l3">9.2 MSDeformAttn 模块（models/ops/modules/ms_deform_attn.py）</a>
+<a href="#93-forward-关键步骤" class="l3">9.3 forward 关键步骤</a>
+<a href="#94-pytorch-autograd-functionmodelsopsfunctionsmsdeformattnfuncpy" class="l3">9.4 PyTorch autograd Function（models/ops/functions/ms_deform_attn_func.py）</a>
+<a href="#95-cuda-kernel-设计msdeformattncudacu--msdeformim2colcudacuh" class="l3">9.5 CUDA kernel 设计（ms_deform_attn_cuda.cu + ms_deform_im2col_cuda.cuh）</a>
+<a href="#96-pytorch-fallbackdebug-用" class="l3">9.6 PyTorch fallback（debug 用）</a>
+<a href="#97-iterative-box-refinement-的工程实现deformabletransformerpy" class="l3">9.7 Iterative Box Refinement 的工程实现（deformable_transformer.py）</a>
+<a href="#98-two-stage-实现关键代码" class="l3">9.8 Two-Stage 实现关键代码</a>
+<a href="#99-配置脚本" class="l3">9.9 配置脚本</a>
+<a href="#910-注意事项" class="l3">9.10 注意事项</a>
+<a href="#10-局限性与未来方向" class="l2">10. 局限性与未来方向</a>
+<a href="#101-局限性" class="l3">10.1 局限性</a>
+<a href="#102-未来方向论文之后已实现的" class="l3">10.2 未来方向（论文之后已实现的）</a>
+<a href="#11-总结" class="l2">11. 总结</a>
+<a href="#12-参考文献" class="l2">12. 参考文献</a></aside></div>
+<nav class="nav"><a href="../detr/">← 上一篇：DETR：End-to-End 集合预测检测（DETR→PETR 谱系总源头） </a><a href="../detr3d/">下一篇：DETR3D：3D-to-2D Queries 多视角 3D 检测（PETR 系起点） →</a></nav></div></body></html>
