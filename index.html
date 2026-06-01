@@ -5,38 +5,96 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>自动驾驶网页目录</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 980px; margin: 56px auto; padding: 0 24px; line-height: 1.7; color: #111827; background: #f9fafb; }
-    h1 { font-size: 34px; margin-bottom: 8px; }
-    h2 { margin-top: 0; }
-    .muted { color: #6b7280; }
-    .section { margin-top: 28px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
-    .card { border: 1px solid #e5e7eb; border-radius: 16px; padding: 22px; background: white; box-shadow: 0 8px 30px rgba(0,0,0,.04); }
-    a { color: #2563eb; font-weight: 650; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    code { background: #f3f4f6; padding: 2px 6px; border-radius: 6px; }
+    :root{
+      --bg:#05070d; --bg2:#0a0e1a; --card:#141d33; --ink:#e8eef9; --mut:#9fb0cc;
+      --line:#26344f; --acc:#5b9dff; --green:#34d399; --gold:#fbbf24; --purple:#c084fc;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;background:#05070d;color:var(--ink);font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Segoe UI,Roboto,sans-serif}
+    body{
+      background:
+        radial-gradient(circle at 18% 12%, rgba(91,157,255,.22), transparent 30%),
+        radial-gradient(circle at 82% 18%, rgba(192,132,252,.18), transparent 34%),
+        radial-gradient(circle at 50% 92%, rgba(52,211,153,.12), transparent 34%),
+        linear-gradient(180deg,#05070d 0%,#0a0e1a 52%,#05070d 100%);
+      overflow-x:hidden;
+    }
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.55;background-image:linear-gradient(rgba(91,157,255,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(91,157,255,.09) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(circle at 50% 36%,#000,transparent 76%)}
+    body:after{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent,rgba(5,7,13,.72));}
+    .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:56px 24px 72px}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:56px;color:var(--mut)}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.02em;color:var(--ink)}
+    .logo{width:34px;height:34px;border-radius:12px;background:linear-gradient(135deg,var(--acc),var(--green));box-shadow:0 0 32px rgba(91,157,255,.45)}
+    .back{color:var(--mut);text-decoration:none;border:1px solid rgba(159,176,204,.18);padding:9px 14px;border-radius:999px;background:rgba(20,29,51,.46);transition:.2s}
+    .back:hover{color:var(--ink);border-color:rgba(91,157,255,.5);transform:translateY(-1px)}
+    .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:36px;align-items:end;margin-bottom:36px}
+    .eyebrow{display:inline-flex;align-items:center;gap:10px;border:1px solid rgba(91,157,255,.32);background:rgba(91,157,255,.08);color:#b8d4ff;padding:8px 13px;border-radius:999px;font-size:13px;margin-bottom:18px}
+    .dot{width:8px;height:8px;border-radius:99px;background:var(--green);box-shadow:0 0 18px var(--green)}
+    h1{font-size:clamp(42px,6vw,82px);line-height:1.02;letter-spacing:-.06em;margin-bottom:18px;background:linear-gradient(90deg,#e8eef9,#8fc1ff 46%,#c7a8ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .lead{font-size:18px;line-height:1.9;color:var(--mut);max-width:700px}
+    .hud{border:1px solid rgba(159,176,204,.16);background:rgba(20,29,51,.46);border-radius:22px;padding:18px;box-shadow:0 22px 70px rgba(0,0,0,.28);backdrop-filter:blur(18px)}
+    .hud-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .metric{border:1px solid rgba(159,176,204,.14);border-radius:16px;padding:14px;background:rgba(5,7,13,.36)}
+    .metric b{display:block;font-size:22px;color:#fff}.metric span{color:var(--mut);font-size:13px}
+    .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin-top:28px}
+    .card{position:relative;overflow:hidden;border:1px solid rgba(159,176,204,.18);border-radius:28px;background:rgba(20,29,51,.72);box-shadow:0 26px 90px rgba(0,0,0,.38);text-decoration:none;color:var(--ink);transition:transform .24s ease,border-color .24s ease,box-shadow .24s ease}
+    .card:hover{transform:translateY(-6px);border-color:rgba(91,157,255,.6);box-shadow:0 34px 110px rgba(31,111,235,.22)}
+    .cover{height:250px;background:#0a0e1a;position:relative;overflow:hidden}
+    .cover img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s ease}.card:hover .cover img{transform:scale(1.035)}
+    .cover:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(5,7,13,.58) 100%)}
+    .content{padding:24px 24px 26px}.tag{display:inline-flex;color:#b8d4ff;background:rgba(91,157,255,.12);border:1px solid rgba(91,157,255,.22);border-radius:999px;padding:6px 10px;font-size:12px;margin-bottom:14px}
+    .content h2{font-size:24px;line-height:1.35;margin-bottom:12px}.content p{color:var(--mut);line-height:1.75;font-size:15px;margin-bottom:18px}
+    .open{display:inline-flex;align-items:center;gap:8px;color:#dbeafe;font-weight:800}.open:after{content:"→";transition:transform .2s}.card:hover .open:after{transform:translateX(4px)}
+    .foot{margin-top:34px;color:rgba(159,176,204,.72);font-size:13px;text-align:center}
+    @media(max-width:900px){.hero{grid-template-columns:1fr}.hud{display:none}.cards{grid-template-columns:1fr}.cover{height:220px}.wrap{padding-top:34px}.topbar{margin-bottom:38px}h1{font-size:44px}}
   </style>
 </head>
 <body>
-  <h1>自动驾驶网页目录</h1>
-  <p class="muted">统一管理自动驾驶相关 HTML 页面。根目录和 <code>/autonomous-driving/</code> 目录保持同一份索引。</p>
+  <main class="wrap">
+    <nav class="topbar">
+      <div class="brand"><span class="logo"></span><span>Autonomous Driving Knowledge Hub</span></div>
+      <a class="back" href="./">自动驾驶目录</a>
+    </nav>
 
-  <div class="section">
-    <h2>自动驾驶</h2>
-    <div class="grid">
-      <div class="card">
-        <h3>DETR 到 PETR 系演进主线：多视角 3D 感知全景 PPT</h3>
-        <p>路径：<code>autonomous-driving/detr-petr-lineage/</code></p>
-        <p><a href="./autonomous-driving/detr-petr-lineage/">打开页面 →</a></p>
+    <section class="hero">
+      <div>
+        <div class="eyebrow"><span class="dot"></span> BEV · PETR · VLA · 3D Perception</div>
+        <h1>自动驾驶网页目录</h1>
+        <p class="lead">统一收纳自动驾驶方向的技术演示、论文方法论和感知架构图谱。这里是入口，不展示文件路径，只保留可直接打开的高质量内容卡片。</p>
       </div>
-      <div class="card">
-        <h3>AI 论文解读方法论</h3>
-        <p>路径：<code>autonomous-driving/ai-paper-reading-methodology/</code></p>
-        <p><a href="./autonomous-driving/ai-paper-reading-methodology/">打开页面 →</a></p>
-      </div>
-    </div>
-  </div>
+      <aside class="hud">
+        <div class="hud-grid">
+          <div class="metric"><b>02</b><span>已发布页面</span></div>
+          <div class="metric"><b>3D</b><span>多视角感知</span></div>
+          <div class="metric"><b>BEV</b><span>空间建模</span></div>
+          <div class="metric"><b>AI</b><span>论文解读流程</span></div>
+        </div>
+      </aside>
+    </section>
 
-  <p class="muted">GitHub 仓库：<a href="https://github.com/mai00dou/autonomous-driving-pages">mai00dou/autonomous-driving-pages</a></p>
+    <section class="cards">
+      <a class="card" href="./autonomous-driving/detr-petr-lineage/">
+        <div class="cover"><img src="./assets/cover-detr-petr.svg" alt="DETR 到 PETR 系演进主线封面"></div>
+        <div class="content">
+          <span class="tag">3D 感知图谱</span>
+          <h2>DETR 到 PETR 系演进主线</h2>
+          <p>多视角 3D 感知范式全景，从 DETR 集合预测到 PETR、BEVFormer、Sparse4D 的技术演进。</p>
+          <span class="open">打开页面</span>
+        </div>
+      </a>
+
+      <a class="card" href="./autonomous-driving/ai-paper-reading-methodology/">
+        <div class="cover"><img src="./assets/cover-paper-method.svg" alt="AI 论文解读方法论封面"></div>
+        <div class="content">
+          <span class="tag">论文解读方法论</span>
+          <h2>AI 论文解读方法论</h2>
+          <p>从 PDF 完好性检查、图表抽取、公式处理到源码核对和飞书归档的标准化流程。</p>
+          <span class="open">打开页面</span>
+        </div>
+      </a>
+    </section>
+
+    <p class="foot">Public GitHub Pages · 静态页面目录 · 自动驾驶技术资料入口</p>
+  </main>
 </body>
 </html>
