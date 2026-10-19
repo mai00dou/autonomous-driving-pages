@@ -1,0 +1,66 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>占据栅格预测 OCC | 占据栅格预测</title><style>:root{--bg:#0b1020;--panel:#121a2f;--panel2:#17223d;--text:#e8edf7;--muted:#9fb0cc;--line:#263653;--brand:#8bd3ff;--accent:#ffd166;--green:#74d99f;--code:#0a0f1d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,#19274a 0,#0b1020 38%,#070b14 100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;line-height:1.72}.wrap{max-width:1120px;margin:0 auto;padding:36px 20px 64px}.topbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:24px}.crumb,.pill{font-size:13px;color:var(--muted)}.crumb a,.meta a,.card a,.nav a{color:var(--brand);text-decoration:none}.hero{padding:34px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,rgba(18,26,47,.96),rgba(16,31,59,.86));box-shadow:0 24px 80px rgba(0,0,0,.28)}h1{font-size:clamp(28px,4vw,46px);line-height:1.18;margin:0 0 16px}h2{font-size:26px;margin:42px 0 14px;padding-top:8px;border-top:1px solid var(--line)}h3{font-size:20px;margin:28px 0 10px;color:#d9e8ff}p{margin:12px 0}.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.pill{border:1px solid var(--line);background:rgba(255,255,255,.04);padding:6px 10px;border-radius:999px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;margin-top:24px}.content{background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:22px;padding:28px}.toc{position:sticky;top:18px;align-self:start;background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:18px;padding:18px;max-height:calc(100vh - 36px);overflow:auto}.toc strong{display:block;margin-bottom:10px}.toc a{display:block;color:var(--muted);text-decoration:none;font-size:13px;padding:4px 0}.toc a:hover{color:var(--brand)}pre{background:var(--code);border:1px solid var(--line);border-radius:14px;padding:16px;overflow:auto;white-space:pre-wrap;word-break:break-word}code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;color:#d6e8ff}.figure{border:1px dashed #3a4d73;background:rgba(139,211,255,.06);border-radius:14px;padding:14px;margin:16px 0;color:#b9c9e6}.tableish{border-left:3px solid var(--accent);padding:8px 14px;background:rgba(255,209,102,.06);border-radius:10px}.nav{display:flex;justify-content:space-between;gap:14px;margin-top:24px}.nav a{flex:1;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.04)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:22px}.card{border:1px solid var(--line);border-radius:18px;background:rgba(18,26,47,.76);padding:18px;min-height:150px}.card h3{margin-top:0}.card p{color:var(--muted);font-size:14px}.badge{display:inline-block;color:#06101d;background:var(--green);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700}.warn{border:1px solid rgba(255,209,102,.35);background:rgba(255,209,102,.08);border-radius:14px;padding:12px 14px;color:#ffe8a3}@media(max-width:900px){.layout{grid-template-columns:1fr}.toc{position:relative;top:auto}.hero{padding:24px}.content{padding:20px}}</style></head><body><div class="wrap"><div class="topbar"><span class="crumb"><a href="../../index.html">首页</a> / <a href="../index.html">自动驾驶</a> / <a href="./">占据栅格预测</a></span></div>
+<section class="hero"><h1>占据栅格预测 OCC</h1><p>从环视图像预测三维占据栅格的技术谱系。按源码逐篇核对配置，重点讲清三条线索：表征怎么选、真值从哪来、算力省在哪。</p><div class="meta"><span class="pill">共 13 篇</span><span class="pill">4 篇主干深度解读</span><span class="pill">参数均取自仓库源码</span></div></section>
+<div class="layout"><main class="content">
+<h2>一、为什么把 OCC 单独拆出来</h2>
+<p>占据栅格预测（Occupancy Prediction）在车载感知里是一个<b>与 3D 检测并列、但不相同</b>的任务。检测回答「有哪些目标、框在哪」，占据回答「这团空间是空的还是被占的、占了归哪一类」。这个差别决定了它无法沿用检测那套评测：检测看 mAP/NDS，占据看 mIoU 与 rayIoU；检测的真值来自人工标注框，占据的真值要么靠多帧 LiDAR 累积重建，要么干脆没有真值只能自监督。</p>
+<p>更实际的理由是规模。此前这部分内容被塞进 DETR→PETR 谱系 deck 的第 51–54 页，只有 4 页、8 篇论文，而手头能核到源码的仓库已经有 13 个。四页的体量既讲不清监督信号从哪来，也放不下各篇点云范围、体素分辨率这些真正决定可比性的参数。</p>
+
+<h2>二、表征的四条岔路</h2>
+<p>所有 OCC 工作的第一个分岔点是：<b>把三维几何绑在什么载体上</b>。这与 3D 检测里的稠密 BEV / 特征侧 3D PE / query / 显式深度四岔口是同构的，只是换到了三维空间。</p>
+<div class="grid">
+<article class="card"><span class="badge">路1</span><h3>稠密体素</h3><p>直接预测一张三维占据栅格，逐体素做多类分类。几何最直白，代价是空格也照样参与计算。</p><p class="pill">SurroundOcc · OccFormer · PanoOcc</p></article>
+<article class="card"><span class="badge">路2</span><h3>三平面降维</h3><p>把三维拆成三个互相垂直的二维平面，在平面上做注意力，再交叉查询还原三维。规模骤降，代价是交叉处表达是隐式的。</p><p class="pill">TPVFormer</p></article>
+<article class="card"><span class="badge">路3</span><h3>稀疏查询</h3><p>用一组 query 表示一块体积，只在前景处分配算力，靠迭代 refine 逼近几何。算力随内容伸缩，代价是早期收敛慢。</p><p class="pill">SparseOcc · VoxFormer</p></article>
+<article class="card"><span class="badge">路4</span><h3>通道承载高度</h3><p>把 z 轴折进通道维，全程只用 2D 卷积，最后 view 成三维。没有 3D 算子，代价是跨高度关系表达受限。</p><p class="pill">FlashOCC</p></article>
+</div>
+
+<h2>三、谱系：谁从谁身上长出来</h2>
+<p>这一支没有检测那边整齐的「DETR → DETR3D → PETR → …」单线，而是<b>四条岔路各自演进、再互相借算子</b>。下面按时间排。</p>
+<div class="tableish"><b>2023 上半年 · 表征定型</b><br>
+<b>TPVFormer</b>（CVPR 2023，2302.07817）提出三平面；<b>SurroundOcc</b>（ICCV 2023，2303.09551）用稠密体素 + 多帧 LiDAR 融合重建真值，把「真值从哪来」这个问题第一次工程化；<b>VoxFormer</b>（CVPR 2023，2302.12251）走两阶段稀疏路线：先出可见部分，再补全被遮挡区域；<b>OccFormer</b>（ICCV 2023，2304.05316）把 Mask2Former 的 mask 查询搬到占据上。</div>
+<div class="tableish"><b>2023 下半年 · 监督与效率</b><br>
+<b>PanoOcc</b>（2306.10013）做全景占据；<b>FlashOCC</b>（2409.11160）用 channel-to-height 把 3D 算子彻底去掉；<b>RenderOcc</b>（CVPR 2024，2309.09502）用体渲染把监督降到 2D 语义/深度，绕开 3D 真值瓶颈；<b>SelfOcc</b>（2311.12754）进一步走到全自监督。</div>
+<div class="tableish"><b>2024 · 稀疏与预测</b><br>
+<b>SparseOcc</b>（CVPR 2024，2312.17118）把 DETR 的一对一匹配搬到实例掩码上，纯稀疏；<b>OccWorld</b>（CVPR 2024，2311.16038）把占据当状态空间做世界模型；<b>GaussianFormer</b>（2405.17429）用 14.4 万个高斯球表示场景；<b>occ-flow</b>（2407.07587）加自监督占据流；<b>FB-BEV</b>（2308.02236）提出前后向视图变换。</div>
+
+<h2>四、算力账本：同一个 occ_size，不同的物理尺度</h2>
+<p>这是最容易写错的一处。多篇论文都写 <code>occ_size=[200,200,16]</code>，但各自的点云范围不同，换算出的体素边长完全不同——直接把 mIoU 拿来横比是没有意义的。</p>
+<div class="tableish"><b>SparseOcc</b>：<code>point_cloud_range=[-40,-40,-1.0,40,40,5.4]</code> → 80×80×6.4 m，<code>occ_size=[200,200,16]</code> → 体素 <b>0.4×0.4×0.4 m</b></div>
+<div class="tableish"><b>SurroundOcc</b>：<code>[-50,-50,-5.0,50,50,3.0]</code> → 100×100×8 m，<code>[200,200,16]</code> → 体素 <b>0.5×0.5×0.5 m</b></div>
+<div class="tableish"><b>TPVFormer</b>：<code>[-51.2,-51.2,-5.0,51.2,51.2,3.0]</code> → 102.4×102.4×8 m；但它不建稠密栅格，三个平面 <code>100×100</code>+<code>100×8</code>+<code>100×8</code> 共 <b>11,600</b> 个位置</div>
+<div class="tableish"><b>FlashOCC</b>：<code>grid_config</code> 的 x/y 仍是 <code>[-40,40,0.4]</code>，但 <code>Dz=16</code> 折进通道，前向只有 2D 卷积</div>
+<div class="tableish"><b>OccFormer</b>：<code>occ_size=[256,256,32]</code>，比上面几家都细，却配 100 个 mask 查询——用查询数换分辨率</div>
+
+<h2>五、13 篇对照表</h2>
+<div class="tableish" style="overflow-x:auto">
+<table style="width:100%;border-collapse:collapse;font-size:14px">
+<tr style="color:var(--brand)"><th style="text-align:left;padding:6px 8px">论文</th><th style="text-align:left;padding:6px 8px">年份</th><th style="text-align:left;padding:6px 8px">表征</th><th style="text-align:left;padding:6px 8px">源码核到的关键参数</th></tr>
+<tr><td style="padding:6px 8px"><a href="tpvformer/">TPVFormer</a></td><td style="padding:6px 8px">CVPR 2023</td><td style="padding:6px 8px">三平面</td><td style="padding:6px 8px"><code>100×100×8</code>，<code>_dim_=256</code>，<code>num_points=[8,64,64]</code>，18 类</td></tr>
+<tr><td style="padding:6px 8px"><a href="surroundocc/">SurroundOcc</a></td><td style="padding:6px 8px">ICCV 2023</td><td style="padding:6px 8px">稠密体素</td><td style="padding:6px 8px"><code>[200,200,16]</code>，三层 <code>volume=[100,50,25]</code>，ResNet-101</td></tr>
+<tr><td style="padding:6px 8px">VoxFormer</td><td style="padding:6px 8px">CVPR 2023</td><td style="padding:6px 8px">两阶段稀疏</td><td style="padding:6px 8px"><code>pc_range=[0,-25.6,-2.0,51.2,25.6,4.4]</code>，<code>voxel_size=0.2³</code></td></tr>
+<tr><td style="padding:6px 8px">OccFormer</td><td style="padding:6px 8px">ICCV 2023</td><td style="padding:6px 8px">mask 查询 + 稠密</td><td style="padding:6px 8px"><code>occ_size=[256,256,32]</code>，<code>mask2former_num_queries=100</code></td></tr>
+<tr><td style="padding:6px 8px">PanoOcc</td><td style="padding:6px 8px">2023</td><td style="padding:6px 8px">稠密体素</td><td style="padding:6px 8px"><code>voxel_size=[0.2,0.2,8]</code>，<code>grid_size=[512,512,1]</code>，18 类</td></tr>
+<tr><td style="padding:6px 8px"><a href="flashocc/">FlashOCC</a></td><td style="padding:6px 8px">2023 → 2409</td><td style="padding:6px 8px">channel-to-height</td><td style="padding:6px 8px"><code>Dz=16</code>，<code>numC_Trans=64</code>，<code>collapse_z=True</code></td></tr>
+<tr><td style="padding:6px 8px">RenderOcc</td><td style="padding:6px 8px">CVPR 2024</td><td style="padding:6px 8px">体素 + 体渲染</td><td style="padding:6px 8px"><code>pc_range=[-40,-40,-1,40,40,5.4]</code>，监督仅 2D 语义/深度</td></tr>
+<tr><td style="padding:6px 8px">SelfOcc</td><td style="padding:6px 8px">2023</td><td style="padding:6px 8px">SDF 自监督</td><td style="padding:6px 8px"><code>pc_range=[-40,-40,-1.0,40,40,5.4]</code>，无 3D 真值</td></tr>
+<tr><td style="padding:6px 8px"><a href="sparseocc/">SparseOcc</a></td><td style="padding:6px 8px">CVPR 2024</td><td style="padding:6px 8px">稀疏查询 + mask</td><td style="padding:6px 8px"><code>num_queries=100</code>，<code>num_frames=8</code>，<code>topk_testing=[2000,8000,32000]</code></td></tr>
+<tr><td style="padding:6px 8px">OccWorld</td><td style="padding:6px 8px">CVPR 2024</td><td style="padding:6px 8px">体素世界模型</td><td style="padding:6px 8px">18 类；VQ-VAE + 时序预测，先训 vqvae 再训 world model</td></tr>
+<tr><td style="padding:6px 8px">GaussianFormer</td><td style="padding:6px 8px">2024</td><td style="padding:6px 8px">高斯球</td><td style="padding:6px 8px"><code>num_anchor=144000</code>，<code>scale_range=[0.08,0.32]</code>，18 类</td></tr>
+<tr><td style="padding:6px 8px">occ-flow</td><td style="padding:6px 8px">2024</td><td style="padding:6px 8px">SDF + 流</td><td style="padding:6px 8px"><code>pc_range=[-40,-40,-1.0,40,40,5.4]</code>，自监督占据 + 流</td></tr>
+<tr><td style="padding:6px 8px">FB-BEV</td><td style="padding:6px 8px">ICCV 2023</td><td style="padding:6px 8px">前后向视图变换</td><td style="padding:6px 8px"><code>occ_size=[200,200,16]</code>，<code>pc_range=[-40,-40,-1.0,40,40,5.4]</code></td></tr>
+</table>
+</div>
+<p style="color:var(--muted);font-size:13px">说明：上表「源码核到的关键参数」全部来自各仓库配置文件的实际字面量，未使用论文摘要里的数字。评测协议与可见区域划分各家不同，因此本表不列 mIoU。</p>
+
+<h2>六、四篇主干深度解读</h2>
+<div class="grid">
+<article class="card"><span class="badge">01</span><h3><a href="surroundocc/">SurroundOcc</a></h3><p>稠密体素路线的基准。真正的贡献不是网络结构，而是<b>把稠密真值造出来</b>：多帧 LiDAR 融合 + Poisson 表面重建，这套流程后来成了整个社区的数据基础。</p><p class="pill">ICCV 2023 · 2303.09551</p></article>
+<article class="card"><span class="badge">02</span><h3><a href="tpvformer/">TPVFormer</a></h3><p>三平面降维的提出者。<code>100×100×8</code> 的三个平面共 11,600 个位置，用二维注意力承载三维语义，是「最小算力」思路最优雅的一次表达。</p><p class="pill">CVPR 2023 · 2302.07817</p></article>
+<article class="card"><span class="badge">03</span><h3><a href="sparseocc/">SparseOcc</a></h3><p>DETR 基因在 OCC 最完整的落地。100 个 query、8 帧采样、掩码级匈牙利匹配（<code>cost_class=2.0, cost_mask=5.0, cost_dice=5.0</code>），前向零稠密体素。</p><p class="pill">CVPR 2024 · 2312.17118</p></article>
+<article class="card"><span class="badge">04</span><h3><a href="flashocc/">FlashOCC</a></h3><p>极致工程化：<code>Dz=16</code> 折进通道，<code>collapse_z=True</code>，全程 2D 卷积，无任何 3D 算子。它证明了 <b>很多场景下 3D 算子不是必需的</b>。</p><p class="pill">2409.11160</p></article>
+</div>
+
+<h2>七、与检测谱系的关系</h2>
+<p>DETR 那三条基因在这里换了载体继续活：<b>匈牙利匹配</b> → SparseOcc 的实例掩码匹配；<b>deformable 采样</b> → SurroundOcc 直接改 <code>deformable_attention.num_points</code> 做 2D→3D，SparseBEV 的 SASA/AdaptiveMixing 又被 SparseOcc 原样搬去做体素解码；<b>reference point</b> → query 的 3D 中心，query 不再表示「一个目标」而表示「一块体积」。</p>
+<p>完整的检测谱系（14 篇）在 <a href="../detr-petr-lineage/">DETR→PETR 谱系</a> 那份 deck 里。</p>
+</main><aside class="toc"><strong>目录</strong><a href="#一为什么把-occ-单独拆出来" class="l2">一、为什么把 OCC 单独拆出来</a><a href="#二表征的四条岔路" class="l2">二、表征的四条岔路</a><a href="#稠密体素" class="l3">稠密体素</a><a href="#三平面降维" class="l3">三平面降维</a><a href="#稀疏查询" class="l3">稀疏查询</a><a href="#通道承载高度" class="l3">通道承载高度</a><a href="#三谱系谁从谁身上长出来" class="l2">三、谱系：谁从谁身上长出来</a><a href="#四算力账本同一个-occ_size不同的物理尺度" class="l2">四、算力账本：同一个 occ_size，不同的物理尺度</a><a href="#五13-篇对照表" class="l2">五、13 篇对照表</a><a href="#六四篇主干深度解读" class="l2">六、四篇主干深度解读</a><a href="#surroundocc" class="l3">SurroundOcc</a><a href="#tpvformer" class="l3">TPVFormer</a><a href="#sparseocc" class="l3">SparseOcc</a><a href="#flashocc" class="l3">FlashOCC</a><a href="#七与检测谱系的关系" class="l2">七、与检测谱系的关系</a></aside></div></div></body></html>

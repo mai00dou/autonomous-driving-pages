@@ -1,0 +1,71 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>SurroundOcc：稠密体素与真值生成流程（ICCV 2023） | 占据栅格预测</title><style>:root{--bg:#0b1020;--panel:#121a2f;--panel2:#17223d;--text:#e8edf7;--muted:#9fb0cc;--line:#263653;--brand:#8bd3ff;--accent:#ffd166;--green:#74d99f;--code:#0a0f1d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,#19274a 0,#0b1020 38%,#070b14 100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;line-height:1.72}.wrap{max-width:1120px;margin:0 auto;padding:36px 20px 64px}.topbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:24px}.crumb,.pill{font-size:13px;color:var(--muted)}.crumb a,.meta a,.card a,.nav a{color:var(--brand);text-decoration:none}.hero{padding:34px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,rgba(18,26,47,.96),rgba(16,31,59,.86));box-shadow:0 24px 80px rgba(0,0,0,.28)}h1{font-size:clamp(28px,4vw,46px);line-height:1.18;margin:0 0 16px}h2{font-size:26px;margin:42px 0 14px;padding-top:8px;border-top:1px solid var(--line)}h3{font-size:20px;margin:28px 0 10px;color:#d9e8ff}p{margin:12px 0}.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.pill{border:1px solid var(--line);background:rgba(255,255,255,.04);padding:6px 10px;border-radius:999px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;margin-top:24px}.content{background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:22px;padding:28px}.toc{position:sticky;top:18px;align-self:start;background:rgba(18,26,47,.72);border:1px solid var(--line);border-radius:18px;padding:18px;max-height:calc(100vh - 36px);overflow:auto}.toc strong{display:block;margin-bottom:10px}.toc a{display:block;color:var(--muted);text-decoration:none;font-size:13px;padding:4px 0}.toc a:hover{color:var(--brand)}pre{background:var(--code);border:1px solid var(--line);border-radius:14px;padding:16px;overflow:auto;white-space:pre-wrap;word-break:break-word}code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;color:#d6e8ff}.figure{border:1px dashed #3a4d73;background:rgba(139,211,255,.06);border-radius:14px;padding:14px;margin:16px 0;color:#b9c9e6}.tableish{border-left:3px solid var(--accent);padding:8px 14px;background:rgba(255,209,102,.06);border-radius:10px}.nav{display:flex;justify-content:space-between;gap:14px;margin-top:24px}.nav a{flex:1;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.04)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:22px}.card{border:1px solid var(--line);border-radius:18px;background:rgba(18,26,47,.76);padding:18px;min-height:150px}.card h3{margin-top:0}.card p{color:var(--muted);font-size:14px}.badge{display:inline-block;color:#06101d;background:var(--green);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700}.warn{border:1px solid rgba(255,209,102,.35);background:rgba(255,209,102,.08);border-radius:14px;padding:12px 14px;color:#ffe8a3}@media(max-width:900px){.layout{grid-template-columns:1fr}.toc{position:relative;top:auto}.hero{padding:24px}.content{padding:20px}}</style></head><body><div class="wrap"><div class="topbar"><span class="crumb"><a href="../../../index.html">首页</a> / <a href="../../index.html">自动驾驶</a> / <a href="../">占据栅格预测</a></span></div>
+<section class="hero"><h1>SurroundOcc：稠密体素与真值生成流程（ICCV 2023）</h1><p>源码级解读。文中所有数值与代码片段均取自仓库实际文件。</p><div class="meta"><span class="pill">占据栅格预测</span><span class="pill"><a href="../">← 返回 OCC 总览</a></span></div></section>
+<nav class="nav"><a href="../">← 返回 OCC 总览</a><a href="../tpvformer/">下一篇：TPVFormer →</a></nav><div class="layout"><main class="content">
+<h2>一、一句话定位</h2>
+<p>SurroundOcc 是稠密体素路线的事实基准。但它的核心贡献不是网络结构，而是<b>把稠密真值造出来</b>——多帧 LiDAR 融合加 Poisson 表面重建。这套流程后来成了整个社区共用的数据基础，没有它，后面所有稠密监督方法都无从训练。</p>
+<div class="tableish"><b>论文</b> SurroundOcc: Multi-Camera 3D Occupancy Prediction for Autonomous Driving<br><b>会议</b> ICCV 2023 · <b>arXiv</b> 2303.09551<br><b>作者</b> Yi Wei, Linqing Zhao, Wenzhao Zheng, Zheng Zhu, Jiwen Lu, Jie Zhou（清华 + 上海 AI Lab）</div>
+
+<h2>二、它要解决什么</h2>
+<p>2023 年初的车载感知面临一个尴尬：<b>检测框描述不了不规则物体</b>。施工路障、异形车辆、掉落的货物，用轴对齐或带朝向的立方体框都装不下。解决办法是退到体素级——把空间切成小格子，逐格判断「空 / 被占 / 属于哪类」。</p>
+<p>但立刻撞上第二个问题：<b>真值从哪来？</b> 人工标三维占据是不可能的，几十万个格子没人标得动。SurroundOcc 的答案是用<b>多帧 LiDAR 点云累积</b>：单帧雷达稀疏，但在车缓慢行驶时把连续多帧配准叠加，就能把同一片区域扫得足够密；再用 Poisson 重建拟合出表面，把点云变成封闭的体素占据。</p>
+
+<h2>三、关键技术与源码</h2>
+<h3>3.1 三层多尺度体素</h3>
+<p>配置里定义了三组不同的体素分辨率，逐层细化：</p>
+<pre><code>_dim_      = [128, 256, 512]
+volume_h_  = [100, 50, 25]
+volume_w_  = [100, 50, 25]
+volume_z_  = [8, 4, 2]
+_num_points_ = [2, 4, 8]
+_num_layers_ = [1, 3, 6]</code></pre>
+<p>注意这里的规模是 <b>100×100×8</b>（最粗）到 <b>25×25×2</b>（最细），不是最终的 200×200×16。最终栅格靠后面的 deblock 上采样得到。粗层负责大范围语义，细层负责边界——这是典型的 FPN 思路搬到三维。</p>
+
+<h3>3.2 一个体素 query 怎么取到图像特征</h3>
+<p>每个体素位置有一个可学习的 embedding，通过 deformable attention 去 6 路环视图像里采特征。核心循环：</p>
+<pre><code>for i in range(self.fpn_level):
+    volume_queries = self.volume_embedding[i].weight
+    volume_embed_i = self.transformer[i](
+        [view_features], volume_queries,
+        volume_h=volume_h, volume_w=volume_w, volume_z=volume_z,
+        img_metas=img_metas)</code></pre>
+<p>这里复用的正是 Deformable DETR 那套 deformable attention，只是把参考点从二维换成了三维体素中心，再投影到各相机平面。配置里可以逐个 level 指定采样点数：</p>
+<pre><code>deformable_attention.num_points = self.transformer_template.encoder.\
+    transformerlayers.attn_cfgs[0].deformable_attention.num_points[i]</code></pre>
+<p>这就是「<b>DETR 的采样算子跨任务复用</b>」最直接的证据——同一份 deformable attention 代码，在检测里采二维邻域，在这里采三维体素。</p>
+
+<h3>3.3 多尺度监督的衰减权重</h3>
+<p>三层输出各自算一次损失，但粗层权重被刻意压低，避免低分辨率预测主导梯度：</p>
+<pre><code>loss_occ_i = loss_occ_i * ((0.5) ** (len(preds_dicts['occ_preds']) - 1 - i))</code></pre>
+<p>最粗一层乘 0.25，中间层乘 0.5，最细一层保持 1.0。</p>
+
+<h3>3.4 损失函数：三项组合</h3>
+<p>语义分支用三项相加：</p>
+<pre><code>loss_occ_i = (criterion(pred, gt.long())
+              + sem_scal_loss(pred, gt.long())
+              + geo_scal_loss(pred, gt.long()))</code></pre>
+<ul>
+<li><code>criterion</code>：交叉熵，逐体素分类</li>
+<li><code>sem_scal_loss</code>：<b>语义</b>尺度损失，惩罚各类别在整体中的比例偏差</li>
+<li><code>geo_scal_loss</code>：<b>几何</b>尺度损失，惩罚「占据 / 空闲」比例偏差</li>
+</ul>
+<p>后两项针对的是占据任务特有的类别极度不平衡——绝大多数体素是空的。只算交叉熵会退化成「全预测为空」也有很高准确率。</p>
+
+<h2>四、配置里的实际数值</h2>
+<div class="tableish"><b>point_cloud_range</b> <code>[-50, -50, -5.0, 50, 50, 3.0]</code> → 100×100×8 米</div>
+<div class="tableish"><b>occ_size</b> <code>[200, 200, 16]</code> → 体素边长 <b>0.5×0.5×0.5 米</b></div>
+<div class="tableish"><b>backbone</b> ResNet-101，<code>num_classes=17</code>（<code>class_names</code> 列了 16 个语义类，多出的一类留给空/自由）</div>
+<div class="tableish"><b>use_semantic</b> <code>True</code>，<code>use_grid_mask=True</code></div>
+
+<h2>五、在谱系里的位置</h2>
+<p><b>往前</b>：它把 Deformable DETR 的算子搬进三维，是「检测基因跨任务复用」的第一例。<br>
+<b>往后</b>：它定义的 <b>0.5 米体素 + 200×200×16</b> 成了后续多篇工作的默认设定；它那套真值生成流程被 Occ3D-nuScenes 等数据集工作继承。<br>
+<b>对比 SparseOcc</b>：同样是 200×200×16，但 SparseOcc 的点云范围缩到 ±40 米、体素 0.4 米。两者 mIoU 不能直接比。</p>
+
+<h2>六、源码要点速查</h2>
+<pre><code>projects/configs/surroundocc/surroundocc.py    # 配置入口
+projects/mmdet3d_plugin/surroundocc/dense_heads/occ_head.py
+    class OccHead(nn.Module)          # :30
+    def forward(self, mlvl_feats, img_metas)   # :188
+projects/mmdet3d_plugin/surroundocc/loss/loss_utils.py
+    multiscale_supervision / geo_scal_loss / sem_scal_loss</code></pre>
+</main><aside class="toc"><strong>目录</strong><a href="#一一句话定位" class="l2">一、一句话定位</a><a href="#二它要解决什么" class="l2">二、它要解决什么</a><a href="#三关键技术与源码" class="l2">三、关键技术与源码</a><a href="#31-三层多尺度体素" class="l3">3.1 三层多尺度体素</a><a href="#32-一个体素-query-怎么取到图像特征" class="l3">3.2 一个体素 query 怎么取到图像特征</a><a href="#33-多尺度监督的衰减权重" class="l3">3.3 多尺度监督的衰减权重</a><a href="#34-损失函数三项组合" class="l3">3.4 损失函数：三项组合</a><a href="#四配置里的实际数值" class="l2">四、配置里的实际数值</a><a href="#五在谱系里的位置" class="l2">五、在谱系里的位置</a><a href="#六源码要点速查" class="l2">六、源码要点速查</a></aside></div><nav class="nav"><a href="../">← 返回 OCC 总览</a><a href="../tpvformer/">下一篇：TPVFormer →</a></nav></div></body></html>
