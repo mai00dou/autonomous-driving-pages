@@ -126,7 +126,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset
 @media print{@page{size:13.333in 7.5in;margin:0}html,body{width:13.333in}.slide{height:7.5in;min-height:0;width:13.333in;overflow:hidden;page-break-after:always;break-after:page}.nav,.hint{display:none}}
 </style></head>
 <body><div class="pbar" id="pbar" aria-hidden="true"></div>
-<main><div class="deck" style="scroll-snap-type:y proximity"><section class="slide" id="slide-1" data-pg="01 / 10">
+<main><div class="deck" style="scroll-snap-type:y proximity"><section class="slide" id="slide-1" data-pg="01 / 14">
       <div class="cover" style="flex:1;display:flex;flex-direction:column;justify-content:center">
         <div class="eyebrow">AI 驱动的论文解读方法论 · Methodology Deck</div>
         <h1>用 AI / OpenClaw Agent 解读论文</h1>
@@ -137,7 +137,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset
           <span class="tag">PDF 完好性校验</span><span class="tag">pdffigures2 抽图</span><span class="tag">12 章深度结构</span><span class="tag">真实源码逐行</span><span class="tag">KaTeX 公式</span><span class="tag">飞书自动归档</span><span class="tag">skill 自进化</span>
         </div>
       </div>
-    <div class="kick">OpenClaw · paper-reading-feishu skill</div></section><section class="slide" id="slide-2" data-pg="02 / 10">
+    <div class="kick">OpenClaw · paper-reading-feishu skill</div></section><section class="slide" id="slide-2" data-pg="02 / 14">
       <div class="eyebrow">问题定义 · Why</div>
       <h2>人读论文的瓶颈，正是 AI 的切入点</h2>
       <div class="body">
@@ -155,7 +155,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset
           </div>
         </div>
       </div>
-    <div class="kick">01 / 问题</div></section><section class="slide" id="slide-3" data-pg="03 / 10">
+    <div class="kick">01 / 问题</div></section><section class="slide" id="slide-3" data-pg="03 / 14">
       <div class="eyebrow">解读流水线 · Pipeline</div>
       <h2>一条 arXiv 链接 → 一篇深度解读的 6 步流水线</h2>
       <div class="body"><div class="col">
@@ -164,14 +164,14 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset
           <ul class="pts"><li>每步都有<b>明确产出物</b>和<b>质量校验</b>：抽图后校验 non-white&gt;5% + 四周留白&lt;12%；写入前必出「图表→章节」映射清单</li><li><b>失败即兜底</b>：PDF 损坏→arXiv 重拉完好版；pdffigures2 抽不出→PyMuPDF caption 反向定位</li></ul>
         </div>
       </div></div>
-    <div class="kick">02 / 流水线</div></section><section class="slide" id="slide-4" data-pg="04 / 10">
+    <div class="kick">02 / 流水线</div></section><section class="slide" id="slide-4" data-pg="04 / 14">
       <div class="eyebrow">读得透 · Depth-7</div>
       <h2>「深度七件」：把论文从读懂到吃透的硬标准</h2>
       <div class="body"><div class="col">
         <div class="grid g3"><div class="gc c1"><h3>① 摘要逐句拆解</h3><p>abstract 按句拆，每句引原文+中文解读</p></div><div class="gc c2"><h3>② 痛点→对策映射表</h3><p>论文每个缺陷与每个模块对策一一对死</p></div><div class="gc c3"><h3>③ 公式编号+符号速查</h3><p>Eq.1~N 逐条讲，每个符号标物理含义</p></div><div class="gc c4"><h3>④ 核心模块结合源码</h3><p>克隆仓库，给 class 结构+forward 数据流</p></div><div class="gc c5"><h3>⑤ 维度变化表</h3><p>tensor 从输入到输出 shape 全程画清</p></div><div class="gc c6"><h3>⑥ 真实代码逐行</h3><p>摘真实源码逐行解读，配代码流程图</p></div>
         <div class="gc c7"><h3>⑦ 设计哲学一图速记 + 工程启发</h3><p>把核心思想提炼成一张图，并写明「这套设计能怎么搬到自己的项目」。<span class="hl">深 = 逐句 / 逐公式 / 逐 class / 逐维度的嵌入式深耕，而非堆图。</span></p></div></div>
       </div></div>
-    <div class="kick">03 / 读得透</div></section><section class="slide" id="slide-5" data-pg="05 / 10">
+    <div class="kick">03 / 读得透</div></section><section class="slide" id="slide-5" data-pg="05 / 14">
       <div class="eyebrow">图文并茂 · Visual</div>
       <h2>图文并茂不是堆图，是「每张图各归其位」</h2>
       <div class="body">
@@ -183,7 +183,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset
           <div class="cap">示例：自绘 Graphviz 把 Sparse4D 的 deformable 4D 聚合画成数据流图</div>
         </div>
       </div>
-    <div class="kick">04 / 图文并茂</div></section><section class="slide" id="slide-6" data-pg="06 / 10">
+    <div class="kick">04 / 图文并茂</div></section><section class="slide" id="slide-6" data-pg="06 / 14">
       <div class="eyebrow">优化讲解 · Quality</div>
       <h2>讲解质量怎么一轮轮变好</h2>
       <div class="body"><div class="col">
@@ -194,7 +194,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset
           <div class="gc c4"><h3>🧩 模板固化</h3><p>12 章结构 + 文档头模板 + 公式铁律固化成 skill，保证每篇产出的下限稳定、风格统一。</p></div>
         </div>
       </div></div>
-    <div class="kick">05 / 优化讲解</div></section><section class="slide" id="slide-7" data-pg="07 / 10">
+    <div class="kick">05 / 优化讲解</div></section><section class="slide" id="slide-7" data-pg="07 / 14">
       <div class="eyebrow">自我进化 · Self-Improving Loop</div>
       <h2>踩坑 → 沉淀 → 复用：Agent 的自进化闭环</h2>
       <div class="body"><div class="col">
@@ -211,7 +211,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset
           <ul class="pts"><li><b>记忆即长期能力</b>：MEMORY.md 记下每篇 doc_token / 创新点 / 工程启发；skill 的「已踩坑表」是 Agent 的免疫系统</li><li><b>规则可执行</b>：不是模糊经验，而是带命令、带判据的硬规则（如 <span class='kbd'>公式 &lt; → \lt</span>、<span class='kbd'>图宽&gt;1400 才缩</span>）</li><li><b>越用越准</b>：解读到第 N 篇时，前 N-1 篇的所有教训都已内化，质量单调上升</li></ul>
         </div>
       </div></div>
-    <div class="kick">06 / 自我进化</div></section><section class="slide" id="slide-8" data-pg="08 / 10">
+    <div class="kick">06 / 自我进化</div></section><section class="slide" id="slide-8" data-pg="08 / 14">
       <div class="eyebrow">沉淀证据 · Lessons Codified</div>
       <h2>这些坑，踩过一次就再不会踩</h2>
       <div class="body"><div class="col">
@@ -224,7 +224,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset
           <div class="gc c6"><h3>⚡ 触发限流</h3><p>并发 delete/insert 触发 429 → 串行操作，从高 index 往低 index 改。</p></div>
         </div>
       </div></div>
-    <div class="kick">07 / 踩坑沉淀</div></section><section class="slide" id="slide-9" data-pg="09 / 10">
+    <div class="kick">07 / 踩坑沉淀</div></section><section class="slide" id="slide-9" data-pg="09 / 14">
       <div class="eyebrow">策略总结 · Strategy</div>
       <h2>当前论文阅读策略一览</h2>
       <div class="body">
@@ -236,7 +236,92 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset
           <div class="cap">谱系成线：14 篇论文串成一张演进树，新论文来了立刻定位</div>
         </div>
       </div>
-    <div class="kick">08 / 策略总结</div></section><section class="slide" id="slide-10" data-pg="10 / 10">
+    <div class="kick">08 / 策略总结</div></section><section class="slide" id="slide-10" data-pg="10 / 14">
+      <div class="eyebrow">知识资产化 · Knowledge Base</div>
+      <h2>归档不是终点：把 N 篇笔记长成一座论文库</h2>
+      <div class="body">
+        <div class="col">
+          <ul class="pts">
+            <li><b>单篇 → 库</b>：每篇解读只是原材料，真正的资产是它们之间被<b>显式写出来</b>的关系；关系不写，库就退化成文件夹</li>
+            <li><b>统一元数据</b>：每篇必带 task / backbone / 输入表征 / 监督信号 / 指标 / 一句话创新 / 已知局限，字段固定才可横向对比</li>
+            <li><b>三层结构</b>：单篇深读 → 主题综述 → 演进主线；新论文进来只做增量，不动上层骨架</li>
+            <li><b>可检索</b>：分类 + 标签 + 索引页，要能回答「谁解决过这个问题」，而不是靠回忆文件名</li>
+          </ul>
+        </div>
+        <div class="col narrow">
+          <div class="card">
+            <div style="font-size:15px;color:var(--mut);margin-bottom:.9em;letter-spacing:.05em">元数据卡 · 每篇强制七字段</div>
+            <div class="kbd" style="display:block;line-height:2.05;font-size:12.5px;white-space:pre">task        : 环视 3D 检测
+backbone    : VoVNet-99
+input       : 6V 图像 + 3D PE
+supervision : 稀疏 query 集合
+metric      : NDS 0.5xx
+idea        : 3D 点投回 2D 采特征
+limit       : 远距离召回受限</div>
+          </div>
+        </div>
+      </div>
+    <div class="kick">09 / 归档之后</div></section>
+
+  <section class="slide" id="slide-11" data-pg="11 / 14">
+      <div class="eyebrow">跨论文分析 · Cross-Paper Diff</div>
+      <h2>一堆论文放在一起，差异才是信息</h2>
+      <div class="body"><div class="col">
+        <div class="grid g2">
+          <div class="gc c1"><h3><span class="ic">🧮</span>统一维度对比矩阵</h3><p>同一任务的 N 篇按固定五列对齐：输入表征 / 时序建模 / 监督信号 / 后处理 / 推理成本。表里的<b style="color:#dce5f5">空格本身就是结论</b>——整列没人做，那就是空白。</p></div>
+          <div class="gc c2"><h3><span class="ic">🌿</span>演进树还原 Δ</h3><p>把后一篇读成「前一篇 + 一个改动」，创新点就从形容词变成可定位的 diff。谁补了谁的第几个缺陷，一眼可查，不必靠记忆。</p></div>
+          <div class="gc c3"><h3><span class="ic">⚖️</span>共识 / 分歧双栏</h3><p>大多数论文都做的事是<b style="color:#dce5f5">领域默认值</b>；默认值被改写才是大新闻。只有一两篇做的事，是需要验证的分歧点，也最值得复现。</p></div>
+          <div class="gc c4"><h3><span class="ic">🔍</span>反事实追问</h3><p>去掉这个模块还成立吗？换掉这个数据集还领先吗？答案往往正是论文的<b style="color:#dce5f5">边界条件</b>，比 abstract 里的形容词有用得多。</p></div>
+        </div>
+        <div class="card" style="margin-top:1.6vh">
+          <div class="lead" style="font-size:16.5px">抽丝剥茧的产出不是「第 N 篇讲了什么」，而是三张表：<span class="hl">对比矩阵</span>（谁在哪一列领先）、<span class="hl">演进树</span>（谁继承谁）、<span class="hl">决策表</span>（我这个场景该选谁）。</div>
+        </div>
+      </div></div>
+    <div class="kick">10 / 抽丝剥茧</div></section>
+
+  <section class="slide" id="slide-12" data-pg="12 / 14">
+      <div class="eyebrow">知识保鲜 · Review Loop</div>
+      <h2>结论会过期，回看才是复利</h2>
+      <div class="body">
+        <div class="col">
+          <ul class="pts">
+            <li><b>触发式回看</b>：新论文一落地，先回溯同主题旧笔记做增量更新，而不是从零重读一遍</li>
+            <li><b>周期回看</b>：月度扫增量（补齐元数据、修失效链接），季度重排主线（谁被超越了、主线是否换向）</li>
+            <li><b>回看四问</b>：结论还成立吗 / 被谁超越了 / 工程假设变了吗 / 我上次的判断错在哪</li>
+            <li><b>版本化</b>：笔记标「截至 YYYY-MM」+ 置信度，绝不让三年前的结论冒充当下共识</li>
+            <li><b>可自动化</b>：把季度回看挂成定时任务，Agent 扫新 arXiv 命中关键词，主动提示哪几篇旧笔记该改</li>
+          </ul>
+        </div>
+        <div class="col narrow">
+          <div class="card">
+            <div style="font-size:15px;color:var(--mut);margin-bottom:1em;letter-spacing:.05em">回看节奏</div>
+            <div class="metrics" style="flex-direction:column;gap:.9vh">
+              <div class="metric"><div class="v" style="font-size:21px">触发</div><div class="k">新论文落地 → 当天回溯同主题</div></div>
+              <div class="metric"><div class="v" style="font-size:21px">每月</div><div class="k">扫增量 · 补元数据 · 修链接</div></div>
+              <div class="metric"><div class="v" style="font-size:21px">每季</div><div class="k">重排主线 · 更新选型决策表</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <div class="kick">11 / 定期回看</div></section>
+
+  <section class="slide" id="slide-13" data-pg="13 / 14">
+      <div class="eyebrow">论文库的复利 · Compounding</div>
+      <h2>攒到一定量，读论文开始反向供血</h2>
+      <div class="body"><div class="col">
+        <div class="grid g2">
+          <div class="gc c5"><h3><span class="ic">🎯</span>选型决策</h3><p>新项目要定 backbone，直接查矩阵，不必再读十篇。决策成本从「两周调研」压到「十分钟查表」。</p></div>
+          <div class="gc c6"><h3><span class="ic">💡</span>选题探测</h3><p>空白 = 矩阵里整列为空，或共识里没人验证过的假设。别人从零找 idea，你从自己表的空格里找。</p></div>
+          <div class="gc c1"><h3><span class="ic">✍️</span>写作复用</h3><p>综述、PPT、答辩材料从主线直接生成，边际成本趋零；同一批素材换切面就能出一版新的。</p></div>
+          <div class="gc c2"><h3><span class="ic">🧭</span>团队传承</h3><p>新人从演进树入手，三天建立领域地图；沟通从「你去看那篇论文」变成「看第 3 行第 2 列」。</p></div>
+        </div>
+        <div class="card" style="margin-top:1.6vh">
+          <div class="lead" style="font-size:16.5px">单篇笔记的价值随篇数<b>线性</b>增长，关系网的价值随连接数<b>超线性</b>增长——这正是「抽丝剥茧 + 定期回看」值得单独做一遍的理由。</div>
+        </div>
+      </div></div>
+    <div class="kick">12 / 复利</div></section>
+
+    <section class="slide" id="slide-14" data-pg="14 / 14">
       <div class="eyebrow">成果 & 展望 · Outcome</div>
       <h2>方法论已跑通，产出可复用</h2>
       <div class="body">
@@ -258,7 +343,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset
           <div class="cap">真实产出：自动生成的图文 PPT 页面</div>
         </div>
       </div>
-    <div class="kick">09 / 成果展望</div></section></div></main>
+    <div class="kick">13 / 成果展望</div></section></div></main>
 <nav class="nav" aria-label="幻灯片导航">
 <a href="#slide-1" aria-label="第 1 页" data-i="1"></a>
 <a href="#slide-2" aria-label="第 2 页" data-i="2"></a>
@@ -270,6 +355,10 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset
 <a href="#slide-8" aria-label="第 8 页" data-i="8"></a>
 <a href="#slide-9" aria-label="第 9 页" data-i="9"></a>
 <a href="#slide-10" aria-label="第 10 页" data-i="10"></a>
+<a href="#slide-11" aria-label="第 11 页" data-i="11"></a>
+<a href="#slide-12" aria-label="第 12 页" data-i="12"></a>
+<a href="#slide-13" aria-label="第 13 页" data-i="13"></a>
+<a href="#slide-14" aria-label="第 14 页" data-i="14"></a>
 </nav><script>
 const sl=[...document.querySelectorAll('.slide')];
 const dots=[...document.querySelectorAll('.nav a')];
